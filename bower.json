@@ -1,0 +1,28 @@
+{
+  "name": "WeaveDataJS",
+  "version": "0.0.1",
+  "authors": [
+    "Sanjay krishna anbalagan <sanjay1909@gmail.com>"
+  ],
+  "description": "Custom Session Data for Visualization parameters",
+  "main": "weavedata.js",
+  "moduleType": [
+    "es6"
+  ],
+  "keywords": [
+    "weave",
+    "ivpr"
+  ],
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "devDependencies": {
+    "WeaveCoreJS": "git://github.com/sanjay1909/WeaveCoreJS.git"
+  }
+}
