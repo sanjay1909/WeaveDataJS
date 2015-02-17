@@ -25,7 +25,7 @@
  * @author adufilie
  */
 
-function() {
+(function() {
     function ColumnUtils() {
 
     }
@@ -635,4 +635,4 @@ function() {
     //todo: (cached) get sorted index from a key and a column
 
     //todo: (cached) get bins from a column with a filter applied
-}
+}());
