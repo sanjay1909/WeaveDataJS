@@ -1,23 +1,3 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
-
 /**
  * This class contains static functions that manipulate Vectors and Arrays.
  * Functions with * as parameter types support both Vector and Array.
@@ -26,7 +6,12 @@
  * @author adufilie
  * @author sanjay1909
  */
-(function() {
+(function () {
+
+    function VectorUtils() {
+
+    }
+
     VectorUtils._lookup = new Map();
     VectorUtils._lookupId = 0;
 
@@ -35,14 +20,14 @@
      * @param arrays A list of Arrays.
      * @return The union of all the unique items in the Arrays in the order they appear.
      */
-    VectorUtils.union = function() {
+    VectorUtils.union = function () {
         var arrays = arguments;
         var result = [];
         VectorUtils._lookupId++;
         for (var array in arrays) {
             for (var item in array) {
-                if (_lookup[item] !== _lookupId) {
-                    _lookup[item] = _lookupId;
+                if (VectorUtils._lookup[item] !== VectorUtils._lookupId) {
+                    VectorUtils._lookup[item] = VectorUtils._lookupId;
                     result.push(item);
                 }
             }
@@ -56,7 +41,7 @@
      * @param arrays A list of Arrays.
      * @return The intersection of the items appearing in all Arrays, in the order that they appear in the first Array.
      */
-    VectorUtils.intersection = function(firtArray, secondArray) {
+    VectorUtils.intersection = function (firtArray, secondArray) {
         var moreArrays = arguments.splice(0, 2);
 
         moreArrays.unshift(secondArray);
@@ -90,26 +75,26 @@
      * @param destination An Array or Vector.
      * @return A pointer to the destination Array (or Vector)
      */
-    VectorUtils.copy = function(source, destination) {
-        if (destination === undefined) destination = null;
-        if (!destination)
-            destination = [];
-        destination.length = source.length;
-        for (var i in source)
-            destination[i] = source[i];
-        return destination;
-    }
-    /**
-     * Fills a hash map with the keys from an Array.
-     */
-    VectorUtils.fillKeys = function(output, keys) {
-        for (var key in keys)
-            output[key] = true;
-    }
-    /**
-     * Gets all keys in a hash map.
-     */
-    VectorUtils.getKeys = function(hashMap) {
+    VectorUtils.copy = function (source, destination) {
+            if (destination === undefined) destination = null;
+            if (!destination)
+                destination = [];
+            destination.length = source.length;
+            for (var i in source)
+                destination[i] = source[i];
+            return destination;
+        }
+        /**
+         * Fills a hash map with the keys from an Array.
+         */
+    VectorUtils.fillKeys = function (output, keys) {
+            for (var key in keys)
+                output[key] = true;
+        }
+        /**
+         * Gets all keys in a hash map.
+         */
+    VectorUtils.getKeys = function (hashMap) {
         var keys = [];
         for (var key in hashMap)
             keys.push(key);
@@ -121,7 +106,7 @@
      * @param hashMap The Object to test for emptiness.
      * @return A boolean which is true if the Object is empty, false if it has at least one property.
      */
-    VectorUtils.isEmpty = function(hashMap) {
+    VectorUtils.isEmpty = function (hashMap) {
         for (var key in hashMap)
             return false;
         return true;
@@ -131,24 +116,24 @@
      * Efficiently removes duplicate adjacent items in a pre-sorted Array (or Vector).
      * @param vector The sorted Array (or Vector)
      */
-    VectorUtils.removeDuplicatesFromSortedArray = function(sorted) {
-        var n = sorted.length;
-        if (n === 0)
-            return;
-        var write = 0;
-        var prev = sorted[0] === undefined ? null : undefined;
-        for (var read = 0; read < n; ++read) {
-            var item = sorted[read];
-            if (item !== prev)
-                sorted[write++] = prev = item;
+    VectorUtils.removeDuplicatesFromSortedArray = function (sorted) {
+            var n = sorted.length;
+            if (n === 0)
+                return;
+            var write = 0;
+            var prev = sorted[0] === undefined ? null : undefined;
+            for (var read = 0; read < n; ++read) {
+                var item = sorted[read];
+                if (item !== prev)
+                    sorted[write++] = prev = item;
+            }
+            sorted.length = write;
         }
-        sorted.length = write;
-    }
-    /**
-     * randomizes the order of the elements in the vector in O(n) time by modifying the given array.
-     * @param the vector to randomize
-     */
-    VectorUtils.randomSort = function(vector) {
+        /**
+         * randomizes the order of the elements in the vector in O(n) time by modifying the given array.
+         * @param the vector to randomize
+         */
+    VectorUtils.randomSort = function (vector) {
         var i = vector.length;
         while (i) {
             // randomly choose index j
@@ -169,7 +154,7 @@
      * @param compareFunction A function that takes two array elements a,b and returns -1 if a&lt;b, 1 if a&gt;b, or 0 if a==b.
      * @return The index the pivot element was moved to during the execution of the function.
      */
-    VectorUtils.partition = function(list, firstIndex, lastIndex, pivotIndex, compareFunction) {
+    VectorUtils.partition = function (list, firstIndex, lastIndex, pivotIndex, compareFunction) {
         var temp;
         var pivotValue = list[pivotIndex];
         // Move pivot to end
@@ -202,7 +187,7 @@
     }
 
     //testPartition()
-    VectorUtils.testPartition = function() {
+    VectorUtils.testPartition = function () {
         var list = [3, 7, 5, 8, 2];
         var pivotIndex = VectorUtils.partition(list, 0, list.length - 1, list.length / 2, weavedata.AsyncSort.primitiveCompare);
 
@@ -219,7 +204,7 @@
      * @param lastIndex The index of the last element in the list to calculate a median from.
      * @return The index the median element.
      */
-    VectorUtils.getMedianIndex = function(list, compareFunction, firstIndex, lastIndex) {
+    VectorUtils.getMedianIndex = function (list, compareFunction, firstIndex, lastIndex) {
         //set default parameter values
         if (firstIndex === undefined) firstIndex = 0;
         if (lastIndex === undefined) lastIndex = -1;
@@ -248,7 +233,7 @@
      * @param mergedOutput A vector or array to store the merged arrays or vectors.
      * @param comparator A function that takes two parameters and returns -1 if the first parameter is less than the second, 0 if equal, or 1 if the first is greater than the second.
      */
-    VectorUtils.mergeSorted = function(sortedInputA, sortedInputB, mergedOutput, comparator) {
+    VectorUtils.mergeSorted = function (sortedInputA, sortedInputB, mergedOutput, comparator) {
         var indexA = 0;
         var indexB = 0;
         var indexOut = 0;
@@ -276,7 +261,7 @@
      * @param destination An Array or Vector to append items to.  If none specified, a new one will be created.
      * @return The destination Array with all the nested items in the source appended to it.
      */
-    VectorUtils.flatten = function(source, destination) {
+    VectorUtils.flatten = function (source, destination) {
         if (destination === null || destination === undefined)
             destination = [];
         if (source === null || source === undefined)
@@ -290,7 +275,7 @@
         return destination;
     }
 
-    VectorUtils.flattenObject = function(input, output, prefix) {
+    VectorUtils.flattenObject = function (input, output, prefix) {
         if (prefix === undefined) prefix = '';
         if (output === null || output === undefined)
             output = {};
@@ -312,7 +297,7 @@
      * @param includeEmptyItems Set this to true to include empty-strings and undefined items in the nested Arrays.
      * @return An Array of String-joined items in the same order they appear in the nested Arrays.
      */
-    VectorUtils.joinItems = function(arrayOfArrays, separator, includeEmptyItems) {
+    VectorUtils.joinItems = function (arrayOfArrays, separator, includeEmptyItems) {
         var maxLength = 0;
         var itemList;
         for (itemList in arrayOfArrays)
@@ -341,7 +326,7 @@
      * @param exactMatchOnly If true, searches for exact match. If false, searches for insertion point.
      * @return The index of the matching value or insertion point.
      */
-    VectorUtils.binarySearch = function(sortedUniqueValues, item, exactMatchOnly, compare) {
+    VectorUtils.binarySearch = function (sortedUniqueValues, item, exactMatchOnly, compare) {
         if (compare === undefined) compare = null;
         var i = 0,
             imin = 0,
@@ -365,7 +350,7 @@
      * @param collection The ICollectionView.
      * @param alwaysMakeCopy If set to false and the collection is an ArrayCollection, returns original source Array.
      */
-    VectorUtils.getArrayFromCollection = function(collection, alwaysMakeCopy) {
+    VectorUtils.getArrayFromCollection = function (collection, alwaysMakeCopy) {
         // set default values for parameters
         if (alwaysMakeCopy === undefined) alwaysMakeCopy = true;
         console.log('array collection not yet supported for weave');
@@ -394,7 +379,7 @@
      * @param values Values corresponding to the keys.
      * @return A new Object.
      */
-    VectorUtils.zipObject = function(keys, values) {
+    VectorUtils.zipObject = function (keys, values) {
         var n = Math.min(keys.length, values.length);
         var o = {};
         for (var i = 0; i < n; i++)
@@ -409,7 +394,7 @@
      * @param output Optionally specifies where to store the resulting items.
      * @return An Object (or Array) containing the properties/items/attributes specified by keysOrIndices.
      */
-    VectorUtils.getItems = function(object, keys, output) {
+    VectorUtils.getItems = function (object, keys, output) {
         if (output === null || output === undefined)
             output = object.constructor === Array ? [] : {};
         if (!object)
@@ -436,7 +421,7 @@
      * @param array Array or Vector
      * @param indices Array of indices to remove
      */
-    VectorUtils.removeItems = function(array, indices) {
+    VectorUtils.removeItems = function (array, indices) {
         var n = array.length;
         /*var skipList:Vector.<int> = Vector.<int>(indices).sort(Array.NUMERIC);
 			skipList.push(n);
@@ -464,13 +449,13 @@
      * @param property The property name to get from each object
      * @return A list of the values of the specified property for each object in the original list.
      */
-    VectorUtils.pluck = function(array, property) {
+    VectorUtils.pluck = function (array, property) {
         _pluckProperty = property;
         return array.map(_pluck);
     }
 
 
-    VectorUtils._pluck = function(item, i, a) {
+    VectorUtils._pluck = function (item, i, a) {
         return item[_pluckProperty];
     }
 
@@ -479,7 +464,7 @@
      * @param propertyChain A property name or chain of property names to index on rather than the item itself.
      * @return A reverse lookup.
      */
-    VectorUtils.createLookup = function(array) {
+    VectorUtils.createLookup = function (array) {
         var propertyChain = arguments.splice(0, 1);
         var lookup = new Map();
         for (var key in array) {
@@ -490,5 +475,12 @@
         }
         return lookup;
     }
-    weavedata.VectorUtils = VectorUtils;
+
+    if (typeof exports !== 'undefined') {
+        module.exports = VectorUtils;
+    } else {
+        console.log('window is used');
+        window.weavedata = window.weavedata ? window.weavedata : {};
+        window.weavedata.VectorUtils = VectorUtils;
+    }
 }());

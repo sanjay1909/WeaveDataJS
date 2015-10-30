@@ -1,31 +1,10 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
-
-
 /**
  * This class contains static functions that access values from IAttributeColumn objects.
  *
  * @author adufilie
  */
 
-(function() {
+(function () {
     function ColumnUtils() {
 
     }
@@ -34,7 +13,7 @@
      * @param column A column to get the title of.
      * @return The title of the column.
      */
-    ColumnUtils.getTitle = function(column) {
+    ColumnUtils.getTitle = function (column) {
         var title = column.getMetadata(weavedata.ColumnMetadata.TITLE) || weavedata.ProxyColumn.DATA_UNAVAILABLE;
 
         // debug code
@@ -54,7 +33,7 @@
      * @param column
      * @return The column title followed by its dataType and/or keyType metadata.
      */
-    ColumnUtils.getColumnListLabel = function(column) {
+    ColumnUtils.getColumnListLabel = function (column) {
         var title = ColumnUtils.getTitle(column);
         var keyType = ColumnUtils.getKeyType(column);
         var dataType = ColumnUtils.getDataType(column);
@@ -81,7 +60,7 @@
      * @param column
      * @return
      */
-    ColumnUtils.getDataSource = function(column) {
+    ColumnUtils.getDataSource = function (column) {
         var name;
         var nameMap = {};
         var cols;
@@ -109,7 +88,7 @@
      * @param column A column to get the keyType of.
      * @return The keyType of the column.
      */
-    ColumnUtils.getKeyType = function(column) {
+    ColumnUtils.getKeyType = function (column) {
         // first try getting the keyType from the metadata.
         var keyType = column.getMetadata(weavedata.ColumnMetadata.KEY_TYPE);
         if (keyType === null || keyType === undefined) {
@@ -126,7 +105,7 @@
      * @param column A column to get the dataType of.
      * @return The dataType of the column.
      */
-    ColumnUtils.getDataType = function(column) {
+    ColumnUtils.getDataType = function (column) {
         return column.getMetadata(weavedata.ColumnMetadata.DATA_TYPE);
     }
 
@@ -136,21 +115,21 @@
      * @param number A Number to convert to a String.
      * @return A String representation of the number, or null if no specific string representation exists.
      */
-    ColumnUtils.deriveStringFromNumber = function(column, number) {
+    ColumnUtils.deriveStringFromNumber = function (column, number) {
         var pc = ColumnUtils.hack_findNonWrapperColumn(column);
         if (pc)
             return pc.deriveStringFromNumber(number);
         return null; // no specific string representation
     }
 
-    ColumnUtils.hack_findNonWrapperColumn = function(column) {
+    ColumnUtils.hack_findNonWrapperColumn = function (column) {
         // try to find an internal IPrimitiveColumn
         while (column instanceof IColumnWrapper)
             column = column.getInternalColumn();
         return column;
     }
 
-    ColumnUtils.hack_findInternalDynamicColumn = function(columnWrapper) {
+    ColumnUtils.hack_findInternalDynamicColumn = function (columnWrapper) {
         if (columnWrapper) {
             // temporary solution - find internal dynamic column
             while (true) {
@@ -177,7 +156,7 @@
      * Default value is <code>true</code>.
      * @return An array QKey objects.
      */
-    ColumnUtils.getQKeysInNumericRange = function(column, min, max, inclusiveRange) {
+    ColumnUtils.getQKeysInNumericRange = function (column, min, max, inclusiveRange) {
         //set default parameter values
         if (inclusiveRange === undefined) inclusiveRange = true;
         var result = [];
@@ -198,7 +177,7 @@
         return result;
     }
 
-    ColumnUtils.getQKeys = function(genericObjects) {
+    ColumnUtils.getQKeys = function (genericObjects) {
         return WeaveAPI.QKeyManager.convertToQKeys(genericObjects);
     }
 
@@ -210,7 +189,7 @@
      * and <code>localName</code>.
      * @return An IQualifiedKey object.
      */
-    ColumnUtils.getQKey = function(object) {
+    ColumnUtils.getQKey = function (object) {
         if (object instanceof IQualifiedKey)
             return object;
         return WeaveAPI.QKeyManager.getQKey(object.keyType, object.localName);
@@ -221,40 +200,40 @@
      * @param key A key in the given column to get the value for.
      * @return The Number corresponding to the given key.
      */
-    ColumnUtils.getNumber = function(column, key) {
-        var qkey = ColumnUtils.getQKey(key);
-        if (column !== null && column !== undefined)
-            return column.getValueFromKey(qkey, Number);
-        return NaN;
-    }
-    /**
-     * @param column A column to get a value from.
-     * @param key A key in the given column to get the value for.
-     * @return The String corresponding to the given key.
-     */
-    ColumnUtils.getString = function(column, key) {
-        var qkey = ColumnUtils.getQKey(key);
-        if (column !== null && column !== undefined)
-            return column.getValueFromKey(qkey, String);
-        return '';
-    }
-    /**
-     * @param column A column to get a value from.
-     * @param key A key in the given column to get the value for.
-     * @return The Boolean corresponding to the given key.
-     */
-    ColumnUtils.getBoolean = function(column, key) {
-        var qkey = ColumnUtils.getQKey(key);
-        if (column !== null && column !== undefined)
-            return weavecore.StandardLib.asBoolean(column.getValueFromKey(qkey, Number));
-        return false;
-    }
-    /**
-     * @param column A column to get a value from.
-     * @param key A key in the given column to get the value for.
-     * @return The Number corresponding to the given key, normalized to be between 0 and 1.
-     */
-    ColumnUtils.getNorm = function(column, key) {
+    ColumnUtils.getNumber = function (column, key) {
+            var qkey = ColumnUtils.getQKey(key);
+            if (column !== null && column !== undefined)
+                return column.getValueFromKey(qkey, Number);
+            return NaN;
+        }
+        /**
+         * @param column A column to get a value from.
+         * @param key A key in the given column to get the value for.
+         * @return The String corresponding to the given key.
+         */
+    ColumnUtils.getString = function (column, key) {
+            var qkey = ColumnUtils.getQKey(key);
+            if (column !== null && column !== undefined)
+                return column.getValueFromKey(qkey, String);
+            return '';
+        }
+        /**
+         * @param column A column to get a value from.
+         * @param key A key in the given column to get the value for.
+         * @return The Boolean corresponding to the given key.
+         */
+    ColumnUtils.getBoolean = function (column, key) {
+            var qkey = ColumnUtils.getQKey(key);
+            if (column !== null && column !== undefined)
+                return weavecore.StandardLib.asBoolean(column.getValueFromKey(qkey, Number));
+            return false;
+        }
+        /**
+         * @param column A column to get a value from.
+         * @param key A key in the given column to get the value for.
+         * @return The Number corresponding to the given key, normalized to be between 0 and 1.
+         */
+    ColumnUtils.getNorm = function (column, key) {
         var qkey = ColumnUtils.getQKey(key);
         return WeaveAPI.StatisticsCache.getColumnStatistics(column).getNorm(qkey);
     }
@@ -268,7 +247,7 @@
      * <code>result[0][0]</code> is type <code>Array of Point</code> <br>
      * <code>result[0][0][0]</code> is a <code>Point</code>
      */
-    ColumnUtils.getGeometry = function(geometryColumn, key) {
+    ColumnUtils.getGeometry = function (geometryColumn, key) {
         /*var qkey = ColumnUtils.getQKey(key);
 			var genGeoms = geometryColumn.getValueFromKey(qkey, Array);
 
@@ -301,7 +280,7 @@
     }
 
 
-    ColumnUtils.test_getAllValues = function(column, dataType) {
+    ColumnUtils.test_getAllValues = function (column, dataType) {
         var t = getTimer();
         var keys = column.keys;
         var values = new Array(keys.length);
@@ -319,70 +298,77 @@
      * @param keyFilter Either an IKeyFilter or an Array of IQualifiedKey objects used to filter the results.
      * @return An Array of Arrays, the first being IQualifiedKeys and the rest being Arrays data values from the given columns that correspond to the IQualifiedKeys.
      */
-    ColumnUtils.joinColumns = function(columns, dataType, allowMissingData, keyFilter) {
-        //set default values for parameters
-        if (dataType === undefined) dataType = null;
-        if (allowMissingData === undefined) allowMissingData = false;
-        if (keyFilter === undefined) keyFilter = null;
+    ColumnUtils.joinColumns = function (columns, dataType, allowMissingData, keyFilter) {
+            //set default values for parameters
+            if (dataType === undefined) dataType = null;
+            if (allowMissingData === undefined) allowMissingData = false;
+            if (keyFilter === undefined) keyFilter = null;
 
-        var keys;
-        var key;
-        var column;
-        // if no keys are specified, get the keys from the columns
-        if (keyFilter.constructor === Array) {
-            keys = keyFilter.concat(); // make a copy so we don't modify the original
-        } else if (keyFilter instanceof IKeySet) {
-            keys = keyFilter.keys.concat(); // make a copy so we don't modify the original
-        } else {
-            // count the number of appearances of each key in each column
-            var keyCounts = new Map();
-            for (column in columns)
-                for each(key in column.keys)
-            keyCounts[key] = int(keyCounts[key]) + 1;
-            // get a list of keys
-            keys = [];
-            var filter = keyFilter;
-            for (var qkey in keyCounts)
-                if (allowMissingData || keyCounts[qkey] === columns.length)
-                    if (!filter || filter.containsKey(qkey))
-                        keys.push(qkey);
-        }
-        // put the keys in the result
-        var result = [keys];
-        // get all the data values in the same order as the common keys
-        for (var cIndex = 0; cIndex < columns.length; cIndex++) {
-            column = columns[cIndex];
+            var keys;
+            var key;
+            var column;
+            // if no keys are specified, get the keys from the columns
+            if (keyFilter.constructor === Array) {
+                keys = keyFilter.concat(); // make a copy so we don't modify the original
+            } else if (keyFilter instanceof weavedata.IKeySet) {
+                keys = keyFilter.keys.concat(); // make a copy so we don't modify the original
+            } else {
+                // count the number of appearances of each key in each column
+                var keyCounts = new Map();
+                for (var i = 0; i < columns.length; i++) {
+                    var keys = columns[i].keys;
+                    for (var j = 0; j < keys.length; j++) {
+                        var key = keys[j];
+                        keyCounts.set(key, Number(keyCounts.get(key)) + 1);
+                    }
+                }
 
-            var dt = dataType;
-            if (!dt && column)
-                dt = weavedata.DataType.getClass(column.getMetadata(weavedata.ColumnMetadata.DATA_TYPE));
 
-            var values = [];
-            for (var kIndex = 0; kIndex < keys.length; kIndex++) {
-                var value = column ? column.getValueFromKey(keys[kIndex], dt) : undefined;
-                var isUndef = weavecore.StandardLib.isUndefined(value);
-                if (!allowMissingData && isUndef) {
-                    // value is undefined, so remove this key and all associated data from the list
-                    for each(var array in result)
-                    array.splice(kIndex, 1);
-                    kIndex--; // avoid skipping the next key
-                } else if (isUndef)
-                    values.push(undefined);
-                else
-                    values.push(value);
+                // get a list of keys
+                keys = [];
+                var filter = keyFilter;
+                for (var qkey of keyCounts.keys())
+                    if (allowMissingData || keyCounts.get(qkey) === columns.length)
+                        if (!filter || filter.containsKey(qkey))
+                            keys.push(qkey);
             }
-            result.push(values);
+            // put the keys in the result
+            var result = [keys];
+            // get all the data values in the same order as the common keys
+            for (var cIndex = 0; cIndex < columns.length; cIndex++) {
+                column = columns[cIndex];
+
+                var dt = dataType;
+                if (!dt && column)
+                    dt = weavedata.DataType.getClass(column.getMetadata(weavedata.ColumnMetadata.DATA_TYPE));
+
+                var values = [];
+                for (var kIndex = 0; kIndex < keys.length; kIndex++) {
+                    var value = column ? column.getValueFromKey(keys[kIndex], dt) : undefined;
+                    var isUndef = weavecore.StandardLib.isUndefined(value);
+                    if (!allowMissingData && isUndef) {
+                        // value is undefined, so remove this key and all associated data from the list
+                        result.forEach(function (array) {
+                            array.splice(kIndex, 1);
+                        });
+                        kIndex--; // avoid skipping the next key
+                    } else if (isUndef)
+                        values.push(undefined);
+                    else
+                        values.push(value);
+                }
+                result.push(values);
+            }
+            return result;
         }
-        return result;
-    }
-    /**
-     * This function takes an array of attribute columns, a set of keys, and the type of the columns
-     * @param attrCols An array of IAttributeColumns or ILinkableHashMaps containing IAttributeColumns.
-     * @param subset An IKeyFilter or IKeySet specifying which keys to include in the CSV output, or null to indicate all keys available in the Attributes.
-     * @param dataType
-     * @return A string containing a CSV-formatted table containing the attributes of the requested keys.
-     */
-    ColumnUtils.generateTableCSV = function(attrCols, subset, dataType) {
+        /**
+         * This function takes an array of attribute columns, a set of keys, and the type of the columns
+         * @param attrCols An array of IAttributeColumns or ILinkableHashMaps containing IAttributeColumns.
+         * @param subset An IKeyFilter or IKeySet specifying which keys to include in the CSV output, or null to indicate all keys available in the Attributes.
+         * @param dataType
+         * @return A string containing a CSV-formatted table containing the attributes of the requested keys.
+         */
+    ColumnUtils.generateTableCSV = function (attrCols, subset, dataType) {
         // set default values for parameters
         if (subset === undefined) subset = null;
         if (dataType === undefined) dataType = null;
@@ -391,32 +377,32 @@
 
         var records = [];
         var columnLookup = new Map();
-        attrCols = attrCols.map(function(item, i, a) {
+        attrCols = attrCols.map(function (item, i, a) {
             return item instanceof weavecore.LinkableHashMap ? item.getObjects(weavedata.AttributeColumn) : item;
         });
         attrCols = weavedata.VectorUtils.flatten(attrCols);
-        attrCols = attrCols.map(function(column, i, a) {
+        attrCols = attrCols.map(function (column, i, a) {
             return ColumnUtils.hack_findNonWrapperColumn(column);
-        }).filter(function(column, i, a) {
+        }).filter(function (column, i, a) {
             if (!column || columnLookup.get(column))
                 return false;
             columnLookup.set(column, true);
             return true;
         });
-        var columnTitles = attrCols.map(function(column, i, a) {
+        var columnTitles = attrCols.map(function (column, i, a) {
             return ColumnUtils.getTitle(column);
         });
         var keys;
         if (!subset)
             keys = ColumnUtils.getAllKeys(attrCols);
         else
-            keys = ColumnUtils.getAllKeys(attrCols).filter(function(key, idx, arr) {
+            keys = ColumnUtils.getAllKeys(attrCols).filter(function (key, idx, arr) {
                 return subset.containsKey(key);
             });
 
         var keyTypeMap = {};
         // create the data for each column in each selected row
-        for each(var key in keys) {
+        keys.forEach(function (key) {
             var record = {};
             // each record has a property named after the keyType equal to the key value
             record[key.keyType] = key.localName;
@@ -430,7 +416,7 @@
                     record[columnTitles[i]] = value;
             }
             records.push(record);
-        }
+        })
 
         // update the list of headers before generating the table
         for (var keyType in keyTypeMap)
@@ -447,7 +433,7 @@
      * @param inputKeySets An Array of IKeySets (can be IAttributeColumns).
      * @return The list of unique keys contained in all the inputKeySets.
      */
-    ColumnUtils.getAllKeys = function(inputKeySets) {
+    ColumnUtils.getAllKeys = function (inputKeySets) {
         var lookup = new Map();
         var result = [];
         for (var i = 0; i < inputKeySets.length; i++) {
@@ -466,7 +452,7 @@
     /**
      * This function will make sure the first IAttributeColumn in a linkable hash map is a DynamicColumn.
      */
-    ColumnUtils.forceFirstColumnDynamic = function(columnHashMap) {
+    ColumnUtils.forceFirstColumnDynamic = function (columnHashMap) {
         var cols = columnHashMap.getObjects(weavedata.AttributeColumn);
         if (cols.length === 0) {
             // just create a new dynamic column
@@ -496,7 +482,7 @@
      * @param propertyName The metadata property name.
      * @return The metadata value if it is the same across all columns, or null if not.
      */
-    ColumnUtils.getCommonMetadata = function(columns, propertyName) {
+    ColumnUtils.getCommonMetadata = function (columns, propertyName) {
         var value;
         for (var i = 0; i < columns.length; i++) {
             var column = columns[i];
@@ -508,7 +494,7 @@
         return value;
     }
 
-    ColumnUtils.getAllCommonMetadata = function(columns) {
+    ColumnUtils.getAllCommonMetadata = function (columns) {
         var output = {};
         if (!columns.length)
             return output;
@@ -523,9 +509,9 @@
     }
 
     Object.defineProperty(ColumnUtils, "_preferredMetadataPropertyOrder", {
-            value: 'title,keyType,dataType,number,string,min,max,year'.split(',')
-        });
-    ColumnUtils.sortMetadataPropertyNames = function(names) {
+        value: 'title,keyType,dataType,number,string,min,max,year'.split(',')
+    });
+    ColumnUtils.sortMetadataPropertyNames = function (names) {
         weavecore.StandardLib.sortOn(names, [ColumnUtils._preferredMetadataPropertyOrder.indexOf, names]);
     }
 
@@ -535,7 +521,7 @@
      * @param input An Array of IAttributeColumn and/or IColumnReference objects. If not specified, getColumnsWithCommonKeyType() will be used.
      * @see #getColumnsWithCommonKeyType()
      */
-    ColumnUtils.initSelectableAttributes = function(selectableAttributes, input) {
+    ColumnUtils.initSelectableAttributes = function (selectableAttributes, input) {
         if (input === undefined) input = null;
         if (!input)
             input = ColumnUtils.getColumnsWithCommonKeyType();
@@ -547,7 +533,7 @@
     /**
      * Gets a list of columns with a common keyType.
      */
-    ColumnUtils.getColumnsWithCommonKeyType = function(keyType) {
+    ColumnUtils.getColumnsWithCommonKeyType = function (keyType) {
         // set default values for parameters
         if (keyType === undefined) keyType = null;
         var columns = WeaveAPI.SessionManager.getLinkableDescendants(WeaveAPI.globalHashMap, weavedata.ReferencedColumn);
@@ -579,7 +565,7 @@
      * @param column_or_columnReference Either an IAttributeColumn or an ILinkableHashMap
      * @param clearHashMap If the selectableAttribute is an ILinkableHashMap, all objects will be removed from it prior to adding a column.
      */
-    ColumnUtils.initSelectableAttribute = function(selectableAttribute, column_or_columnReference, clearHashMap) {
+    ColumnUtils.initSelectableAttribute = function (selectableAttribute, column_or_columnReference, clearHashMap) {
         // set default values for parameter
         if (clearHashMap === undefined) clearHashMap = true;
 
@@ -630,7 +616,14 @@
         }
     }
 
-    weavedata.ColumnUtils = ColumnUtils;
+
+    if (typeof exports !== 'undefined') {
+        module.exports = ColumnUtils;
+    } else {
+        console.log('window is used');
+        window.weavedata = window.weavedata ? window.weavedata : {};
+        window.weavedata.ColumnUtils = ColumnUtils;
+    }
 
     //todo: (cached) get sorted index from a key and a column
 
