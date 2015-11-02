@@ -4,7 +4,34 @@
  * @author adufilie
  * @author asanjay
  */
+
 (function () {
+
+    /**
+     * temporary solution to save the namespace for this class/prototype
+     * @static
+     * @public
+     * @property NS
+     * @default weavecore
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(CSVColumn, 'NS', {
+        value: 'weavedata'
+    });
+
+    /**
+     * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
+     * @static
+     * @public
+     * @property CLASS_NAME
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(CSVColumn, 'CLASS_NAME', {
+        value: 'CSVColumn'
+    });
+
     function CSVColumn() {
         weavedata.AbstractAttributeColumn.call(this);
 
@@ -110,7 +137,7 @@
         case ColumnMetadata.DATA_TYPE:
             return this.numericMode.value ? 'number' : 'string';
         }
-        return CSVColumn.prototype.getMetadata(propertyName);
+        return weavedata.AbstractAttributeColumn.prototype.getMetadata.call(this, propertyName);
     }
 
     /**
@@ -183,7 +210,7 @@
     if (typeof exports !== 'undefined') {
         module.exports = CSVColumn;
     } else {
-        console.log('window is used');
+
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.CSVColumn = CSVColumn;
     }

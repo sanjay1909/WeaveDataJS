@@ -8,7 +8,34 @@
  */
 
 (function () {
+
+    /**
+     * temporary solution to save the namespace for this class/prototype
+     * @static
+     * @public
+     * @property NS
+     * @default weavecore
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(AbstractDataSource, 'NS', {
+        value: 'weavedata'
+    });
+
+    /**
+     * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
+     * @static
+     * @public
+     * @property CLASS_NAME
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(AbstractDataSource, 'CLASS_NAME', {
+        value: 'AbstractDataSource'
+    });
+
     function AbstractDataSource() {
+        weavecore.ILinkableObject.call(this);
         /*
          *
          * This variable is set to false when the session state changes and true when initialize() is called.*/
@@ -25,7 +52,7 @@
         this._proxyColumns = new Map();
 
         Object.defineProperty(this, "_hierarchyRefresh", {
-            value: WeaveAPI.SessionManager.registerLinkableChild(this, new weavecore.CallbackCollection(), this.refreshHierarchy.bind(this))
+            value: WeaveAPI.SessionManager.registerLinkableChild(this, new weavecore.CallbackCollection(), refreshHierarchy.bind(this))
         });
 
         Object.defineProperty(this, "hierarchyRefresh", {
@@ -42,15 +69,21 @@
         Object.defineProperty(this, "initializationComplete", {
             get: function () {
                 return this._initializeCalled;
-            }
+            },
+            configurable: true
         });
 
         var cc = WeaveAPI.SessionManager.getCallbackCollection(this);
-        cc.addImmediateCallback(this, this.uninitialize.bind(this));
+        cc.addImmediateCallback(this, uninitialize.bind(this));
         cc.addGroupedCallback(this, this.initialize.bind(this), true);
 
 
     }
+
+
+    AbstractDataSource.prototype = new weavecore.ILinkableObject();
+    AbstractDataSource.prototype.constructor = AbstractDataSource;
+
     var p = AbstractDataSource.prototype;
 
 
@@ -104,7 +137,7 @@
         // set initialized to true so other parts of the code know if this function has been called.
         this._initializeCalled = true;
 
-        this.handleAllPendingColumnRequests();
+        handleAllPendingColumnRequests.call(this);
     }
 
     /**
@@ -162,8 +195,8 @@
      * This function will call handlePendingColumnRequest() on each pending column request.
      */
     function handleAllPendingColumnRequests() {
-        for (var [proxyColumn, value] of this._proxyColumns.entries()) {
-            if (value) // pending?
+        for (var proxyColumn of this._proxyColumns.keys()) {
+            if (this._proxyColumns.get(proxyColumn)) // pending?
                 handlePendingColumnRequest.call(this, proxyColumn);
         }
 
@@ -173,7 +206,7 @@
     /**
      * Calls requestColumnFromSource() on all ProxyColumn objects created previously via getAttributeColumn().
      */
-    p.refreshAllProxyColumns() {
+    p.refreshAllProxyColumns = function () {
         for (var proxyColumn of this._proxyColumns.keys())
             handlePendingColumnRequest.call(this, proxyColumn);
 
@@ -183,7 +216,7 @@
      * This function should be called when the IDataSource is no longer in use.
      * All existing pointers to objects should be set to null so they can be garbage collected.
      */
-    p.dispose() {
+    p.dispose = function () {
         for (var column of this._proxyColumns.keys())
             WeaveAPI.ProgressIndicator.removeTask(column);
 
@@ -194,7 +227,7 @@
     if (typeof exports !== 'undefined') {
         module.exports = AbstractDataSource;
     } else {
-        console.log('window is used');
+
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.AbstractDataSource = AbstractDataSource;
     }

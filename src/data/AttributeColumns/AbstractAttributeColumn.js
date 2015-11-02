@@ -6,6 +6,32 @@
  */
 
 (function () {
+
+    /**
+     * temporary solution to save the namespace for this class/prototype
+     * @static
+     * @public
+     * @property NS
+     * @default weavecore
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(AbstractAttributeColumn, 'NS', {
+        value: 'weavedata'
+    });
+
+    /**
+     * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
+     * @static
+     * @public
+     * @property CLASS_NAME
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(AbstractAttributeColumn, 'CLASS_NAME', {
+        value: 'AbstractAttributeColumn'
+    });
+
     function AbstractAttributeColumn(metadata) {
         // set default argument values
         if (metadata === undefined) metadata = null;
@@ -30,7 +56,8 @@
         Object.defineProperty(this, "keys", {
             get: function () {
                 return this.dataTask.uniqueKeys;
-            }
+            },
+            configurable: true
         });
 
 
@@ -140,7 +167,7 @@
     if (typeof exports !== 'undefined') {
         module.exports = AbstractAttributeColumn;
     } else {
-        console.log('window is used');
+
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.AbstractAttributeColumn = AbstractAttributeColumn;
     }

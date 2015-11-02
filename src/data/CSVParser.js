@@ -1,4 +1,31 @@
 (function () {
+
+    /**
+     * temporary solution to save the namespace for this class/prototype
+     * @static
+     * @public
+     * @property NS
+     * @default weavecore
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(CSVParser, 'NS', {
+        value: 'weavedata'
+    });
+
+    /**
+     * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
+     * @static
+     * @public
+     * @property CLASS_NAME
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(CSVParser, 'CLASS_NAME', {
+        value: 'CSVParser'
+    });
+
+
     Object.defineProperty(CSVParser, 'CR', {
         value: '\r'
     });
@@ -48,6 +75,8 @@
         })
     }
 
+    CSVParser.prototype = new weavecore.ILinkableObject();
+    CSVParser.prototype.constructor = CSVParser;
     var p = CSVParser.prototype;
 
     /**
@@ -65,7 +94,7 @@
         this.escaped = false;
 
         if (this.asyncMode) {
-            WeaveAPI.StageUtils.startTask(this, parseIterate.bind(this), WeaveAPI.TASK_PRIORITY_3_PARSING, parseDone.bind(this));
+            WeaveAPI.StageUtils.startTask(this, parseIterate.bind(this), WeaveAPI.TASK_PRIORITY_HIGH, parseDone.bind(this));
         } else {
             parseIterate.call(this, Number.MAX_VALUE);
             parseDone.call(this);
@@ -426,7 +455,7 @@
     if (typeof exports !== 'undefined') {
         module.exports = CSVParser;
     } else {
-        console.log('window is used');
+
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.CSVParser = CSVParser;
         window.WeaveAPI = window.WeaveAPI ? window.WeaveAPI : {};

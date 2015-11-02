@@ -620,7 +620,7 @@
     if (typeof exports !== 'undefined') {
         module.exports = ColumnUtils;
     } else {
-        console.log('window is used');
+
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.ColumnUtils = ColumnUtils;
     }
@@ -629,6 +629,7 @@
 
     //todo: (cached) get bins from a column with a filter applied
 }());
+
 (function () {
     function EquationColumnLib() {
 
@@ -660,12 +661,13 @@
     if (typeof exports !== 'undefined') {
         module.exports = EquationColumnLib;
     } else {
-        console.log('window is used');
+
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.EquationColumnLib = EquationColumnLib;
     }
 
 }());
+
 (function () {
     function HierarchyUtils() {
 
@@ -708,12 +710,13 @@
     if (typeof exports !== 'undefined') {
         module.exports = HierarchyUtils;
     } else {
-        console.log('window is used');
+
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.HierarchyUtils = HierarchyUtils;
     }
 
 }());
+
 /**
  * This class contains static functions that manipulate Vectors and Arrays.
  * Functions with * as parameter types support both Vector and Array.
@@ -1195,11 +1198,12 @@
     if (typeof exports !== 'undefined') {
         module.exports = VectorUtils;
     } else {
-        console.log('window is used');
+
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.VectorUtils = VectorUtils;
     }
 }());
+
 (function () {
     function Aggregation() {
 
@@ -1241,25 +1245,13 @@
     if (typeof exports !== 'undefined') {
         module.exports = Aggregation;
     } else {
-        console.log('window is used');
+
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.Aggregation = Aggregation;
     }
 
 }());
 
-/*package weave.data
-{
-	import flash.utils.Dictionary;
-	import flash.utils.getTimer;
-
-	import weave.api.core.ILinkableObject;
-	import weave.api.data.DataType;
-	import weave.api.data.IQualifiedKey;
-	import weave.api.data.IQualifiedKeyManager;
-	import weave.compiler.StandardLib;
-	import weave.flascc.stringHash;
-	import weave.utils.WeavePromise;*/
 
 /**
  * This class manages a global list of IQualifiedKey objects.
@@ -1329,6 +1321,19 @@
         return this._keyBuffer[0];
     }
 
+    function stringHash(str) {
+        var hash = 5381,
+            i = str.length
+
+        while (i)
+            hash = (hash * 33) ^ str.charCodeAt(--i)
+
+        /* JavaScript does bitwise operations (like XOR, above) on 32-bit signed
+         * integers. Since we want the results to be always positive, convert the
+         * signed int to an unsigned by doing an unsigned bitshift. */
+        return hash >>> 0;
+    }
+
     /**
      * @param output An output Array or Vector for IQualifiedKeys.
      */
@@ -1338,8 +1343,8 @@
             keyType = "string";
 
         // get mapping of key strings to QKey weak references
-        var keyLookup = _keys[keyType];
-        if (keyLookup === null) {
+        var keyLookup = this._keys[keyType];
+        if (keyLookup === null || keyLookup === undefined) {
             // key type not seen before, so initialize it
             keyLookup = {};
             this._keys[keyType] = keyLookup;
@@ -1353,9 +1358,9 @@
             if (qkey === undefined) {
                 // QKey not created for this key yet (or it has been garbage-collected)
                 qkey = new weavedata.QKey(keyType, localName);
-                this.keyLookup.set(hash, qkey)
-                this.keyTypeLookup(qkey, keyType);
-                this.localNameLookup(qkey, localName);
+                keyLookup[hash] = qkey;
+                this.keyTypeLookup.set(qkey, keyType);
+                this.localNameLookup.set(qkey, localName);
             }
 
             output[i] = qkey;
@@ -1369,7 +1374,8 @@
      * @return An array of QKeys.
      */
     p.getQKeys = function (keyType, keyStrings) {
-        var keys = new Array(keyStrings.length);
+        var keys = [];
+        keys.length = keyStrings.length;
         this.getQKeys_range(keyType, keyStrings, 0, keyStrings.length, keys);
         return keys;
     }
@@ -1454,7 +1460,7 @@
     if (typeof exports !== 'undefined') {
         module.exports = QKeyManager;
     } else {
-        console.log('window is used');
+
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.QKeyManager = QKeyManager;
         window.WeaveAPI = window.WeaveAPI ? window.WeaveAPI : {};
@@ -1498,7 +1504,7 @@
     if (typeof exports !== 'undefined') {
         module.exports = QKey;
     } else {
-        console.log('window is used');
+
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.QKey = QKey;
     }
@@ -1510,6 +1516,8 @@
  */
 (function () {
     function QKeyGetter(manager, relevantContext) {
+
+        weavecore.WeavePromise.call(this, relevantContext);
         this._manager = manager;
 
         this._asyncCallback;
@@ -1519,6 +1527,7 @@
         this._keyStrings;
         this._outputKeys;
 
+
         Object.defineProperty(this, '_batch', {
             value: 5000
         });
@@ -1526,6 +1535,9 @@
 
     }
 
+
+    QKeyGetter.prototype = new weavecore.WeavePromise();
+    QKeyGetter.prototype.constructor = QKeyGetter;
     var p = QKeyGetter.prototype;
 
     p.asyncStart = function (keyType, keyStrings, outputKeys) {
@@ -1537,36 +1549,65 @@
         this._outputKeys = outputKeys || [];
         this._outputKeys.length = keyStrings.length;
         // high priority because all visualizations depend on key sets
-        WeaveAPI.StageUtils.startTask(relevantContext, iterate, WeaveAPI.TASK_PRIORITY_HIGH, asyncComplete.bind(this), weavedata.StandardLib.substitute("Initializing {0} record identifiers", keyStrings.length));
+        WeaveAPI.StageUtils.startTask(this.relevantContext, iterate.bind(this), WeaveAPI.TASK_PRIORITY_HIGH, asyncComplete.bind(this), weavecore.StandardLib.substitute("Initializing {0} record identifiers", keyStrings.length));
 
         return this;
     }
 
     function iterate(stopTime) {
-        for (; this._i < this._keyStrings.length; this._i += batch) {
+        for (; this._i < this._keyStrings.length; this._i += this._batch) {
             if (getTimer() > stopTime)
                 return this._i / this._keyStrings.length;
 
-            this._manager.getQKeys_range(this._keyType, this._keyStrings, this._i, Math.min(this._i + batch, this._keyStrings.length), this._outputKeys);
+            this._manager.getQKeys_range(this._keyType, this._keyStrings, this._i, Math.min(this._i + this._batch, this._keyStrings.length), this._outputKeys);
         }
         return 1;
     }
 
-
+    function getTimer() {
+        return new Date().getTime();
+    }
 
     function asyncComplete() {
-        setResult(this.this._outputKeys);
+        this.setResult(this._outputKeys);
     }
 
     if (typeof exports !== 'undefined') {
         module.exports = QKeyGetter;
     } else {
-        console.log('window is used');
+
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.QKeyGetter = QKeyGetter;
     }
 }());
 (function () {
+
+    /**
+     * temporary solution to save the namespace for this class/prototype
+     * @static
+     * @public
+     * @property NS
+     * @default weavecore
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(CSVParser, 'NS', {
+        value: 'weavedata'
+    });
+
+    /**
+     * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
+     * @static
+     * @public
+     * @property CLASS_NAME
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(CSVParser, 'CLASS_NAME', {
+        value: 'CSVParser'
+    });
+
+
     Object.defineProperty(CSVParser, 'CR', {
         value: '\r'
     });
@@ -1616,6 +1657,8 @@
         })
     }
 
+    CSVParser.prototype = new weavecore.ILinkableObject();
+    CSVParser.prototype.constructor = CSVParser;
     var p = CSVParser.prototype;
 
     /**
@@ -1633,7 +1676,7 @@
         this.escaped = false;
 
         if (this.asyncMode) {
-            WeaveAPI.StageUtils.startTask(this, parseIterate.bind(this), WeaveAPI.TASK_PRIORITY_3_PARSING, parseDone.bind(this));
+            WeaveAPI.StageUtils.startTask(this, parseIterate.bind(this), WeaveAPI.TASK_PRIORITY_HIGH, parseDone.bind(this));
         } else {
             parseIterate.call(this, Number.MAX_VALUE);
             parseDone.call(this);
@@ -1994,7 +2037,7 @@
     if (typeof exports !== 'undefined') {
         module.exports = CSVParser;
     } else {
-        console.log('window is used');
+
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.CSVParser = CSVParser;
         window.WeaveAPI = window.WeaveAPI ? window.WeaveAPI : {};
@@ -2059,7 +2102,7 @@
     if (typeof exports !== 'undefined') {
         module.exports = ColumnMetadata;
     } else {
-        console.log('window is used');
+
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.ColumnMetadata = ColumnMetadata;
     }
@@ -2102,7 +2145,7 @@
     if (typeof exports !== 'undefined') {
         module.exports = DataType;
     } else {
-        console.log('window is used');
+
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.DataType = DataType;
     }
@@ -2232,7 +2275,7 @@
     if (typeof exports !== 'undefined') {
         module.exports = DateFormat;
     } else {
-        console.log('window is used');
+
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.DateFormat = DateFormat;
     }
@@ -2256,7 +2299,7 @@
     if (typeof exports !== 'undefined') {
         module.exports = EntityType;
     } else {
-        console.log('window is used');
+
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.EntityType = EntityType;
     }
@@ -2270,6 +2313,32 @@
  */
 
 (function () {
+
+    /**
+     * temporary solution to save the namespace for this class/prototype
+     * @static
+     * @public
+     * @property NS
+     * @default weavecore
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(AbstractAttributeColumn, 'NS', {
+        value: 'weavedata'
+    });
+
+    /**
+     * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
+     * @static
+     * @public
+     * @property CLASS_NAME
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(AbstractAttributeColumn, 'CLASS_NAME', {
+        value: 'AbstractAttributeColumn'
+    });
+
     function AbstractAttributeColumn(metadata) {
         // set default argument values
         if (metadata === undefined) metadata = null;
@@ -2294,7 +2363,8 @@
         Object.defineProperty(this, "keys", {
             get: function () {
                 return this.dataTask.uniqueKeys;
-            }
+            },
+            configurable: true
         });
 
 
@@ -2404,7 +2474,7 @@
     if (typeof exports !== 'undefined') {
         module.exports = AbstractAttributeColumn;
     } else {
-        console.log('window is used');
+
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.AbstractAttributeColumn = AbstractAttributeColumn;
     }
@@ -2415,7 +2485,34 @@
  * @author adufilie
  * @author asanjay
  */
+
 (function () {
+
+    /**
+     * temporary solution to save the namespace for this class/prototype
+     * @static
+     * @public
+     * @property NS
+     * @default weavecore
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(CSVColumn, 'NS', {
+        value: 'weavedata'
+    });
+
+    /**
+     * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
+     * @static
+     * @public
+     * @property CLASS_NAME
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(CSVColumn, 'CLASS_NAME', {
+        value: 'CSVColumn'
+    });
+
     function CSVColumn() {
         weavedata.AbstractAttributeColumn.call(this);
 
@@ -2521,7 +2618,7 @@
         case ColumnMetadata.DATA_TYPE:
             return this.numericMode.value ? 'number' : 'string';
         }
-        return CSVColumn.prototype.getMetadata(propertyName);
+        return weavedata.AbstractAttributeColumn.prototype.getMetadata.call(this, propertyName);
     }
 
     /**
@@ -2594,7 +2691,7 @@
     if (typeof exports !== 'undefined') {
         module.exports = CSVColumn;
     } else {
-        console.log('window is used');
+
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.CSVColumn = CSVColumn;
     }
@@ -2684,17 +2781,44 @@
     if (typeof exports !== 'undefined') {
         module.exports = ColumnDataTask;
     } else {
-        console.log('window is used');
+
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.ColumnDataTask = ColumnDataTask;
     }
 }());
+
 /**
  *
  * @author adufilie
  * @author asanjay
  */
 (function () {
+
+    /**
+     * temporary solution to save the namespace for this class/prototype
+     * @static
+     * @public
+     * @property NS
+     * @default weavecore
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(DateColumn, 'NS', {
+        value: 'weavedata'
+    });
+
+    /**
+     * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
+     * @static
+     * @public
+     * @property CLASS_NAME
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(DateColumn, 'CLASS_NAME', {
+        value: 'DateColumn'
+    });
+
     function DateColumn(metadata) {
         metadata = (metadata === undefined) ? null : metadata;
         weavedata.AbstractAttributeColumn.call(this, metadata);
@@ -2713,7 +2837,7 @@
     if (typeof exports !== 'undefined') {
         module.exports = DateColumn;
     } else {
-        console.log('window is used');
+
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.DateColumn = DateColumn;
     }
@@ -2730,6 +2854,32 @@
 	{*/
 
 (function () {
+
+    /**
+     * temporary solution to save the namespace for this class/prototype
+     * @static
+     * @public
+     * @property NS
+     * @default weavecore
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(DynamicColumn, 'NS', {
+        value: 'weavedata'
+    });
+
+    /**
+     * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
+     * @static
+     * @public
+     * @property CLASS_NAME
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(DynamicColumn, 'CLASS_NAME', {
+        value: 'DynamicColumn'
+    });
+
 
     // TEMPORARY PERFORMANCE IMPROVEMENT SOLUTION
     DynamicColumn.cache = true;
@@ -2846,15 +2996,40 @@
     if (typeof exports !== 'undefined') {
         module.exports = DynamicColumn;
     } else {
-        console.log('window is used');
+
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.DynamicColumn = DynamicColumn;
     }
 
 }());
 
-if (this.weavedata === undefined) this.weavedata = {};
 (function () {
+
+    /**
+     * temporary solution to save the namespace for this class/prototype
+     * @static
+     * @public
+     * @property NS
+     * @default weavecore
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(IColumnWrapper, 'NS', {
+        value: 'weavedata'
+    });
+
+    /**
+     * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
+     * @static
+     * @public
+     * @property CLASS_NAME
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(IColumnWrapper, 'CLASS_NAME', {
+        value: 'IColumnWrapper'
+    });
+
     /**
      * This is an prototype for a column that is a wrapper for another column.
      * The data should always be retrieved from the wrapper class because the getValueFromKey() function may modify the data before returning it.
@@ -2883,7 +3058,7 @@ if (this.weavedata === undefined) this.weavedata = {};
     if (typeof exports !== 'undefined') {
         module.exports = IColumnWrapper;
     } else {
-        console.log('window is used');
+
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.IColumnWrapper = IColumnWrapper;
     }
@@ -2894,6 +3069,32 @@ if (this.weavedata === undefined) this.weavedata = {};
  * @author asanjay
  */
 (function () {
+
+    /**
+ * temporary solution to save the namespace for this class/prototype
+ * @static
+ * @public
+ * @property NS
+ * @default weavecore
+ * @readOnly
+ * @type String
+ */
+Object.defineProperty(KeyColumn, 'NS', {
+    value: 'weavedata'
+});
+
+/**
+ * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
+ * @static
+ * @public
+ * @property CLASS_NAME
+ * @readOnly
+ * @type String
+ */
+Object.defineProperty(KeyColumn, 'CLASS_NAME', {
+    value: 'KeyColumn'
+});
+
     function KeyColumn(metadata) {
         metadata = (metadata === undefined) ? null : metadata;
         weavedata.AbstractAttributeColumn.call(this, metadata);
@@ -2949,7 +3150,7 @@ if (this.weavedata === undefined) this.weavedata = {};
     if (typeof exports !== 'undefined') {
         module.exports = KeyColumn;
     } else {
-        console.log('window is used');
+
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.KeyColumn = KeyColumn;
     }
@@ -2962,6 +3163,32 @@ if (this.weavedata === undefined) this.weavedata = {};
  * @author asanjay
  */
 (function () {
+
+    /**
+     * temporary solution to save the namespace for this class/prototype
+     * @static
+     * @public
+     * @property NS
+     * @default weavecore
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(NumberColumn, 'NS', {
+        value: 'weavedata'
+    });
+
+    /**
+     * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
+     * @static
+     * @public
+     * @property CLASS_NAME
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(NumberColumn, 'CLASS_NAME', {
+        value: 'NumberColumn'
+    });
+
 
     Object.defineProperty(NumberColumn, 'compiler', {
         value: new weavecore.Compiler()
@@ -2990,7 +3217,7 @@ if (this.weavedata === undefined) this.weavedata = {};
     p.getMetadata = function (propertyName) {
         if (propertyName == weavedata.ColumnMetadata.DATA_TYPE)
             return weavedata.DataType.NUMBER;
-        return NumberColumn.prototype.getMetadata(propertyName);
+        return weavedata.AbstractAttributeColumn.prototype.getMetadata.call(this,propertyName);
     }
 
     //TODO - implement IBaseColumn
@@ -3110,9 +3337,227 @@ if (this.weavedata === undefined) this.weavedata = {};
     if (typeof exports !== 'undefined') {
         module.exports = NumberColumn;
     } else {
-        console.log('window is used');
+
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.NumberColumn = NumberColumn;
+    }
+
+
+}());
+/**
+ *
+ * @author adufilie
+ * @author asanjay
+ */
+(function () {
+
+    /**
+     * temporary solution to save the namespace for this class/prototype
+     * @static
+     * @public
+     * @property NS
+     * @default weavecore
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(ProxyColumn, 'NS', {
+        value: 'weavedata'
+    });
+
+    /**
+     * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
+     * @static
+     * @public
+     * @property CLASS_NAME
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(ProxyColumn, 'CLASS_NAME', {
+        value: 'ProxyColumn'
+    });
+
+
+    Object.defineProperty(ProxyColumn, 'DATA_UNAVAILABLE', {
+        value: '(Data unavailable)'
+    });
+
+
+
+    function ProxyColumn(metadata) {
+        metadata = (metadata === undefined) ? null : metadata;
+        weavedata.AbstractAttributeColumn.call(this, metadata);
+        /**
+         * internalAttributeColumn
+         * This is the IAttributeColumn object contained in this ProxyColumn.
+         */
+        this._internalColumn = null;
+
+        this._overrideTitle;
+
+        /**
+         * internalNonProxyColumn
+         * As long as internalAttributeColumn is a ProxyColumn, this function will
+         * keep traversing internalAttributeColumn until it reaches an IAttributeColumn that
+         * is not a ProxyColumn.
+         * @return An attribute column that is not a ProxyColumn, or null.
+         */
+        Object.defineProperty(this, "internalNonProxyColumn", {
+            get: function () {
+                var column = this._internalColumn;
+                while (column instanceof ProxyColumn)
+                    column = column._internalColumn;
+                return column;
+            }
+        });
+
+        /**
+         * @return the keys associated with this column.
+         */
+        Object.defineProperty(this, "keys", {
+            get: function () {
+                var column = this.internalNonProxyColumn;
+                return column ? column.keys : [];
+            },
+            configurable: true
+        });
+
+
+    }
+
+
+
+    ProxyColumn.prototype = new weavedata.AbstractAttributeColumn();
+    ProxyColumn.prototype.constructor = ProxyColumn;
+    var p = ProxyColumn.prototype;
+
+    /**
+     * @param key A key to test.
+     * @return true if the key exists in this IKeySet.
+     */
+    p.containsKey = function (key) {
+        return this._internalColumn && this._internalColumn.containsKey(key);
+    }
+
+    /**
+     * This function updates the proxy metadata.
+     * @param metadata New metadata for the proxy.
+     */
+    p.setMetadata = function (metadata) {
+        this._metadata = weavedata.AbstractAttributeColumn.copyValues(metadata);
+        this.triggerCallbacks();
+    }
+
+    /**
+     * The metadata specified by ProxyColumn will override the metadata of the internal column.
+     * First, this function checks thet ProxyColumn metadata.
+     * If the value is null, it checks the metadata of the internal column.
+     * @param propertyName The name of a metadata property to get.
+     * @return The metadata value of the ProxyColumn or the internal column, ProxyColumn metadata takes precendence.
+     */
+    p.getMetadata = function (propertyName) {
+        if (propertyName === weavedata.ColumnMetadata.TITLE && this._overrideTitle)
+            return this._overrideTitle;
+
+        var overrideValue = weavedata.AbstractAttributeColumn.prototype.getMetadata.call(this, propertyName);
+        if ((overrideValue === null || overrideValue === undefined) && this._internalColumn !== null)
+            return this._internalColumn.getMetadata(propertyName);
+        return overrideValue;
+    }
+
+
+    p.getProxyMetadata = function () {
+        return weavedata.AbstractAttributeColumn.copyValues(this._metadata);
+    }
+
+    p.getMetadataPropertyNames = function () {
+        if (this._internalColumn)
+            return weavedata.VectorUtils.union(weavedata.AbstractAttributeColumn.prototype.getMetadataPropertyNames.call(this), this._internalColumn.getMetadataPropertyNames());
+        return weavedata.AbstractAttributeColumn.prototype.getMetadataPropertyNames.call(this);
+    }
+
+
+
+
+    p.getInternalColumn = function () {
+        return this._internalColumn;
+    }
+    p.setInternalColumn = function (newColumn) {
+        this._overrideTitle = null;
+
+        if (newColumn === this) {
+            console.warn("WARNING! Attempted to set ProxyColumn.internalAttributeColumn to self: " + this);
+            return;
+        }
+
+        if (this._internalColumn === newColumn)
+            return;
+
+        // clean up ties to previous column
+        if (this._internalColumn != null)
+            WeaveAPI.SessionManager.unregisterLinkableChild(this, this._internalColumn);
+
+        // save pointer to new column
+        this._internalColumn = newColumn;
+
+        // initialize for new column
+        if (this._internalColumn != null)
+            WeaveAPI.SessionManager.registerLinkableChild(this, this._internalColumn);
+
+        this.triggerCallbacks();
+    }
+
+    /**
+     * The functions below serve as wrappers for matching function calls on the internalAttributeColumn.
+     */
+    p.getValueFromKey = function (key, dataType) {
+        dataType = (dataType === undefined) ? null : dataType;
+        if (this._internalColumn)
+            return this._internalColumn.getValueFromKey(key, dataType);
+        return undefined;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    p.dispose = function () {
+        weavedata.AbstractAttributeColumn.prototype.dispose.call(this);
+        this._metadata = null;
+        this.setInternalColumn(null); // this will remove the callback that was added to the internal column
+    }
+
+    /**
+     * Call this function when the ProxyColumn should indicate that the requested data is unavailable.
+     * @param message The message to display in the title of the ProxyColumn.
+     */
+    p.dataUnavailable = function (message) {
+        message = (message === undefined) ? null : message;
+        this.delayCallbacks();
+        this.setInternalColumn(null);
+        if (message) {
+            this._overrideTitle = message;
+        } else {
+            var title = this.getMetadata(weavedata.ColumnMetadata.TITLE);
+            if (title)
+                this._overrideTitle = weavecore.StandardLib.substitute('(Data unavailable: {0})', title);
+            else
+                this._overrideTitle = ProxyColumn.DATA_UNAVAILABLE;
+        }
+        this.triggerCallbacks();
+        this.resumeCallbacks();
+    }
+
+    p.toString = function () {
+        if (this.getInternalColumn())
+            return WeaveAPI.debugId(this) + '( ' + this.getInternalColumn() + ' )';
+        return weavedata.AbstractAttributeColumn.prototype.toString.call(this);
+    }
+
+    if (typeof exports !== 'undefined') {
+        module.exports = ProxyColumn;
+    } else {
+
+        window.weavedata = window.weavedata ? window.weavedata : {};
+        window.weavedata.ProxyColumn = ProxyColumn;
     }
 
 
@@ -3124,6 +3569,31 @@ if (this.weavedata === undefined) this.weavedata = {};
  * @author sanjay1909
  */
 (function () {
+    /**
+     * temporary solution to save the namespace for this class/prototype
+     * @static
+     * @public
+     * @property NS
+     * @default weavecore
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(ReferencedColumn, 'NS', {
+        value: 'weavedata'
+    });
+
+    /**
+     * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
+     * @static
+     * @public
+     * @property CLASS_NAME
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(ReferencedColumn, 'CLASS_NAME', {
+        value: 'ReferencedColumn'
+    });
+
     function ReferencedColumn() {
         weavedata.IColumnWrapper.call(this);
         this._dataSource;
@@ -3273,7 +3743,7 @@ if (this.weavedata === undefined) this.weavedata = {};
     if (typeof exports !== 'undefined') {
         module.exports = ReferencedColumn;
     } else {
-        console.log('window is used');
+
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.ReferencedColumn = ReferencedColumn;
     }
@@ -3286,6 +3756,32 @@ if (this.weavedata === undefined) this.weavedata = {};
  * @author asanjay
  */
 (function () {
+
+
+    /**
+     * temporary solution to save the namespace for this class/prototype
+     * @static
+     * @public
+     * @property NS
+     * @default weavecore
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(StringColumn, 'NS', {
+        value: 'weavedata'
+    });
+
+    /**
+     * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
+     * @static
+     * @public
+     * @property CLASS_NAME
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(StringColumn, 'CLASS_NAME', {
+        value: 'StringColumn'
+    });
 
     Object.defineProperty(StringColumn, 'compiler', {
         value: new weavecore.Compiler()
@@ -3515,10 +4011,846 @@ if (this.weavedata === undefined) this.weavedata = {};
     if (typeof exports !== 'undefined') {
         module.exports = StringColumn;
     } else {
-        console.log('window is used');
+
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.StringColumn = StringColumn;
     }
 
+
+}());
+/**
+ * This is a base class to make it easier to develope a new class that implements IDataSource.
+ * Classes that extend AbstractDataSource should implement the following methods:
+ * getHierarchyRoot, generateHierarchyNode, requestColumnFromSource
+ *
+ * @author adufilie
+ * @author asanjay
+ */
+
+(function () {
+
+    /**
+     * temporary solution to save the namespace for this class/prototype
+     * @static
+     * @public
+     * @property NS
+     * @default weavecore
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(AbstractDataSource, 'NS', {
+        value: 'weavedata'
+    });
+
+    /**
+     * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
+     * @static
+     * @public
+     * @property CLASS_NAME
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(AbstractDataSource, 'CLASS_NAME', {
+        value: 'AbstractDataSource'
+    });
+
+    function AbstractDataSource() {
+        weavecore.ILinkableObject.call(this);
+        /*
+         *
+         * This variable is set to false when the session state changes and true when initialize() is called.*/
+        this._initializeCalled = false;
+
+        /**
+         * This should be used to keep a pointer to the hierarchy root node.
+         */
+        this._rootNode;
+
+        /**
+         * ProxyColumn -> (true if pending, false if not pending)
+         */
+        this._proxyColumns = new Map();
+
+        Object.defineProperty(this, "_hierarchyRefresh", {
+            value: WeaveAPI.SessionManager.registerLinkableChild(this, new weavecore.CallbackCollection(), refreshHierarchy.bind(this))
+        });
+
+        Object.defineProperty(this, "hierarchyRefresh", {
+            get: function () {
+                return this._hierarchyRefresh;
+            }
+        });
+
+        /**
+         * Classes that extend AbstractDataSource can define their own replacement for this function.
+         * All column requests will be delayed as long as this accessor function returns false.
+         * The default behavior is to return false during the time between a change in the session state and when initialize() is called.
+         */
+        Object.defineProperty(this, "initializationComplete", {
+            get: function () {
+                return this._initializeCalled;
+            },
+            configurable: true
+        });
+
+        var cc = WeaveAPI.SessionManager.getCallbackCollection(this);
+        cc.addImmediateCallback(this, uninitialize.bind(this));
+        cc.addGroupedCallback(this, this.initialize.bind(this), true);
+
+
+    }
+
+
+    AbstractDataSource.prototype = new weavecore.ILinkableObject();
+    AbstractDataSource.prototype.constructor = AbstractDataSource;
+
+    var p = AbstractDataSource.prototype;
+
+
+    /**
+     * Sets _rootNode to null and triggers callbacks.
+     * @inheritDoc
+     */
+    function refreshHierarchy() {
+        this._rootNode = null;
+    }
+
+    /**
+     * This function must be implemented by classes that extend AbstractDataSource.
+     * This function should set _rootNode if it is null, which may happen from calling refreshHierarchy().
+     * @inheritDoc
+     */
+    p.getHierarchyRoot = function () {
+        return this._rootNode;
+    }
+
+    /**
+     * This function must be implemented by classes that extend AbstractDataSource.
+     * This function should make a request to the source to fill in the proxy column.
+     * @param proxyColumn Contains metadata for the column request and will be used to store column data when it is ready.
+     */
+    p.requestColumnFromSource = function (proxyColumn) {
+
+    }
+
+    /**
+     * This function must be implemented by classes that extend AbstractDataSource.
+     * @param metadata A set of metadata that may identify a column in this IDataSource.
+     * @return A node that contains the metadata.
+     */
+    p.generateHierarchyNode = function (metadata) {
+        return null;
+    }
+
+    /**
+     * This function is called as an immediate callback and sets initialized to false.
+     */
+    function uninitialize() {
+        this._initializeCalled = false;
+    }
+
+    /**
+     * This function will be called as a grouped callback the frame after the session state for the data source changes.
+     * When overriding this function, super.initialize() should be called.
+     */
+    p.initialize = function () {
+        // set initialized to true so other parts of the code know if this function has been called.
+        this._initializeCalled = true;
+
+        handleAllPendingColumnRequests.call(this);
+    }
+
+    /**
+     * The default implementation of this function calls generateHierarchyNode(metadata) and
+     * then traverses the _rootNode to find a matching node.
+     * This function should be overridden if the hierachy is not known completely, since this
+     * may result in traversing the entire hierarchy, causing many remote procedure calls if
+     * the hierarchy is stored remotely.
+     * @inheritDoc
+     */
+    p.findHierarchyNode = function (metadata) {
+        var path = HierarchyUtils.findPathToNode(this.getHierarchyRoot(), this.generateHierarchyNode(metadata));
+        if (path)
+            return path[path.length - 1];
+        return null;
+    }
+
+    /**
+     * This function creates a new ProxyColumn object corresponding to the metadata and queues up the request for the column.
+     * @param metadata An object that contains all the information required to request the column from this IDataSource.
+     * @return A ProxyColumn object that will be updated when the column data is ready.
+     */
+    p.getAttributeColumn = function (metadata) {
+        var proxyColumn = WeaveAPI.SessionManager.registerDisposableChild(this, new weavedata.ProxyColumn());
+        proxyColumn.setMetadata(metadata);
+        var description = (WeaveAPI.globalHashMap.getName(this) || WeaveAPI.debugId(this)) + " pending column request";
+        WeaveAPI.ProgressIndicator.addTask(proxyColumn, this, description);
+        WeaveAPI.ProgressIndicator.addTask(proxyColumn, proxyColumn, description);
+        handlePendingColumnRequest.call(this, proxyColumn);
+        return proxyColumn;
+    }
+
+
+    /**
+     * This function will call requestColumnFromSource() if initializationComplete==true.
+     * Otherwise, it will delay the column request again.
+     * This function may be overridden by classes that extend AbstractDataSource.
+     * However, if the extending class decides it wants to call requestColumnFromSource()
+     * for the pending column, it is recommended to call super.handlePendingColumnRequest() instead.
+     * @param request The request that needs to be handled.
+     */
+    function handlePendingColumnRequest(column) {
+        // If data source is already initialized (session state is stable, not currently changing), we can request the column now.
+        // Otherwise, we have to wait.
+        if (this.initializationComplete) {
+            this._proxyColumns.set(column, false); // no longer pending
+            WeaveAPI.ProgressIndicator.removeTask(column);
+            this.requestColumnFromSource.call(this, column);
+        } else {
+            this._proxyColumns.set(column, true); // pending
+        }
+    }
+
+    /**
+     * This function will call handlePendingColumnRequest() on each pending column request.
+     */
+    function handleAllPendingColumnRequests() {
+        for (var proxyColumn of this._proxyColumns.keys()) {
+            if (this._proxyColumns.get(proxyColumn)) // pending?
+                handlePendingColumnRequest.call(this, proxyColumn);
+        }
+
+
+    }
+
+    /**
+     * Calls requestColumnFromSource() on all ProxyColumn objects created previously via getAttributeColumn().
+     */
+    p.refreshAllProxyColumns = function () {
+        for (var proxyColumn of this._proxyColumns.keys())
+            handlePendingColumnRequest.call(this, proxyColumn);
+
+    }
+
+    /**
+     * This function should be called when the IDataSource is no longer in use.
+     * All existing pointers to objects should be set to null so they can be garbage collected.
+     */
+    p.dispose = function () {
+        for (var column of this._proxyColumns.keys())
+            WeaveAPI.ProgressIndicator.removeTask(column);
+
+        this._initializeCalled = false;
+        this._proxyColumns = null;
+    }
+
+    if (typeof exports !== 'undefined') {
+        module.exports = AbstractDataSource;
+    } else {
+
+        window.weavedata = window.weavedata ? window.weavedata : {};
+        window.weavedata.AbstractDataSource = AbstractDataSource;
+    }
+
+}());
+(function () {
+
+    /**
+     * temporary solution to save the namespace for this class/prototype
+     * @static
+     * @public
+     * @property NS
+     * @default weavecore
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(CSVDataSource, 'NS', {
+        value: 'weavedata'
+    });
+
+    /**
+     * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
+     * @static
+     * @public
+     * @property CLASS_NAME
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(CSVDataSource, 'CLASS_NAME', {
+        value: 'CSVDataSource'
+    });
+
+    Object.defineProperty(CSVDataSource, 'METADATA_COLUMN_INDEX', {
+        value: 'csvColumnIndex'
+    });
+
+    Object.defineProperty(CSVDataSource, 'METADATA_COLUMN_NAME', {
+        value: 'csvColumn'
+    });
+
+    function CSVDataSource() {
+        weavedata.AbstractDataSource.call(this);
+
+        /**
+         * Contains the csv data that should be used elsewhere in the code
+         */
+        this._parsedRows;
+        this._cachedDataTypes = {};
+        this._columnIds = [];
+        this._keysVector;
+        this._csvParser;
+
+        Object.defineProperty(this, '_nullValues', {
+            value: [null, "", "null", "\\N", "NaN"]
+        });
+
+
+
+
+
+
+
+        Object.defineProperty(this, '_keysCallbacks', {
+            value: WeaveAPI.SessionManager.registerLinkableChild(this, new weavecore.CallbackCollection())
+        });
+
+
+        //public
+        Object.defineProperty(this, 'csvData', {
+            value: WeaveAPI.SessionManager.registerLinkableChild(this, new weavecore.LinkableVariable(Array, verifyRows.bind(this)), handleCSVDataChange.bind(this))
+        });
+
+        Object.defineProperty(this, 'keyType', {
+            value: WeaveAPI.SessionManager.registerLinkableChild(this, new weavecore.LinkableString(), updateKeys.bind(this))
+        });
+        Object.defineProperty(this, 'keyColName', {
+            value: WeaveAPI.SessionManager.registerLinkableChild(this, new weavecore.LinkableString(), updateKeys.bind(this))
+        });
+        Object.defineProperty(this, 'metadata', {
+            value: WeaveAPI.SessionManager.registerLinkableChild(this, new weavecore.LinkableVariable(null, verifyMetadata.bind(this)))
+        });
+
+        Object.defineProperty(this, 'url', {
+            value: WeaveAPI.SessionManager.registerLinkableChild(this, new weavecore.LinkableFile(), parseRawData.bind(this))
+        });
+        Object.defineProperty(this, 'delimiter', {
+            value: WeaveAPI.SessionManager.registerLinkableChild(this, new weavecore.LinkableString(',', verifyDelimiter.bind(this)), parseRawData.bind(this))
+        });
+
+        WeaveAPI.SessionManager.registerLinkableChild(this.hierarchyRefresh, this.metadata);
+
+        Object.defineProperty(this, 'initializationComplete', {
+            get: function () {
+                // make sure csv data is set before column requests are handled.
+                console.log('CSVDataSource.prototype.initializationComplete:', CSVDataSource.prototype.initializationComplete);
+                return weavedata.AbstractDataSource.prototype.initializationComplete && this._parsedRows && this._keysVector && !WeaveAPI.SessionManager.linkableObjectIsBusy(this._keysCallbacks);
+            }
+        });
+
+    }
+
+    CSVDataSource.prototype = new weavedata.AbstractDataSource();
+    CSVDataSource.prototype.constructor = CSVDataSource;
+
+    var p = CSVDataSource.prototype;
+
+
+
+
+    function verifyRows(rows) {
+        if (!rows) return false;
+        return weavecore.StandardLib.arrayIsType(rows, Array);
+    }
+
+    function verifyMetadata(value) {
+
+        return typeof value === 'object';
+    }
+
+
+    function verifyDelimiter(value) {
+        return value && value.length === 1 && value !== '"';
+    }
+
+
+    function parseRawData() {
+        if (!this.url.value)
+            return;
+
+        if (this.url.error)
+            console.log(url.error);
+
+        if (WeaveAPI.detectLinkableObjectChange(this.parseRawData, this.delimiter)) {
+            if (this._csvParser)
+                WeaveAPI.SessionManager.disposeObject(this._csvParser);
+            this._csvParser = WeaveAPI.SessionManager.registerLinkableChild(this, new weavedata.CSVParser(true, this.delimiter.value), handleCSVParser.bind(this));
+        }
+
+
+        this._csvParser.parseCSV(String(this.url.result || ''));
+    }
+
+
+    /**
+     * Called when csv parser finishes its task
+     */
+    function handleCSVParser() {
+        // when csv parser finishes, handle the result
+        if (this.url.value) {
+            // when using url, we don't want to set session state of csvData
+            handleParsedRows.call(this, this._csvParser.parseResult);
+        } else {
+            this.csvData.setSessionState(this._csvParser.parseResult);
+        }
+    }
+
+    /**
+     * Called when csvData session state changes
+     */
+    function handleCSVDataChange() {
+        // save parsedRows only if csvData has non-null session state
+        var rows = this.csvData.getSessionState();
+        // clear url value when we specify csvData session state
+        if (this.url.value && rows != null && rows.length)
+            this.url.value = null;
+        if (!this.url.value)
+            handleParsedRows.call(this, rows);
+    }
+
+
+
+    function handleParsedRows(rows) {
+        if (!rows)
+            rows = [];
+        this._cachedDataTypes = {};
+        this._parsedRows = rows;
+        this._columnIds = rows[0] ? rows[0].concat() : [];
+        // make sure column names are unique - if not, use index values for columns with duplicate names
+        var nameLookup = {};
+        for (var i = 0; i < this._columnIds.length; i++) {
+            if (!this._columnIds[i] || nameLookup.hasOwnProperty(this._columnIds[i]))
+                this._columnIds[i] = i;
+            else
+                nameLookup[this._columnIds[i]] = true;
+        }
+        updateKeys.call(this, true);
+        this.hierarchyRefresh.triggerCallbacks();
+    }
+
+
+
+    function updateKeys(forced) {
+        forced = (forced === undefined) ? false : forced;
+        var changed = WeaveAPI.detectLinkableObjectChange(updateKeys.bind(this), this.keyType, this.keyColName);
+        if (this._parsedRows && (forced || changed)) {
+            var colNames = this._parsedRows[0] || [];
+            // getColumnValues supports columnIndex -1
+            var keyColIndex = -1;
+            if (this.keyColName.value) {
+                keyColIndex = colNames.indexOf(keyColName.value);
+                // treat invalid keyColName as an error
+                if (keyColIndex < 0)
+                    keyColIndex = -2;
+            }
+            var keyStrings = getColumnValues.call(this, this._parsedRows, keyColIndex, []);
+            var keyTypeString = this.keyType.value;
+
+            this._keysVector = new Array();
+            WeaveAPI.QKeyManager.getQKeysAsync(this._keysCallbacks, this.keyType.value, keyStrings, null, this._keysVector);
+        }
+    }
+
+
+
+    p.generateHierarchyNode = function (metadata) {
+        if (typeof metadata !== 'object')
+            metadata = this.generateMetadataForColumnId(metadata);
+
+        if (!metadata)
+            return null;
+
+        if (metadata.hasOwnProperty(CSVDataSource.METADATA_COLUMN_INDEX) || metadata.hasOwnProperty(CSVDataSource.METADATA_COLUMN_NAME)) {
+            return new weavedata.ColumnTreeNode({
+                dataSource: this,
+                label: getColumnNodeLabel.bind(this),
+                idFields: [CSVDataSource.METADATA_COLUMN_INDEX, CSVDataSource.METADATA_COLUMN_NAME],
+                data: metadata
+            });
+        }
+
+        return null;
+    }
+
+    function getColumnNodeLabel(node) {
+        var title = node.data[weavedata.ColumnMetadata.TITLE] || node.data[CSVDataSource.METADATA_COLUMN_NAME];
+        if (!title && node.data['name']) {
+            title = node.data['name'];
+            if (node.data['year'])
+                title = StandardLib.substitute("{0} ({1})", title, node.data['year']);
+        }
+        return title;
+    }
+
+
+
+    p.requestColumnFromSource = function (proxyColumn) {
+        var metadata = proxyColumn.getProxyMetadata();
+
+        // get column id from metadata
+        var columnId = metadata[CSVDataSource.METADATA_COLUMN_INDEX];
+        if (columnId !== null) {
+            columnId = Number(columnId);
+        } else {
+            columnId = metadata[CSVDataSource.METADATA_COLUMN_NAME];
+            if (!columnId) {
+                // support for time slider
+                for (var i = 0; i < this._columnIds.length; i++) {
+                    var meta = getColumnMetadata.call(this, this._columnIds[i]);
+                    if (!meta)
+                        continue;
+                    var found = 0;
+                    for (var key in metadata) {
+                        if (meta[key] != metadata[key]) {
+                            found = 0;
+                            break;
+                        }
+                        found++;
+                    }
+                    if (found) {
+                        columnId = i;
+                        break;
+                    }
+                }
+
+                // backwards compatibility
+                if (!columnId)
+                    columnId = metadata["name"];
+            }
+        }
+
+        // get column name and index from id
+        var colNames = this._parsedRows[0] || [];
+        var colIndex, colName;
+        if (typeof columnId === 'number') {
+            colIndex = Number(columnId);
+            colName = colNames[columnId];
+        } else {
+            colIndex = colNames.indexOf(columnId);
+            colName = String(columnId);
+        }
+        if (colIndex < 0) {
+            proxyColumn.dataUnavailable("No such column: {0}", columnId);
+            return;
+        }
+
+        metadata = this.generateMetadataForColumnId(columnId);
+        proxyColumn.setMetadata(metadata);
+
+        var strings = getColumnValues.call(this, this._parsedRows, colIndex, new Array());
+        var numbers = null;
+        var dateFormats = null;
+
+        if (!this._keysVector || strings.length != this._keysVector.length) {
+            proxyColumn.setInternalColumn(null);
+            return;
+        }
+
+        var dataType = metadata[weavedata.ColumnMetadata.DATA_TYPE];
+
+        if (dataType === null || dataType === weavedata.DataType.NUMBER) {
+            numbers = stringsToNumbers.call(this, strings, dataType === weavedata.DataType.NUMBER);
+        }
+
+        if ((!numbers && dataType === null) || dataType === weavedata.DataType.DATE) {
+            dateFormats = weavedata.DateColumn.detectDateFormats(strings);
+        }
+
+        var newColumn;
+        if (numbers) {
+            newColumn = new weavedata.NumberColumn(metadata);
+            newColumn.setRecords(this._keysVector, numbers);
+        } else {
+            if (dataType === weavedata.DataType.DATE || (dateFormats && dateFormats.length > 0)) {
+                newColumn = new weavedata.DateColumn(metadata);
+                newColumn.setRecords(this._keysVector, strings);
+            } else {
+                newColumn = new weavedata.StringColumn(metadata);
+                newColumn.setRecords(this._keysVector, strings);
+            }
+        }
+        this._cachedDataTypes[columnId] = newColumn.getMetadata(weavedata.ColumnMetadata.DATA_TYPE);
+        proxyColumn.setInternalColumn(newColumn);
+    }
+
+
+    /**
+     * Gets whatever is stored in the "metadata" session state for the specified id.
+     */
+
+
+    function getColumnMetadata(id) {
+        try {
+            if (typeof (id) === 'number')
+                id = this._columnIds[id];
+            var meta = this.metadata.getSessionState();
+            if (meta instanceof Array) {
+                var array = meta;
+                for (var i = 0; i < array.length; i++) {
+                    var item = array[i];
+                    var itemId = item[CSVDataSource.METADATA_COLUMN_NAME] || item[CSVDataSource.METADATA_COLUMN_INDEX];
+                    if (itemId === undefined)
+                        itemId = this._columnIds[i];
+                    if (itemId === id)
+                        return item;
+                }
+                return null;
+            } else if (meta)
+                return meta[id];
+        } catch (e) {
+            console.error(e);
+        }
+        return null;
+    }
+
+
+    function getColumnValues(rows, columnIndex, outputArrayOrVector) {
+        outputArrayOrVector.length = Math.max(0, rows.length - 1);
+        var i;
+        if (columnIndex === -1) {
+            // generate keys 0,1,2,3,...
+            for (i = 1; i < rows.length; i++)
+                outputArrayOrVector[i - 1] = i;
+        } else {
+            // get column value from each row
+            for (i = 1; i < rows.length; i++)
+                outputArrayOrVector[i - 1] = rows[i][columnIndex];
+        }
+        return outputArrayOrVector;
+    }
+
+    /**
+     * Attempts to convert a list of Strings to Numbers. If successful, returns the Numbers.
+     * @param strings The String values.
+     * @param forced Always return a Vector of Numbers, whether or not the Strings look like Numbers.
+     * @return Either a Vector of Numbers or null
+     */
+    function stringsToNumbers(strings, forced) {
+        var numbers = new Array();
+        numbers.length = strings.length
+        var i = strings.length;
+        outerLoop: while (i--) {
+            var string = strings[i].trim();
+            for (var j = 0; j < nullValues.length; j++) {
+                var nullValue = nullValues[j];
+                var a = nullValue && nullValue.toLocaleLowerCase();
+                var b = string && string.toLocaleLowerCase();
+                if (a === b) {
+                    numbers[i] = NaN;
+                    continue outerLoop;
+                }
+            }
+
+            // if a string is 2 characters or more and begins with a '0', treat it as a string.
+            if (!forced && string.length > 1 && string.charAt(0) === '0' && string.charAt(1) != '.')
+                return null;
+
+            if (string.indexOf(',') >= 0)
+                string = string.split(',').join('');
+
+            var number = Number(string);
+            if (isNaN(number) && !forced)
+                return null;
+
+            numbers[i] = number;
+        }
+        return numbers;
+    }
+
+
+
+
+    /**
+     * This gets called as a grouped callback.
+     */
+
+    p.initialize = function () {
+        // if url is specified, do not use csvDataString
+        if (this.url.value)
+            this.csvData.setSessionState(null);
+
+        // recalculate all columns previously requested because CSV data may have changed.
+        this.refreshAllProxyColumns();
+
+        weavedata.AbstractDataSource.prototype.initialize.call(this);
+    }
+
+    /**
+     * Convenience function for setting session state of csvData.
+     * @param rows
+     */
+    p.setCSVData = function (rows) {
+        if (!verifyRows.call(this, rows))
+            throw new Error("Invalid data format. Expecting nested Arrays.");
+        this.csvData.setSessionState(rows);
+    }
+
+    p.getCSVData = function () {
+        return this.csvData.getSessionState();
+    }
+
+    /**
+     * Convenience function for setting session state of csvData.
+     * @param csvDataString CSV string using comma as a delimiter.
+     */
+    p.setCSVDataString = function (csvDataString) {
+        this.csvData.setSessionState(WeaveAPI.CSVParser.parseCSV(csvDataString));
+    }
+
+    /**
+     * This will get a list of column names in the data, which are taken directly from the header row and not guaranteed to be unique.
+     */
+    p.getColumnNames = function () {
+        if (this._parsedRows && this._parsedRows.length)
+            return this._parsedRows[0].concat();
+        return [];
+    }
+
+    /**
+     * A unique list of identifiers for columns which may be a mix of Strings and Numbers, depending on the uniqueness of column names.
+     */
+    p.getColumnIds = function () {
+        return this._columnIds.concat();
+    }
+
+
+
+    p.getColumnTitle = function (id) {
+        var meta = getColumnMetadata.call(this, id);
+        var title = meta ? meta[CSVDataSource.ColumnMetadata.TITLE] : null;
+        if (!title && typeof id === 'number' && this._parsedRows && this._parsedRows.length)
+            title = this._parsedRows[0][id];
+        if (!title)
+            title = String(id);
+        return title;
+    }
+
+
+
+    p.generateMetadataForColumnId = function (id) {
+        var metadata = {};
+        metadata[weavedata.ColumnMetadata.TITLE] = this.getColumnTitle(id);
+        metadata[weavedata.ColumnMetadata.KEY_TYPE] = this.keyType.value || weavedata.DataType.STRING;
+        if (this._cachedDataTypes[id])
+            metadata[weavedata.ColumnMetadata.DATA_TYPE] = this._cachedDataTypes[id];
+
+        // get column metadata from session state
+        var meta = getColumnMetadata.call(this, id);
+        for (var key in meta)
+            metadata[key] = meta[key];
+
+        // overwrite identifying property
+        if (typeof id === 'number')
+            metadata[CSVDataSource.METADATA_COLUMN_INDEX] = id;
+        else
+            metadata[CSVDataSource.METADATA_COLUMN_NAME] = id;
+
+        return metadata;
+    }
+
+    p.getAttributeColumn = function (metadata) {
+        if (typeof metadata != 'object')
+            metadata = this.generateMetadataForColumnId(metadata);
+        return weavedata.AbstractDataSource.prototype.getAttributeColumn.call(this, metadata);
+    }
+
+    /**
+     * This function will get a column by name or index.
+     * @param columnNameOrIndex The name or index of the CSV column to get.
+     * @return The column.
+     */
+    p.getColumnById = function (columnNameOrIndex) {
+        return WeaveAPI.AttributeColumnCache.getColumn(this, columnNameOrIndex);
+    }
+
+    /**
+     * This function will create a column in an ILinkableHashMap that references a column from this CSVDataSource.
+     * @param columnNameOrIndex Either a column name or zero-based column index.
+     * @param destinationHashMap The hash map to put the column in.
+     * @return The column that was created in the hash map.
+     */
+    p.putColumnInHashMap = function (columnNameOrIndex, destinationHashMap) {
+        var sourceOwner = WeaveAPI.SessionManager.getLinkableOwner(this);
+        if (!sourceOwner)
+            return null;
+
+        WeaveAPI.SessionManager.getCallbackCollection(destinationHashMap).delayCallbacks();
+        var refCol = destinationHashMap.requestObject(null, weavedata.ReferencedColumn, false);
+        refCol.setColumnReference(this, this.generateMetadataForColumnId(columnNameOrIndex));
+        WeaveAPI.SessionManager.getCallbackCollection(destinationHashMap).resumeCallbacks();
+        return refCol;
+    }
+
+    /**
+     * This will modify a column object in the session state to refer to a column in this CSVDataSource.
+     * @param columnNameOrIndex Either a column name or zero-based column index.
+     * @param columnPath A DynamicColumn or the path in the session state that refers to a DynamicColumn.
+     * @return A value of true if successful, false if not.
+     * @see weave.api.IExternalSessionStateInterface
+     */
+    p.putColumn = function (columnNameOrIndex, dynamicColumnOrPath) {
+        var sourceOwner = WeaveAPI.SessionManager.getLinkableOwner(this);
+        if (!sourceOwner)
+            return false;
+
+        var dc = dynamicColumnOrPath;
+        if (!dc) {
+            WeaveAPI.ExternalSessionStateInterface.requestObject(dynamicColumnOrPath, weavedata.DynamicColumn.className);
+            dc = WeaveAPI.getObject(dynamicColumnOrPath);
+        }
+        if (!dc)
+            return false;
+
+        WeaveAPI.SessionManager.getCallbackCollection(dc).delayCallbacks();
+        var refCol = dc.requestLocalObject(ReferencedColumn, false);
+        refCol.setColumnReference(this, generateMetadataForColumnId(columnNameOrIndex));
+        WeaveAPI.SessionManager.getCallbackCollection(dc).resumeCallbacks();
+
+        return true;
+
+    }
+
+
+
+
+    /**
+     * Gets the root node of the attribute hierarchy.
+     */
+    p.getHierarchyRoot = function () {
+        if (!_rootNode)
+            _rootNode = new weavedata.ColumnTreeNode({
+                dataSource: this,
+                label: WeaveAPI.globalHashMap.getName(this),
+                children: function (root) {
+                    var items = metadata.getSessionState();
+                    if (!items)
+                        items = this.getColumnIds();
+                    var children = [];
+                    for (var i = 0; i < items.length; i++) {
+                        var item = items[i];
+                        children[i] = this.generateHierarchyNode.call(this, item) || this.generateHierarchyNode.call(this, i);
+                    }
+                    return children;
+                }.bind(this)
+            });
+        return _rootNode;
+    }
+
+    if (typeof exports !== 'undefined') {
+        module.exports = CSVDataSource;
+    } else {
+
+        window.weavedata = window.weavedata ? window.weavedata : {};
+        window.weavedata.CSVDataSource = CSVDataSource;
+    }
 
 }());

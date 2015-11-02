@@ -9,6 +9,32 @@
 
 (function () {
 
+    /**
+     * temporary solution to save the namespace for this class/prototype
+     * @static
+     * @public
+     * @property NS
+     * @default weavecore
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(DynamicColumn, 'NS', {
+        value: 'weavedata'
+    });
+
+    /**
+     * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
+     * @static
+     * @public
+     * @property CLASS_NAME
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(DynamicColumn, 'CLASS_NAME', {
+        value: 'DynamicColumn'
+    });
+
+
     // TEMPORARY PERFORMANCE IMPROVEMENT SOLUTION
     DynamicColumn.cache = true;
     DynamicColumn._cache_type_key = new Map();
@@ -124,7 +150,7 @@
     if (typeof exports !== 'undefined') {
         module.exports = DynamicColumn;
     } else {
-        console.log('window is used');
+
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.DynamicColumn = DynamicColumn;
     }

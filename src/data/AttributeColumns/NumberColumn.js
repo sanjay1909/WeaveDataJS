@@ -5,6 +5,32 @@
  */
 (function () {
 
+    /**
+     * temporary solution to save the namespace for this class/prototype
+     * @static
+     * @public
+     * @property NS
+     * @default weavecore
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(NumberColumn, 'NS', {
+        value: 'weavedata'
+    });
+
+    /**
+     * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
+     * @static
+     * @public
+     * @property CLASS_NAME
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(NumberColumn, 'CLASS_NAME', {
+        value: 'NumberColumn'
+    });
+
+
     Object.defineProperty(NumberColumn, 'compiler', {
         value: new weavecore.Compiler()
     });
@@ -32,7 +58,7 @@
     p.getMetadata = function (propertyName) {
         if (propertyName == weavedata.ColumnMetadata.DATA_TYPE)
             return weavedata.DataType.NUMBER;
-        return NumberColumn.prototype.getMetadata(propertyName);
+        return weavedata.AbstractAttributeColumn.prototype.getMetadata.call(this,propertyName);
     }
 
     //TODO - implement IBaseColumn
@@ -152,7 +178,7 @@
     if (typeof exports !== 'undefined') {
         module.exports = NumberColumn;
     } else {
-        console.log('window is used');
+
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.NumberColumn = NumberColumn;
     }

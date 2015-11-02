@@ -122,7 +122,7 @@
     if (typeof exports !== 'undefined') {
         module.exports = DateFormat;
     } else {
-        console.log('window is used');
+
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.DateFormat = DateFormat;
     }

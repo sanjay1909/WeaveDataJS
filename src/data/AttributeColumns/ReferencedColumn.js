@@ -5,6 +5,31 @@
  * @author sanjay1909
  */
 (function () {
+    /**
+     * temporary solution to save the namespace for this class/prototype
+     * @static
+     * @public
+     * @property NS
+     * @default weavecore
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(ReferencedColumn, 'NS', {
+        value: 'weavedata'
+    });
+
+    /**
+     * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
+     * @static
+     * @public
+     * @property CLASS_NAME
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(ReferencedColumn, 'CLASS_NAME', {
+        value: 'ReferencedColumn'
+    });
+
     function ReferencedColumn() {
         weavedata.IColumnWrapper.call(this);
         this._dataSource;
@@ -154,7 +179,7 @@
     if (typeof exports !== 'undefined') {
         module.exports = ReferencedColumn;
     } else {
-        console.log('window is used');
+
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.ReferencedColumn = ReferencedColumn;
     }

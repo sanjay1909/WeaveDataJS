@@ -18,7 +18,7 @@ module.exports = function (grunt) {
                     'src/data/DateFormat.js',
                     'src/data/EntityType.js',
                     'src/data/AttributeColumns/*.js',
-                    'src/data/DataSources/*.js',
+                     'src/data/DataSources/*.js',
                     'src/data/hierarchy/*.js'
                 ],
                 dest: 'weavedata.js',

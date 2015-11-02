@@ -1,16 +1,3 @@
-/*package weave.data
-{
-	import flash.utils.Dictionary;
-	import flash.utils.getTimer;
-
-	import weave.api.core.ILinkableObject;
-	import weave.api.data.DataType;
-	import weave.api.data.IQualifiedKey;
-	import weave.api.data.IQualifiedKeyManager;
-	import weave.compiler.StandardLib;
-	import weave.flascc.stringHash;
-	import weave.utils.WeavePromise;*/
-
 /**
  * This class manages a global list of IQualifiedKey objects.
  *
@@ -79,6 +66,19 @@
         return this._keyBuffer[0];
     }
 
+    function stringHash(str) {
+        var hash = 5381,
+            i = str.length
+
+        while (i)
+            hash = (hash * 33) ^ str.charCodeAt(--i)
+
+        /* JavaScript does bitwise operations (like XOR, above) on 32-bit signed
+         * integers. Since we want the results to be always positive, convert the
+         * signed int to an unsigned by doing an unsigned bitshift. */
+        return hash >>> 0;
+    }
+
     /**
      * @param output An output Array or Vector for IQualifiedKeys.
      */
@@ -88,8 +88,8 @@
             keyType = "string";
 
         // get mapping of key strings to QKey weak references
-        var keyLookup = _keys[keyType];
-        if (keyLookup === null) {
+        var keyLookup = this._keys[keyType];
+        if (keyLookup === null || keyLookup === undefined) {
             // key type not seen before, so initialize it
             keyLookup = {};
             this._keys[keyType] = keyLookup;
@@ -103,9 +103,9 @@
             if (qkey === undefined) {
                 // QKey not created for this key yet (or it has been garbage-collected)
                 qkey = new weavedata.QKey(keyType, localName);
-                this.keyLookup.set(hash, qkey)
-                this.keyTypeLookup(qkey, keyType);
-                this.localNameLookup(qkey, localName);
+                keyLookup[hash] = qkey;
+                this.keyTypeLookup.set(qkey, keyType);
+                this.localNameLookup.set(qkey, localName);
             }
 
             output[i] = qkey;
@@ -119,7 +119,8 @@
      * @return An array of QKeys.
      */
     p.getQKeys = function (keyType, keyStrings) {
-        var keys = new Array(keyStrings.length);
+        var keys = [];
+        keys.length = keyStrings.length;
         this.getQKeys_range(keyType, keyStrings, 0, keyStrings.length, keys);
         return keys;
     }
@@ -204,7 +205,7 @@
     if (typeof exports !== 'undefined') {
         module.exports = QKeyManager;
     } else {
-        console.log('window is used');
+
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.QKeyManager = QKeyManager;
         window.WeaveAPI = window.WeaveAPI ? window.WeaveAPI : {};
@@ -248,7 +249,7 @@
     if (typeof exports !== 'undefined') {
         module.exports = QKey;
     } else {
-        console.log('window is used');
+
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.QKey = QKey;
     }
@@ -260,6 +261,8 @@
  */
 (function () {
     function QKeyGetter(manager, relevantContext) {
+
+        weavecore.WeavePromise.call(this, relevantContext);
         this._manager = manager;
 
         this._asyncCallback;
@@ -269,6 +272,7 @@
         this._keyStrings;
         this._outputKeys;
 
+
         Object.defineProperty(this, '_batch', {
             value: 5000
         });
@@ -276,6 +280,9 @@
 
     }
 
+
+    QKeyGetter.prototype = new weavecore.WeavePromise();
+    QKeyGetter.prototype.constructor = QKeyGetter;
     var p = QKeyGetter.prototype;
 
     p.asyncStart = function (keyType, keyStrings, outputKeys) {
@@ -287,31 +294,33 @@
         this._outputKeys = outputKeys || [];
         this._outputKeys.length = keyStrings.length;
         // high priority because all visualizations depend on key sets
-        WeaveAPI.StageUtils.startTask(relevantContext, iterate, WeaveAPI.TASK_PRIORITY_HIGH, asyncComplete.bind(this), weavedata.StandardLib.substitute("Initializing {0} record identifiers", keyStrings.length));
+        WeaveAPI.StageUtils.startTask(this.relevantContext, iterate.bind(this), WeaveAPI.TASK_PRIORITY_HIGH, asyncComplete.bind(this), weavecore.StandardLib.substitute("Initializing {0} record identifiers", keyStrings.length));
 
         return this;
     }
 
     function iterate(stopTime) {
-        for (; this._i < this._keyStrings.length; this._i += batch) {
+        for (; this._i < this._keyStrings.length; this._i += this._batch) {
             if (getTimer() > stopTime)
                 return this._i / this._keyStrings.length;
 
-            this._manager.getQKeys_range(this._keyType, this._keyStrings, this._i, Math.min(this._i + batch, this._keyStrings.length), this._outputKeys);
+            this._manager.getQKeys_range(this._keyType, this._keyStrings, this._i, Math.min(this._i + this._batch, this._keyStrings.length), this._outputKeys);
         }
         return 1;
     }
 
-
+    function getTimer() {
+        return new Date().getTime();
+    }
 
     function asyncComplete() {
-        setResult(this.this._outputKeys);
+        this.setResult(this._outputKeys);
     }
 
     if (typeof exports !== 'undefined') {
         module.exports = QKeyGetter;
     } else {
-        console.log('window is used');
+
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.QKeyGetter = QKeyGetter;
     }

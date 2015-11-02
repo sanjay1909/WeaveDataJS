@@ -16,7 +16,7 @@
     if (typeof exports !== 'undefined') {
         module.exports = EntityType;
     } else {
-        console.log('window is used');
+
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.EntityType = EntityType;
     }

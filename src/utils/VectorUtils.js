@@ -479,7 +479,7 @@
     if (typeof exports !== 'undefined') {
         module.exports = VectorUtils;
     } else {
-        console.log('window is used');
+
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.VectorUtils = VectorUtils;
     }

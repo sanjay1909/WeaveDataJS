@@ -40,7 +40,7 @@
     if (typeof exports !== 'undefined') {
         module.exports = HierarchyUtils;
     } else {
-        console.log('window is used');
+
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.HierarchyUtils = HierarchyUtils;
     }

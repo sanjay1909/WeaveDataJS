@@ -39,7 +39,7 @@
     if (typeof exports !== 'undefined') {
         module.exports = Aggregation;
     } else {
-        console.log('window is used');
+
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.Aggregation = Aggregation;
     }

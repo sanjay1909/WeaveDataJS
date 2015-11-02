@@ -1,0 +1,18 @@
+<html>
+
+<head>
+    <script type="application/javascript" src="http://sanjay1909.github.io/WeaveCoreJS/build/weavecore.js"></script>
+    <script type="application/javascript" src="../weavedata.js"></script>
+</head>
+
+<body>
+    <script>
+        var ds = WeaveAPI.globalHashMap.requestObject('CSVdataSource', weavedata.CSVDataSource);
+        ds.url.value = 'http://as-me.github.io/dashboard/data/testCereal.csv';
+        //var dd = ds.generateMetadataForColumnId("name")
+        //var pc = ds.getAttributeColumn(dd);
+    </script>
+
+</body>
+
+</html>

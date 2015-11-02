@@ -81,7 +81,7 @@
     if (typeof exports !== 'undefined') {
         module.exports = ColumnDataTask;
     } else {
-        console.log('window is used');
+
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.ColumnDataTask = ColumnDataTask;
     }

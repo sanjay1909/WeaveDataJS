@@ -124,7 +124,7 @@
 
     ColumnUtils.hack_findNonWrapperColumn = function (column) {
         // try to find an internal IPrimitiveColumn
-        while (column instanceof IColumnWrapper)
+        while (column instanceof IColumnWrapper || column.getInternalColumn)
             column = column.getInternalColumn();
         return column;
     }
@@ -140,7 +140,7 @@
                 else
                     break;
             }
-            if (columnWrapper instanceof ExtendedDynamicColumn)
+            if (columnWrapper instanceof weavedata.ExtendedDynamicColumn)
                 columnWrapper = columnWrapper.internalDynamicColumn;
         }
         return columnWrapper;
@@ -620,7 +620,7 @@
     if (typeof exports !== 'undefined') {
         module.exports = ColumnUtils;
     } else {
-        console.log('window is used');
+
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.ColumnUtils = ColumnUtils;
     }

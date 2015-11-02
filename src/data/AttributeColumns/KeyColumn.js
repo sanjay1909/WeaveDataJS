@@ -4,6 +4,32 @@
  * @author asanjay
  */
 (function () {
+
+    /**
+ * temporary solution to save the namespace for this class/prototype
+ * @static
+ * @public
+ * @property NS
+ * @default weavecore
+ * @readOnly
+ * @type String
+ */
+Object.defineProperty(KeyColumn, 'NS', {
+    value: 'weavedata'
+});
+
+/**
+ * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
+ * @static
+ * @public
+ * @property CLASS_NAME
+ * @readOnly
+ * @type String
+ */
+Object.defineProperty(KeyColumn, 'CLASS_NAME', {
+    value: 'KeyColumn'
+});
+
     function KeyColumn(metadata) {
         metadata = (metadata === undefined) ? null : metadata;
         weavedata.AbstractAttributeColumn.call(this, metadata);
@@ -59,7 +85,7 @@
     if (typeof exports !== 'undefined') {
         module.exports = KeyColumn;
     } else {
-        console.log('window is used');
+
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.KeyColumn = KeyColumn;
     }

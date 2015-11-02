@@ -1,5 +1,30 @@
-if (this.weavedata === undefined) this.weavedata = {};
 (function () {
+
+    /**
+     * temporary solution to save the namespace for this class/prototype
+     * @static
+     * @public
+     * @property NS
+     * @default weavecore
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(IColumnWrapper, 'NS', {
+        value: 'weavedata'
+    });
+
+    /**
+     * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
+     * @static
+     * @public
+     * @property CLASS_NAME
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(IColumnWrapper, 'CLASS_NAME', {
+        value: 'IColumnWrapper'
+    });
+
     /**
      * This is an prototype for a column that is a wrapper for another column.
      * The data should always be retrieved from the wrapper class because the getValueFromKey() function may modify the data before returning it.
@@ -28,7 +53,7 @@ if (this.weavedata === undefined) this.weavedata = {};
     if (typeof exports !== 'undefined') {
         module.exports = IColumnWrapper;
     } else {
-        console.log('window is used');
+
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.IColumnWrapper = IColumnWrapper;
     }

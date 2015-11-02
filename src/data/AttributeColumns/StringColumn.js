@@ -5,6 +5,32 @@
  */
 (function () {
 
+
+    /**
+     * temporary solution to save the namespace for this class/prototype
+     * @static
+     * @public
+     * @property NS
+     * @default weavecore
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(StringColumn, 'NS', {
+        value: 'weavedata'
+    });
+
+    /**
+     * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
+     * @static
+     * @public
+     * @property CLASS_NAME
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(StringColumn, 'CLASS_NAME', {
+        value: 'StringColumn'
+    });
+
     Object.defineProperty(StringColumn, 'compiler', {
         value: new weavecore.Compiler()
     });
@@ -233,7 +259,7 @@
     if (typeof exports !== 'undefined') {
         module.exports = StringColumn;
     } else {
-        console.log('window is used');
+
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.StringColumn = StringColumn;
     }

@@ -35,7 +35,7 @@
     if (typeof exports !== 'undefined') {
         module.exports = DataType;
     } else {
-        console.log('window is used');
+
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.DataType = DataType;
     }

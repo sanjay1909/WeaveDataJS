@@ -29,7 +29,7 @@
     if (typeof exports !== 'undefined') {
         module.exports = EquationColumnLib;
     } else {
-        console.log('window is used');
+
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.EquationColumnLib = EquationColumnLib;
     }

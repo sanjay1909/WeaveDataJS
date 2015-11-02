@@ -55,7 +55,7 @@
     if (typeof exports !== 'undefined') {
         module.exports = ColumnMetadata;
     } else {
-        console.log('window is used');
+
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.ColumnMetadata = ColumnMetadata;
     }
