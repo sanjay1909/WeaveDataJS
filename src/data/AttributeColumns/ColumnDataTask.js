@@ -1,7 +1,7 @@
 (function () {
     function ColumnDataTask(parentColumn, dataFilter, callback) {
-        dataFilter = (dataFilter === undefined) ? dataFilter : null;
-        callback = (callback === undefined) ? callback : null;
+        dataFilter = (dataFilter === undefined) ? null : dataFilter;
+        callback = (callback === undefined) ? null : callback;
 
         if (callback === null)
             callback = parentColumn.triggerCallbacks;
@@ -40,11 +40,11 @@
         if (inputKeys.length !== inputData.length)
             throw new Error(weavecore.StandardLib.substitute("Arrays are of different length ({0} != {1})", inputKeys.length, inputData.length));
 
-        this._dataFilter = dataFilter;
+        this._dataFilter = this._dataFilter;
         this._keys = inputKeys;
         this._data = inputData;
         this._i = 0;
-        this._n = keys.length;
+        this._n = this._keys.length;
         this.uniqueKeys = [];
         this.arrayData = new Map();
 
@@ -53,15 +53,16 @@
     }
 
     function iterate(stopTime) {
+        console.log(this._i, this._n);
         for (; this._i < this._n; this._i++) {
             if (getTimer() > stopTime)
                 return this._i / this._n;
 
             var value = this._data[this._i];
-            if (this._dataFilter !== null && !this._dataFilter(value))
+            if ((this._dataFilter !== null || this._dataFilter !== undefined) && !this._dataFilter(value))
                 continue;
 
-            var key = keys[this._i];
+            var key = this._keys[this._i];
             var array = this.arrayData.get(key);
             if (!array) {
                 this.uniqueKeys.push(key);
@@ -71,6 +72,7 @@
                 array.push(value);
             }
         }
+        console.log(this._i, this._n, this.arrayData.get(key));
         return 1;
     }
 

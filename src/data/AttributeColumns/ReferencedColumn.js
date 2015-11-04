@@ -57,19 +57,19 @@
          * This is the name of an IDataSource in the top level session state.
          */
         Object.defineProperty(this, 'dataSourceName', {
-            value: WeaveAPI.SessionManager.registerLinkableChild(this, weavecore.LinkableString, this._updateDataSource.bind(this)),
+            value: WeaveAPI.SessionManager.registerLinkableChild(this, new weavecore.LinkableString(), this._updateDataSource.bind(this)),
             writable: false
         });
         /**
          * This holds the metadata used to identify a column.
          */
         Object.defineProperty(this, 'metadata', {
-            value: WeaveAPI.SessionManager.registerLinkableChild(this, weavecore.LinkableVariable),
+            value: WeaveAPI.SessionManager.registerLinkableChild(this,  new weavecore.LinkableVariable()),
             writable: false
         });
 
         Object.defineProperty(this, '_columnWatcher', {
-            value: WeaveAPI.SessionManager.registerLinkableChild(this, weavecore.LinkableWatcher),
+            value: WeaveAPI.SessionManager.registerLinkableChild(this, new weavecore.LinkableWatcher()),
             writable: false
         });
 

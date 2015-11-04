@@ -87,8 +87,7 @@
         Object.defineProperty(this, 'initializationComplete', {
             get: function () {
                 // make sure csv data is set before column requests are handled.
-                console.log('CSVDataSource.prototype.initializationComplete:', CSVDataSource.prototype.initializationComplete);
-                return weavedata.AbstractDataSource.prototype.initializationComplete && this._parsedRows && this._keysVector && !WeaveAPI.SessionManager.linkableObjectIsBusy(this._keysCallbacks);
+                return this.__proto__.initializationComplete && this._parsedRows && this._keysVector && !WeaveAPI.SessionManager.linkableObjectIsBusy(this._keysCallbacks);
             }
         });
 
@@ -156,7 +155,7 @@
         // save parsedRows only if csvData has non-null session state
         var rows = this.csvData.getSessionState();
         // clear url value when we specify csvData session state
-        if (this.url.value && rows != null && rows.length)
+        if (this.url.value && (rows !== null || rows !== undefined) && rows.length)
             this.url.value = null;
         if (!this.url.value)
             handleParsedRows.call(this, rows);
@@ -243,7 +242,7 @@
 
         // get column id from metadata
         var columnId = metadata[CSVDataSource.METADATA_COLUMN_INDEX];
-        if (columnId !== null) {
+        if (columnId !== null || columnId !== undefined) {
             columnId = Number(columnId);
         } else {
             columnId = metadata[CSVDataSource.METADATA_COLUMN_NAME];
@@ -302,11 +301,11 @@
 
         var dataType = metadata[weavedata.ColumnMetadata.DATA_TYPE];
 
-        if (dataType === null || dataType === weavedata.DataType.NUMBER) {
+        if (dataType === null || dataType === undefined || dataType === weavedata.DataType.NUMBER) {
             numbers = stringsToNumbers.call(this, strings, dataType === weavedata.DataType.NUMBER);
         }
 
-        if ((!numbers && dataType === null) || dataType === weavedata.DataType.DATE) {
+        if ((!numbers && (dataType === null || dataType === undefined)) || dataType === weavedata.DataType.DATE) {
             dateFormats = weavedata.DateColumn.detectDateFormats(strings);
         }
 
@@ -385,8 +384,8 @@
         var i = strings.length;
         outerLoop: while (i--) {
             var string = strings[i].trim();
-            for (var j = 0; j < nullValues.length; j++) {
-                var nullValue = nullValues[j];
+            for (var j = 0; j < this._nullValues.length; j++) {
+                var nullValue = this._nullValues[j];
                 var a = nullValue && nullValue.toLocaleLowerCase();
                 var b = string && string.toLocaleLowerCase();
                 if (a === b) {
@@ -547,7 +546,7 @@
         if (!sourceOwner)
             return false;
 
-        var dc = dynamicColumnOrPath;
+        var dc = (dynamicColumnOrPath && dynamicColumnOrPath instanceof weavedata.DynamicColumn) ? dynamicColumnOrPath : null;
         if (!dc) {
             WeaveAPI.ExternalSessionStateInterface.requestObject(dynamicColumnOrPath, weavedata.DynamicColumn.className);
             dc = WeaveAPI.getObject(dynamicColumnOrPath);
@@ -556,8 +555,8 @@
             return false;
 
         WeaveAPI.SessionManager.getCallbackCollection(dc).delayCallbacks();
-        var refCol = dc.requestLocalObject(ReferencedColumn, false);
-        refCol.setColumnReference(this, generateMetadataForColumnId(columnNameOrIndex));
+        var refCol = dc.requestLocalObject(weavedata.ReferencedColumn, false);
+        refCol.setColumnReference(this, this.generateMetadataForColumnId(columnNameOrIndex));
         WeaveAPI.SessionManager.getCallbackCollection(dc).resumeCallbacks();
 
         return true;

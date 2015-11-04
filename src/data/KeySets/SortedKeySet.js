@@ -34,7 +34,7 @@
      * @param sortDirections Sort directions (-1, 0, 1)
      * @return A function that returns a sorted copy of an Array of keys.
      */
-    SortedKeySet.generateSortCopyFunction(columns, sortDirections) {
+    SortedKeySet.generateSortCopyFunction = function (columns, sortDirections) {
         sortDirections = (sortDirections === undefined) ? null : sortDirections;
         return function (keys) {
             var params = [];
@@ -153,7 +153,7 @@
     /**
      * @inheritDoc
      */
-    p.containsKey = (key) {
+    p.containsKey = function (key) {
         return this._keySet.containsKey(key);
     }
 

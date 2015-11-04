@@ -123,7 +123,7 @@
     var p = StringColumn.prototype;
 
     p.getMetadata = function (propertyName) {
-        var value = weavedata.StringColumn.prototype.getMetadata(propertyName);
+        var value = weavedata.AbstractAttributeColumn.prototype.getMetadata.call(this, propertyName);
         if (!value && propertyName === weavedata.ColumnMetadata.DATA_TYPE)
             return weavedata.DataType.STRING;
         return value;
@@ -208,7 +208,7 @@
     function asyncComplete() {
         // cache needs to be cleared after async task completes because some values may have been cached while the task was busy
         this.dataCache = new weavecore.Dictionary2D();
-        this.triggerCallbacks();
+        this.triggerCallbacks.call(this);
     }
 
 

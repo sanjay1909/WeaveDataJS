@@ -11,6 +11,21 @@
         ds.url.value = 'http://as-me.github.io/dashboard/data/testCereal.csv';
         //var dd = ds.generateMetadataForColumnId("name")
         //var pc = ds.getAttributeColumn(dd);
+
+        filteredDataX = WeaveAPI.SessionManager.registerDisposableChild(this, new weavedata.FilteredColumn());
+        filteredDataY = WeaveAPI.SessionManager.registerDisposableChild(this, new weavedata.FilteredColumn());
+
+        getDataX = function () {
+            return filteredDataX.internalDynamicColumn;
+        }
+        getDataY = function () {
+            return filteredDataY.internalDynamicColumn;
+        }
+
+        assignXYColumnsFromSource = function (source) {
+            source.putColumn(5, getDataX());
+            source.putColumn(6, getDataY());
+        }
     </script>
 
 </body>

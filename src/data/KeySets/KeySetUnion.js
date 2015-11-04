@@ -50,7 +50,7 @@
          * changes as a result of completing the asynchronous task.
          */
         Object.defineProperty(this, 'busyStatus', {
-            value: WeaveAPI.SessionManager.registerDisposableChild(this, new weavecore.CallbackCollection()); // separate owner for the async task to avoid affecting our busy status
+            value: WeaveAPI.SessionManager.registerDisposableChild(this, new weavecore.CallbackCollection()) // separate owner for the async task to avoid affecting our busy status
         })
 
 
@@ -71,7 +71,7 @@
         })
     }
 
-    function this._firstCallback() {
+    function _firstCallback() {
         console.log(this, 'trigger', keys.length, 'keys');
     }
 

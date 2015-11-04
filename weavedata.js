@@ -124,7 +124,7 @@
 
     ColumnUtils.hack_findNonWrapperColumn = function (column) {
         // try to find an internal IPrimitiveColumn
-        while (column instanceof IColumnWrapper)
+        while (column instanceof IColumnWrapper || column.getInternalColumn)
             column = column.getInternalColumn();
         return column;
     }
@@ -140,7 +140,7 @@
                 else
                     break;
             }
-            if (columnWrapper instanceof ExtendedDynamicColumn)
+            if (columnWrapper instanceof weavedata.ExtendedDynamicColumn)
                 columnWrapper = columnWrapper.internalDynamicColumn;
         }
         return columnWrapper;
@@ -1252,7 +1252,582 @@
 
 }());
 
+(function () {
+    /**
+     * This is an all-static class containing numerical statistics on columns and functions to access the statistics.
+     *
+     * @author adufilie
+     * @author sanjay1909
+     */
+    function StatisticsCache() {
+        Object.defineProperty(this, '_columnToStats', {
+            value: new Map()
+        });
+    }
 
+    var p = StatisticsCache.prototype;
+
+    /**
+     * @param column A column to get statistics for.
+     * @return A Dictionary that maps a IQualifiedKey to a running total numeric value, based on the order of the keys in the column.
+     */
+    p.getRunningTotals = function (column) {
+        return (this.getColumnStatistics(column)).getRunningTotals();
+    }
+
+
+
+    p.getColumnStatistics = function (column) {
+        if (column === null)
+            throw new Error("getColumnStatistics(): Column parameter cannot be null.");
+
+        if (WeaveAPI.SessionManager.objectWasDisposed(column)) {
+            this._columnToStats.delete(column);
+            throw new Error("Invalid attempt to retrieve statistics for a disposed column.");
+        }
+
+        var stats = (this._columnToStats.get(column) && this._columnToStats.get(column) instanceof weavedata.ColumnStatistics) ? this._columnToStats.get(column) : null;
+        if (!stats) {
+            stats = new weavedata.ColumnStatistics(column);
+
+            // when the column is disposed, the stats should be disposed
+            this._columnToStats.set(column, WeaveAPI.SessionManager.registerDisposableChild(column, stats));
+        }
+        return stats;
+    }
+
+    if (typeof exports !== 'undefined') {
+        module.exports = ColumnStatistics;
+    } else {
+
+        window.weavedata = window.weavedata ? window.weavedata : {};
+        window.weavedata.StatisticsCache = StatisticsCache;
+        window.WeaveAPI = window.WeaveAPI ? window.WeaveAPI : {};
+        window.WeaveAPI.StatisticsCache = new StatisticsCache();
+    }
+
+}());
+
+
+(function () {
+
+    /**
+     * temporary solution to save the namespace for this class/prototype
+     * @static
+     * @public
+     * @property NS
+     * @default weavecore
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(ColumnStatistics, 'NS', {
+        value: 'weavedata'
+    });
+
+    /**
+     * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
+     * @static
+     * @public
+     * @property CLASS_NAME
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(ColumnStatistics, 'CLASS_NAME', {
+        value: 'ColumnStatistics'
+    });
+
+
+    function ColumnStatistics(column) {
+        weavecore.ILinkableObject.call(this);
+
+        this.prevTriggerCounter = 0;
+
+        //Private
+        /**
+         * This maps a stats function of this object to a cached value for the function.
+         * Example: cache[getMin] is a cached value for the getMin function.
+         */
+        Object.defineProperty(this, '_cache', {
+            value: new Map()
+        });
+        this._busy = false;
+
+        this._column = column;
+        column.addImmediateCallback(this, WeaveAPI.SessionManager.getCallbackCollection(this).triggerCallbacks, false, true);
+
+        this._i;
+        this._keys;
+        this._min;
+        this._max;
+        this._count;
+        this._sum;
+        this._squareSum;
+        this._mean;
+        this._variance;
+        this._standardDeviation;
+
+        //TODO - make runningTotals use sorted order instead of original key order
+        this._runningTotals;
+
+        this._outKeys;
+        this._outNumbers;
+        this._sortIndex; // IQualifiedKey -> int
+        this._hack_numericData; // IQualifiedKey -> Number
+        this._median;
+    }
+
+
+    /**
+     * This function will validate the cached statistical values for the given column.
+     * @param statsFunction The function we are interested in calling.
+     * @return The cached result for the statsFunction.
+     */
+    function validateCache(statsFunction) {
+        // the cache becomes invalid when the trigger counter has changed
+        if (this.prevTriggerCounter !== this._column.triggerCounter) {
+            // statistics are undefined while column is busy
+            this._busy = WeaveAPI.SessionManager.linkableObjectIsBusy(this._column);
+
+            // once we have determined the column is not busy, begin the async task to calculate stats
+            if (!this._busy)
+                asyncStart.call(this);
+        }
+        return this._cache.get(statsFunction);
+    }
+
+
+
+    function asyncStart() {
+        // remember the trigger counter from when we begin calculating
+        this.prevTriggerCounter = this._column.triggerCounter;
+        this._i = 0;
+        this._keys = this._column.keys;
+        this._min = Infinity; // so first value < min
+        this._max = -Infinity; // so first value > max
+        this._count = 0;
+        this._sum = 0;
+        this._squareSum = 0;
+        this._mean = NaN;
+        this._variance = NaN;
+        this._standardDeviation = NaN;
+
+        this._outKeys = [];
+        this._outKeys.length = this._keys.length;
+        this._outNumbers = [];
+        this._outNumbers.length = this._keys.length
+        this._sortIndex = new Map();
+        this._hack_numericData = new Map();
+        this._median = NaN;
+
+        this._runningTotals = new Map();
+
+        // high priority because preparing data is often a prerequisite for other things
+        WeaveAPI.StageUtils.startTask(this, iterate.bind(this), WeaveAPI.TASK_PRIORITY_HIGH, asyncComplete.bind(this), weavecore.StandardLib.substitute("Calculating statistics for {0} values in {1}", this._keys.length, WeaveAPI.debugId(this._column)));
+    }
+
+    function iterate(stopTime) {
+        // when the column is found to be busy or modified since last time, stop immediately
+        if (this._busy || this.prevTriggerCounter !== this._column.triggerCounter) {
+            // make sure trigger counter is reset because cache is now invalid
+            this.prevTriggerCounter = 0;
+            return 1;
+        }
+
+        for (; this._i < this._keys.length; ++this._i) {
+            if (getTimer() > stopTime)
+                return this._i / this._keys.length;
+
+            // iterate on this key
+            var key = (this._keys[this._i] && this._keys[this._i] instanceof weavedata.IQualifiedKey) ? this._keys[this._i] : null;
+            var value = this._column.getValueFromKey(key, Number);
+            // skip keys that do not have an associated numeric value in the column.
+            if (isFinite(value)) {
+                this._sum += value;
+                this._squareSum += value * value;
+
+                if (value < this._min)
+                    this._min = value;
+                if (value > this._max)
+                    this._max = value;
+
+                //TODO - make runningTotals use sorted order instead of original key order
+                this._runningTotals.set(key, this._sum);
+
+                this._hack_numericData.set(key, value);
+                this._outKeys[this._count] = key;
+                this._outNumbers[this._count] = value;
+                ++this._count;
+            }
+        }
+        return 1;
+    }
+
+    function getTimer() {
+        return new Date().getTime();
+    }
+
+    function asyncComplete() {
+        if (this._busy) {
+            WeaveAPI.SessionManager.getCallbackCollection(this).triggerCallbacks();
+            return;
+        }
+
+        if (this._count === 0)
+            this._min = this._max = NaN;
+        this._mean = this._sum / this._count;
+        this._variance = this._squareSum / this._count - this._mean * this._mean;
+        this._standardDeviation = Math.sqrt(this._variance);
+
+        this._outKeys.length = this._count;
+        this._outNumbers.length = this._count;
+        var qkm = WeaveAPI.QKeyManager;
+        var outIndices = weavecore.StandardLib.sortOn(this._outKeys, [this._outNumbers, qkm.keyTypeLookup, qkm.localNameLookup], null, false, true);
+        this._median = this._outNumbers[outIndices[Number(this._count / 2)]];
+        this._i = this._count;
+        while (--this._i >= 0)
+            this._sortIndex.set(this._outKeys[outIndices[this._i]], this._i);
+
+        // BEGIN code to get custom min,max
+        var tempNumber;
+        try {
+            tempNumber = weavecore.StandardLib.asNumber(this._column.getMetadata(weavedata.ColumnMetadata.MIN));
+            if (isFinite(tempNumber))
+                this._min = tempNumber;
+        } catch (e) {}
+        try {
+            tempNumber = weavecore.StandardLib.asNumber(this._column.getMetadata(weavedata.ColumnMetadata.MAX));
+            if (isFinite(tempNumber))
+                this._max = tempNumber;
+        } catch (e) {}
+        // END code to get custom min,max
+
+        // save the statistics for this column in the cache
+        this._cache.set(this.getMin, this._min);
+        this._cache.set(this.getMax, this._max);
+        this._cache.set(this.getCount, this._count);
+        this._cache.set(this.getSum, this._sum);
+        this._cache.set(this.getSquareSum, this._squareSum);
+        this._cache.set(this.getMean, this._mean);
+        this._cache.set(this.getVariance, this._variance);
+        this._cache.set(this.getStandardDeviation, this._standardDeviation);
+        this._cache.set(this.getMedian, this._median);
+        this._cache.set(this.getSortIndex, this._sortIndex);
+        this._cache.set(this.hack_getNumericData, this._hack_numericData);
+        this._cache.set(this.getRunningTotals, this._runningTotals);
+
+        //trace('stats calculated', debugId(this), debugId(column), String(column));
+
+        // trigger callbacks when we are done
+        WeaveAPI.SessionManager.getCallbackCollection(this).triggerCallbacks();
+    }
+
+    ColumnStatistics.prototype = new weavecore.ILinkableObject();
+    ColumnStatistics.prototype.constructor = ColumnStatistics;
+    var p = ColumnStatistics.prototype;
+
+
+    /**
+     * @inheritDoc
+     */
+    p.getNorm = function (key) {
+        var min = validateCache.call(this, this.getMin);
+        var max = validateCache.call(this, getMax);
+        var numericData = validateCache.call(this, this.hack_getNumericData.bind(this));
+        var value = numericData ? numericData[key] : NaN;
+        return (value - min) / (max - min);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    p.getMin = function () {
+        return validateCache.call(this, this.getMin.bind(this));
+    }
+
+    /**
+     * @inheritDoc
+     */
+    p.getMax = function () {
+        return validateCache.call(this, this.getMax.bind(this));
+    }
+
+    /**
+     * @inheritDoc
+     */
+    p.getCount = function () {
+        return validateCache.call(this, this.getCount.bind(this));
+    }
+
+    /**
+     * @inheritDoc
+     */
+    p.getSum = function () {
+        return validateCache.call(this, this.getSum.bind(this));
+    }
+
+    /**
+     * @inheritDoc
+     */
+    p.getSquareSum = function () {
+        return validateCache.call(this, this.getSquareSum.bind(this));
+    }
+
+    /**
+     * @inheritDoc
+     */
+    p.getMean = function () {
+        return validateCache.call(this, this.getMean.bind(this));
+    }
+
+    /**
+     * @inheritDoc
+     */
+    p.getVariance = function () {
+        return validateCache.call(this, this.getVariance.bind(this));
+    }
+
+    /**
+     * @inheritDoc
+     */
+    p.getStandardDeviation = function () {
+        return validateCache.call(this, this.getStandardDeviation.bind(this));
+    }
+
+    /**
+     * @inheritDoc
+     */
+    p.getMedian = function () {
+        return validateCache.call(this, this.getMedian.bind(this));
+    }
+
+    /**
+     * @inheritDoc
+     */
+    p.getSortIndex = function () {
+        return validateCache.call(this, this.getSortIndex.bind(this));
+    }
+
+    /**
+     * @inheritDoc
+     */
+    p.hack_getNumericData = function () {
+        return validateCache.call(this, this.hack_getNumericData.bind(this));
+    }
+
+    /**
+     * Gets a Dictionary that maps a IQualifiedKey to a running total numeric value, based on the order of the keys in the column.
+     */
+    p.getRunningTotals = function () {
+        return validateCache.call(this, this.getRunningTotals.bind(this));
+    }
+
+    if (typeof exports !== 'undefined') {
+        module.exports = ColumnStatistics;
+    } else {
+
+        window.weavedata = window.weavedata ? window.weavedata : {};
+        window.weavedata.ColumnStatistics = ColumnStatistics;
+    }
+
+}());
+(function () {
+
+    AttributeColumnCache._globalColumnDataSource;
+
+    Object.defineProperty(AttributeColumnCache, 'globalColumnDataSource', {
+        get: function () {
+            if (!AttributeColumnCache._globalColumnDataSource)
+                AttributeColumnCache._globalColumnDataSource = new weavedata.GlobalColumnDataSource();
+            return AttributeColumnCache._globalColumnDataSource;
+        }
+    });
+
+    function AttributeColumnCache() {
+        Object.defineProperty(this, 'd2d_dataSource_metadataHash', {
+            value: new weavecore.Dictionary2D(true, true)
+        });
+    }
+
+    var p = AttributeColumnCache.prototype;
+
+    /**
+     * @inheritDoc
+     */
+    p.getColumn = function (dataSource, metadata) {
+        // null means no column
+        if (metadata === null)
+            return null;
+
+        // special case - if dataSource is null, use WeaveAPI.globalHashMap
+        if (dataSource === null)
+            return AttributeColumnCache.globalColumnDataSource.getAttributeColumn(metadata);
+
+        // Get the column pointer associated with the hash value.
+        var hashCode = weavecore.Compiler.stringify(metadata);
+        var wr = this.d2d_dataSource_metadataHash.get(dataSource, hashCode);
+        var weakRef = (wr && wr instanceof weavecore.WeakReference) ? wr : null;
+        if (weakRef !== null && weakRef.value !== null) {
+            if (WeaveAPI.SessionManager.objectWasDisposed(weakRef.value))
+                this.d2d_dataSource_metadataHash.remove(dataSource, hashCode);
+            else
+                return weakRef.value;
+        }
+
+        // If no column is associated with this hash value, request the
+        // column from its data source and save the column pointer.
+        var column = dataSource.getAttributeColumn(metadata);
+        this.d2d_dataSource_metadataHash.set(dataSource, hashCode, new weavecore.WeakReference(column));
+
+        return column;
+    }
+
+
+    if (typeof exports !== 'undefined') {
+        module.exports = AttributeColumnCache;
+    } else {
+
+        window.weavedata = window.weavedata ? window.weavedata : {};
+        window.weavedata.AttributeColumnCache = AttributeColumnCache;
+        window.WeaveAPI = window.WeaveAPI ? window.WeaveAPI : {};
+        window.WeaveAPI.AttributeColumnCache = new AttributeColumnCache();
+    }
+
+
+}());
+
+
+(function () {
+
+    /**
+     * temporary solution to save the namespace for this class/prototype
+     * @static
+     * @public
+     * @property NS
+     * @default weavecore
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(GlobalColumnDataSource, 'NS', {
+        value: 'weavedata'
+    });
+
+    /**
+     * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
+     * @static
+     * @public
+     * @property CLASS_NAME
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(GlobalColumnDataSource, 'CLASS_NAME', {
+        value: 'GlobalColumnDataSource'
+    });
+
+    /**
+     * The metadata property name used to identify a column appearing in WeaveAPI.globalHashMap.
+     */
+    Object.defineProperty(GlobalColumnDataSource, 'NAME', {
+        value: 'name'
+    });
+
+
+
+    /**
+     * This is an interface to an object that decides which IQualifiedKey objects are included in a set or not.
+     *
+     * @author adufilie
+     * @author sanjay1909
+     */
+    function GlobalColumnDataSource() {
+        weavecore.ILinkableObject.call(this);
+        Object.defineProperty(this, 'hierarchyRefresh', {
+            value: WeaveAPI.SessionManager.getCallbackCollection(this)
+        });
+        WeaveAPI.SessionManager.registerLinkableChild(this, WeaveAPI.globalHashMap.childListCallbacks);
+
+        var source = this;
+        this._rootNode = new weavedata.ColumnTreeNode({
+            dataSource: source,
+            label: function () {
+                return WeaveAPI.globalHashMap.getObjects(CSVColumn).length ? 'Generated columns' : 'Equations';
+            },
+            hasChildBranches: false,
+            children: function () {
+                return getGlobalColumns().map(function (column) {
+                    WeaveAPI.SessionManager.registerLinkableChild(source, column);
+                    return createColumnNode(WeaveAPI.globalHashMap.getName(column));
+                });
+            }
+        });
+    }
+
+    function getGlobalColumns() {
+        var csvColumns = WeaveAPI.globalHashMap.getObjects(CSVColumn);
+        var equationColumns = WeaveAPI.globalHashMap.getObjects(EquationColumn);
+        return equationColumns.concat(csvColumns);
+    }
+
+    function createColumnNode(name) {
+        var column = this.getAttributeColumn(name);
+        if (!column)
+            return null;
+
+        var meta = {};
+        meta[GlobalColumnDataSource.NAME] = name;
+        return new weavedata.ColumnTreeNode({
+            dataSource: this,
+            dependency: column,
+            label: function () {
+                return column.getMetadata(weavedata.ColumnMetadata.TITLE);
+            },
+            data: meta,
+            idFields: [GlobalColumnDataSource.NAME]
+        });
+    }
+
+    GlobalColumnDataSource.prototype = new weavecore.ILinkableObject();
+    GlobalColumnDataSource.prototype.constructor = GlobalColumnDataSource;
+    var p = GlobalColumnDataSource.prototype;
+
+
+    p.getHierarchyRoot = function () {
+        return this._rootNode;
+    }
+
+    p.findHierarchyNode = function (metadata) {
+        var column = this.getAttributeColumn(metadata);
+        if (!column)
+            return null;
+        var name = WeaveAPI.globalHashMap.getName(column);
+        var node = createColumnNode.call(this, name);
+        var path = this._rootNode.findPathToNode(node);
+        if (path)
+            return path[path.length - 1];
+        return null;
+    }
+
+    p.getAttributeColumn = function (metadata) {
+        if (!metadata)
+            return null;
+        var name;
+        if (typeof metadata === 'object')
+            name = metadata[GlobalColumnDataSource.NAME];
+        else
+            name = metadata;
+        return WeaveAPI.globalHashMap.getObject(name);
+    }
+
+
+
+    if (typeof exports !== 'undefined') {
+        module.exports = GlobalColumnDataSource;
+    } else {
+
+        window.weavedata = window.weavedata ? window.weavedata : {};
+        window.weavedata.GlobalColumnDataSource = GlobalColumnDataSource;
+    }
+
+}());
 /**
  * This class manages a global list of IQualifiedKey objects.
  *
@@ -1322,16 +1897,16 @@
     }
 
     function stringHash(str) {
-        var hash = 5381,
-            i = str.length
-
-        while (i)
-            hash = (hash * 33) ^ str.charCodeAt(--i)
-
-        /* JavaScript does bitwise operations (like XOR, above) on 32-bit signed
-         * integers. Since we want the results to be always positive, convert the
-         * signed int to an unsigned by doing an unsigned bitshift. */
-        return hash >>> 0;
+        var hash = 0;
+        if (!str) return hash;
+        str = (typeof (str) === 'number') ? String(str) : str;
+        if (str.length === 0) return hash;
+        for (var i = 0; i < str.length; i++) {
+            char = str.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash; // Convert to 32bit integer
+        }
+        return hash;
     }
 
     /**
@@ -2045,6 +2620,7 @@
     }
 
 }());
+
 (function () {
     function ColumnMetadata() {
 
@@ -2108,6 +2684,7 @@
     }
 
 }());
+
 (function () {
     function DataType() {
 
@@ -2151,6 +2728,7 @@
     }
 
 }());
+
 (function () {
     function DateFormat() {
 
@@ -2281,6 +2859,7 @@
     }
 
 }());
+
 (function () {
     function EntityType() {
 
@@ -2302,6 +2881,1510 @@
 
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.EntityType = EntityType;
+    }
+
+}());
+
+/**
+ * This provides a wrapper for a dynamically created column.
+ *
+ * @author adufilie
+ * @author asanjay
+ */
+/*public class DynamicColumn extends LinkableDynamicObject implements IColumnWrapper
+	{*/
+
+(function () {
+
+    /**
+     * temporary solution to save the namespace for this class/prototype
+     * @static
+     * @public
+     * @property NS
+     * @default weavecore
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(DynamicKeyFilter, 'NS', {
+        value: 'weavedata'
+    });
+
+    /**
+     * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
+     * @static
+     * @public
+     * @property CLASS_NAME
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(DynamicKeyFilter, 'CLASS_NAME', {
+        value: 'DynamicKeyFilter'
+    });
+
+
+
+    /**
+     * This is a wrapper for a dynamically created object implementing IKeyFilter.
+     *
+     * @author adufilie
+     * @author sanjay1909
+     */
+    function DynamicKeyFilter() {
+        weavecore.LinkableDynamicObject.call(this, weavedata.KeyFilter);
+    }
+
+    DynamicKeyFilter.prototype = new weavecore.LinkableDynamicObject();
+    DynamicKeyFilter.prototype.constructor = DynamicKeyFilter;
+
+    var p = DynamicKeyFilter.prototype;
+
+    p.getInternalKeyFilter = function () {
+        var kf = (this.internalObject && this.internalObject instanceof weavedata.KeyFilter) ? this.internalObject : null;
+        return kf;
+    }
+
+
+
+    if (typeof exports !== 'undefined') {
+        module.exports = DynamicKeyFilter;
+    } else {
+
+        window.weavedata = window.weavedata ? window.weavedata : {};
+        window.weavedata.DynamicKeyFilter = DynamicKeyFilter;
+    }
+
+}());
+(function () {
+
+    /**
+     * temporary solution to save the namespace for this class/prototype
+     * @static
+     * @public
+     * @property NS
+     * @default weavecore
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(FilteredKeySet, 'NS', {
+        value: 'weavedata'
+    });
+
+    /**
+     * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
+     * @static
+     * @public
+     * @property CLASS_NAME
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(FilteredKeySet, 'CLASS_NAME', {
+        value: 'FilteredKeySet'
+    });
+
+    FilteredKeySet.debug = false;
+
+    /**
+     * A FilteredKeySet has a base set of keys and an optional filter.
+     * The resulting set of keys becomes the intersection of the base set with the filter.
+     *
+     * @author adufilie
+     * @author sanjay1909
+     */
+    function FilteredKeySet() {
+        weavecore.CallbackCollection.call(this);
+        if (FilteredKeySet.debug)
+            this.addImmediateCallback(this, _firstCallback.bind(this));
+
+        this._baseKeySet = null; // stores the base IKeySet
+
+
+        this._filteredKeys = []; // stores the filtered list of keys
+        this._filteredKeyLookup = new Map(); // this maps a key to a value if the key is included in this key set
+        this._generatedKeySets;
+        this._setColumnKeySources_arguments;
+        this._prevTriggerCounter; // used to remember if the this._filteredKeys are valid
+
+
+        this._i;
+        this._asyncInverse;
+        this._asyncFilter;
+        this._asyncInput;
+        this._asyncOutput;
+        this._asyncLookup;
+
+        // this stores the IKeyFilter
+        Object.defineProperty(this, '_dynamicKeyFilter', {
+            value: WeaveAPI.SessionManager.registerLinkableChild(this, new weavedata.DynamicKeyFilter())
+
+        });
+
+        /**
+         * When this is set to true, the inverse of the filter will be used to filter the keys.
+         * This means any keys appearing in the filter will be excluded from this key set.
+         */
+
+
+        Object.defineProperty(this, 'inverseFilter', {
+            value: WeaveAPI.SessionManager.registerLinkableChild(this, new weavecore.LinkableBoolean())
+
+        });
+
+        /**
+         * @return The interface for setting a filter that is applied to the base key set.
+         */
+
+        Object.defineProperty(this, 'keyFilter', {
+            get: function () {
+                return this._dynamicKeyFilter;
+            }
+
+        });
+
+
+        /**
+         * @return The keys in this IKeySet.
+         */
+        Object.defineProperty(this, 'keys', {
+            get: function () {
+                if (this._prevTriggerCounter !== this.triggerCounter)
+                    validateFilteredKeys.call(this);
+                return this._filteredKeys;
+            }
+
+        });
+
+
+    }
+
+
+    /**
+     * @private
+     */
+    function validateFilteredKeys() {
+        this._prevTriggerCounter = this.triggerCounter; // this prevents the function from being called again before callbacks are triggered again.
+
+        this._asyncFilter = this._dynamicKeyFilter.getInternalKeyFilter();
+
+        if (this._baseKeySet == null) {
+            // no keys when base key set is undefined
+            this._filteredKeys = [];
+            this._filteredKeyLookup = new Map();
+            return;
+        }
+        if (!this._asyncFilter) {
+            // use base key set
+            this._filteredKeys = this._baseKeySet.keys;
+            this._filteredKeyLookup = new Map();
+            weavedata.VectorUtils.fillKeys(this._filteredKeyLookup, this._filteredKeys);
+            return;
+        }
+
+        this._i = 0;
+        this._asyncInput = this._baseKeySet.keys;
+        this._asyncOutput = [];
+        this._asyncLookup = new Map();
+        this._asyncInverse = this.inverseFilter.value;
+
+        // high priority because all visualizations depend on key sets
+        WeaveAPI.StageUtils.startTask(this, iterate.bind(this), WeaveAPI.TASK_PRIORITY_HIGH, asyncComplete.bind(this), weavecore.StandardLib.substitute('Filtering {0} keys in {1}', this._asyncInput.length, WeaveAPI.debugId(this)));
+    }
+
+
+
+    function iterate(stopTime) {
+        if (this._prevTriggerCounter !== this.triggerCounter)
+            return 1;
+
+        for (; this._i < this._asyncInput.length; ++this._i) {
+            if (!this._asyncFilter)
+                return 1;
+            if (getTimer() > stopTime)
+                return this._i / this._asyncInput.length;
+
+            var key = (this._asyncInput[this._i] && this._asyncInput[this._i] instanceof weavedata.IQualifiedKey) ? this._asyncInput[this._i] : null;
+            var contains = this._asyncFilter.containsKey(key);
+            if (contains !== this._asyncInverse) {
+                this._asyncOutput.push(key);
+                this._asyncLookup.set(key, true);
+            }
+        }
+
+        return 1;
+    }
+
+    function getTimer() {
+        return new Date().getTime();
+    }
+
+    function asyncComplete() {
+        if (this._prevTriggerCounter !== this.triggerCounter) {
+            validateFilteredKeys.call(this);
+            return;
+        }
+
+        this._prevTriggerCounter++;
+        this._filteredKeys = this._asyncOutput;
+        this._filteredKeyLookup = this._asyncLookup;
+        this.triggerCallbacks();
+    }
+
+    FilteredKeySet.prototype = new weavecore.CallbackCollection();
+    FilteredKeySet.prototype.constructor = FilteredKeySet;
+
+    var p = FilteredKeySet.prototype;
+
+    function _firstCallback() {
+        console.log(this, 'trigger', this.keys.length, 'keys');
+    }
+
+    p.dispose = function () {
+        weavecore.CallbackCollection.prototype.dispose.call(this);
+        this.setColumnKeySources(null);
+    }
+
+    /**
+     * This sets up the FilteredKeySet to get its base set of keys from a list of columns and provide them in sorted order.
+     * @param columns An Array of IAttributeColumns to use for comparing IQualifiedKeys.
+     * @param sortDirections Array of sort directions corresponding to the columns and given as integers (1=ascending, -1=descending, 0=none).
+     * @param keySortCopy A function that returns a sorted copy of an Array of keys. If specified, descendingFlags will be ignored and this function will be used instead.
+     * @param keyInclusionLogic Passed to KeySetUnion constructor.
+     * @see weave.data.KeySets.SortedKeySet#generateCompareFunction()
+     */
+    p.setColumnKeySources = function (columns, sortDirections, keySortCopy, keyInclusionLogic) {
+        sortDirections = (sortDirections === undefined) ? null : sortDirections;
+        keySortCopy = (keySortCopy === undefined) ? null : keySortCopy;
+        keyInclusionLogic = (keyInclusionLogic === undefined) ? null : keyInclusionLogic;
+
+        var args = Array.prototype.slice.call(arguments);
+        if (weavecore.StandardLib.compare(this._setColumnKeySources_arguments, args) == 0)
+            return;
+
+        var keySet;
+
+        // unlink from the old key set
+        if (this._generatedKeySets) {
+            this._generatedKeySets.forEach(function (keySet) {
+                WeaveAPI.SessionManager.disposeObject(keySet);
+            });
+            this._generatedKeySets = null;
+        } else {
+            this.setSingleKeySource(null);
+        }
+
+        this._setColumnKeySources_arguments = args;
+
+        if (columns) {
+            // KeySetUnion should not trigger callbacks
+            var union = WeaveAPI.SessionManager.registerDisposableChild(this, new weavedata.KeySetUnion(keyInclusionLogic));
+            columns.forEach(function (keySet) {
+                union.addKeySetDependency(keySet);
+                if (keySet instanceof weavedata.IAttributeColumn) {
+                    var stats = WeaveAPI.StatisticsCache.getColumnStatistics(keySet);
+                    WeaveAPI.SessionManager.registerLinkableChild(union, stats);
+                }
+            })
+
+            if (FilteredKeySet.debug && keySortCopy == null)
+                console.log(WeaveAPI.debugId(this), 'sort by [', columns, ']');
+
+            var sortCopy = keySortCopy || SortedKeySet.generateSortCopyFunction(columns, sortDirections);
+            // SortedKeySet should trigger callbacks
+            var sorted = WeaveAPI.SessionManager.registerLinkableChild(this, new weavedata.SortedKeySet(union, sortCopy, columns));
+            this._generatedKeySets = [union, sorted];
+
+            this._baseKeySet = sorted;
+        } else {
+            this._baseKeySet = null;
+        }
+
+        this.triggerCallbacks();
+    }
+
+    /**
+     * This function sets the base IKeySet that is being filtered.
+     * @param newBaseKeySet A new IKeySet to use as the base for this FilteredKeySet.
+     */
+    p.setSingleKeySource = function (keySet) {
+        if (this._generatedKeySets)
+            this.setColumnKeySources(null);
+
+        if (this._baseKeySet === keySet)
+            return;
+
+        // unlink from the old key set
+        if (this._baseKeySet !== null)
+            WeaveAPI.SessionManager.getCallbackCollection(this._baseKeySet).removeCallback(this.triggerCallbacks);
+
+        this._baseKeySet = keySet; // save pointer to new base key set
+
+        // link to new key set
+        if (this._baseKeySet !== null)
+            WeaveAPI.SessionManager.getCallbackCollection(this._baseKeySet).addImmediateCallback(this, this.triggerCallbacks.bind(this), false, true);
+
+        this.triggerCallbacks();
+    }
+
+
+
+    /**
+     * @param key A key to test.
+     * @return true if the key exists in this IKeySet.
+     */
+    p.containsKey = function (key) {
+        if (this._prevTriggerCounter !== this.triggerCounter)
+            validateFilteredKeys.call(this);
+        return this._filteredKeyLookup.get(key) !== undefined;
+    }
+
+
+
+    if (typeof exports !== 'undefined') {
+        module.exports = FilteredKeySet;
+    } else {
+
+        window.weavedata = window.weavedata ? window.weavedata : {};
+        window.weavedata.FilteredKeySet = FilteredKeySet;
+    }
+}());
+(function () {
+
+    /**
+     * temporary solution to save the namespace for this class/prototype
+     * @static
+     * @public
+     * @property NS
+     * @default weavecore
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(IKeyFilter, 'NS', {
+        value: 'weavedata'
+    });
+
+    /**
+     * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
+     * @static
+     * @public
+     * @property CLASS_NAME
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(IKeyFilter, 'CLASS_NAME', {
+        value: 'IKeyFilter'
+    });
+
+
+    /**
+     * This is an interface to an object that decides which IQualifiedKey objects are included in a set or not.
+     *
+     * @author adufilie
+     * @author sanjay1909
+     */
+    function IKeyFilter() {
+        weavecore.ILinkableObject.call(this);
+    }
+
+    IKeyFilter.prototype = new weavecore.ILinkableObject();
+    IKeyFilter.prototype.constructor = IKeyFilter;
+    var p = IKeyFilter.prototype;
+
+    /**
+     * This function tests if a IQualifiedKey object is contained in this IKeySet.
+     * @param key A IQualifiedKey object.
+     * @return true if the IQualifiedKey object is contained in the IKeySet.
+     */
+    p.containsKey = function (key) {}
+
+
+    if (typeof exports !== 'undefined') {
+        module.exports = IKeyFilter;
+    } else {
+
+        window.weavedata = window.weavedata ? window.weavedata : {};
+        window.weavedata.IKeyFilter = IKeyFilter;
+    }
+
+}());
+
+(function () {
+
+    /**
+     * temporary solution to save the namespace for this class/prototype
+     * @static
+     * @public
+     * @property NS
+     * @default weavecore
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(IKeySet, 'NS', {
+        value: 'weavedata'
+    });
+
+    /**
+     * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
+     * @static
+     * @public
+     * @property CLASS_NAME
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(IKeySet, 'CLASS_NAME', {
+        value: 'IKeySet'
+    });
+
+
+    /**
+     * This is an extension of IKeyFilter that adds a complete list of the IQualifiedKey objects contained in the key set.
+     *
+     * @author adufilie
+     * @author sanjay1909
+     */
+    function IKeySet() {
+        weavedata.IKeyFilter.call(this);
+
+        /**
+         * This is a list of the IQualifiedKey objects that define the key set.
+         */
+        Object.defineProperty(this, 'keys', {
+            get: function () {
+                return []
+            },
+            configurable: true
+        })
+    }
+
+    IKeySet.prototype = new weavedata.IKeyFilter();
+    IKeySet.prototype.constructor = IKeySet;
+
+    if (typeof exports !== 'undefined') {
+        module.exports = IKeySet;
+    } else {
+
+        window.weavedata = window.weavedata ? window.weavedata : {};
+        window.weavedata.IKeySet = IKeySet;
+    }
+
+}());
+(function () {
+
+    /**
+     * temporary solution to save the namespace for this class/prototype
+     * @static
+     * @public
+     * @property NS
+     * @default weavecore
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(KeyFilter, 'NS', {
+        value: 'weavedata'
+    });
+
+    /**
+     * TO-DO:temporary solution to save the CLASS-NAME constructor.name works for window object , but modular based won't work
+     * @static
+     * @public
+     * @property CLASS-NAME
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(KeyFilter, 'CLASS_NAME', {
+        value: 'KeyFilter'
+    });
+
+
+    /**
+     * This class is used to include and exclude IQualifiedKeys from a set.
+     *
+     * @author adufilie
+     * @author sanjay1909
+     */
+
+    function KeyFilter() {
+        weavecore.ILinkableObject.call(this);
+
+        // option to include missing keys or not
+        Object.defineProperty(this, 'includeMissingKeys', {
+            value: WeaveAPI.SessionManager.registerLinkableChild(this, new weavecore.LinkableBoolean(), cacheValues.bind(this))
+        });
+        Object.defineProperty(this, 'includeMissingKeyTypes', {
+            value: WeaveAPI.SessionManager.registerLinkableChild(this, new weavecore.LinkableBoolean(), cacheValues.bind(this))
+        });
+
+        Object.defineProperty(this, 'included', {
+            value: WeaveAPI.SessionManager.registerLinkableChild(this, new weavedata.KeySet(), handleIncludeChange.bind(this))
+        });
+
+        Object.defineProperty(this, 'excluded', {
+            value: WeaveAPI.SessionManager.registerLinkableChild(this, new weavedata.KeySet(), handleIncludeChange.bind(this))
+        });
+
+        Object.defineProperty(this, 'filters', {
+            value: WeaveAPI.SessionManager.registerLinkableChild(this, new weavecore.LinkableHashMap(weavedata.KeyFilter))
+        });
+
+
+
+        this._includeMissingKeys;
+        this._includeMissingKeyTypes;
+        this._filters;
+
+        this._includedKeyTypeMap = {};
+
+        this._excludedKeyTypeMap = {};
+    }
+
+
+
+    function cacheValues() {
+        this._includeMissingKeys = this.includeMissingKeys.value;
+        this._includeMissingKeyTypes = this.includeMissingKeyTypes.value;
+        this._filters = this.filters.getObjects();
+    }
+
+
+    // removes keys from exclude list that were just added to include list
+
+    function handleIncludeChange() {
+        var includedKeys = this.included.keys;
+        this._includedKeyTypeMap = {};
+        includedKeys.forEach(function (key) {
+            this._includedKeyTypeMap[key.keyType] = true;
+        });
+
+        this.excluded.removeKeys(includedKeys);
+    }
+
+    // removes keys from include list that were just added to exclude list
+
+    function handleExcludeChange() {
+        var excludedKeys = this.excluded.keys;
+        this._excludedKeyTypeMap = {};
+        excludedKeys.forEach(function (key) {
+            this._excludedKeyTypeMap[key.keyType] = true;
+        });
+
+        this.included.removeKeys(excludedKeys);
+    }
+
+    KeyFilter.prototype = new weavecore.ILinkableObject();
+    KeyFilter.prototype.constructor = KeyFilter;
+
+    var p = KeyFilter.prototype;
+
+
+    /**
+     * This replaces the included and excluded keys in the filter with the parameters specified.
+     */
+    p.replaceKeys = function (includeMissingKeys, includeMissingKeyTypes, includeKeys, excludeKeys) {
+        includeKeys = (includeKeys === undefined) ? null : includeKeys;
+        excludeKeys = (excludeKeys === undefined) ? null : excludeKeys;
+
+        WeaveAPI.SessionManager.getCallbackCollection(this).delayCallbacks();
+
+        this.includeMissingKeys.value = includeMissingKeys;
+        this.includeMissingKeyTypes.value = includeMissingKeyTypes;
+
+        if (includeKeys)
+            this.included.replaceKeys(includeKeys);
+        else
+            this.included.clearKeys();
+
+        if (excludeKeys)
+            this.excluded.replaceKeys(excludeKeys);
+        else
+            this.excluded.clearKeys();
+
+        WeaveAPI.SessionManager.getCallbackCollection(this).resumeCallbacks();
+    }
+
+    // adds keys to include list
+    p.includeKeys = function (keys) {
+        this.included.addKeys(keys);
+    }
+
+    // adds keys to exclude list
+    p.excludeKeys = function (keys) {
+        this.excluded.addKeys(keys);
+    }
+
+
+
+
+    /**
+     * @param key A key to test.
+     * @return true if this filter includes the key, false if the filter excludes it.
+     */
+    p.containsKey = function (key) {
+        for (var i = 0; i < this._filters.length; i++) {
+            var filter = this._filters[0]
+            if (!filter.containsKey(key))
+                return false;
+        }
+
+        if (this._includeMissingKeys || (this._includeMissingKeyTypes && !this._includedKeyTypeMap[key.keyType])) {
+            if (this.excluded.containsKey(key))
+                return false;
+            if (!this._includeMissingKeyTypes && this._excludedKeyTypeMap[key.keyType])
+                return false;
+            return true;
+        } else // exclude missing keys
+        {
+            if (this.included.containsKey(key))
+                return true;
+            // if includeMissingKeyTypes and keyType is missing
+            if (this._includeMissingKeyTypes && !this._includedKeyTypeMap[key.keyType] && !this._excludedKeyTypeMap[key.keyType])
+                return true;
+            return false;
+        }
+    }
+
+    if (typeof exports !== 'undefined') {
+        module.exports = KeyFilter;
+    } else {
+
+        window.weavedata = window.weavedata ? window.weavedata : {};
+        window.weavedata.KeyFilter = KeyFilter;
+    }
+
+}());
+(function () {
+    /**
+     * temporary solution to save the namespace for this class/prototype
+     * @static
+     * @public
+     * @property NS
+     * @default weavecore
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(KeySet, 'NS', {
+        value: 'weavedata'
+    });
+
+    /**
+     * TO-DO:temporary solution to save the CLASS-NAME constructor.name works for window object , but modular based won't work
+     * @static
+     * @public
+     * @property CLASS-NAME
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(KeySet, 'CLASS_NAME', {
+        value: 'KeySet'
+    });
+
+    function KeySet() {
+        weavecore.LinkableVariable.call(this, Array, verifySessionState.bind(this));
+
+        // The first callback will update the keys from the session state.
+        this.addImmediateCallback(this, updateKeys.bind(this));
+        /**
+         * This object maps keys to index values
+         */
+        this._keyIndex = new Map();
+        /**
+         * This maps index values to IQualifiedKey objects
+         */
+        this._keys = [];
+
+        /**
+         * This flag is used to avoid recursion while the keys are being synchronized with the session state.
+         */
+        this._currentlyUpdating = false;
+
+
+        /**
+         * A list of keys included in this KeySet.
+         */
+        Object.defineProperty(this, 'keys', {
+            get: function () {
+                return this._keys
+            }
+        });
+
+        /**
+         * An interface for keys added and removed
+         */
+        Object.defineProperty(this, 'keyCallbacks', {
+            value: WeaveAPI.SessionManager.registerLinkableChild(this, new weavedata.KeySetCallbackInterface())
+        });
+
+    }
+
+    /**
+     * Verifies that the value is a two-dimensional array or null.
+     */
+    function verifySessionState(value) {
+        if (!value) return false;
+        for (var i = 0; i < value.length; i++) {
+            var row = value[i];
+            if (!(row.constructor === Array))
+                return false;
+        }
+        return true;
+    }
+
+
+
+    /**
+     * This is the first callback that runs when the KeySet changes.
+     * The keys will be updated based on the session state.
+     */
+    function updateKeys() {
+        // avoid recursion
+        if (this._currentlyUpdating)
+            return;
+
+        // each row of CSV represents a different keyType (keyType is the first token in the row)
+        var newKeys = [];
+        this._sessionStateInternal.forEach(function (row) {
+            newKeys.push.apply(null, WeaveAPI.QKeyManager.getQKeys(row[0], row.slice(1)));
+        })
+
+        // avoid internal recursion while still allowing callbacks to cause recursion afterwards
+        this.delayCallbacks();
+        this._currentlyUpdating = true;
+        this.replaceKeys(newKeys);
+        this.keyCallbacks.flushKeys();
+        this._currentlyUpdating = false;
+        this.resumeCallbacks();
+    }
+
+    /**
+     * This function will derive the session state from the IQualifiedKey objects in the keys array.
+     */
+    function updateSessionState() {
+        // avoid recursion
+        if (this._currentlyUpdating)
+            return;
+
+        // from the IQualifiedKey objects, generate the session state
+        var _keyTypeToKeysMap = {};
+        this._keys.forEach(function (key) {
+            if (_keyTypeToKeysMap[key.keyType] === undefined)
+                _keyTypeToKeysMap[key.keyType] = [];
+            (_keyTypeToKeysMap[key.keyType]).push(key.localName);
+        });
+        // for each keyType, create a row for the CSV parser
+        var keyTable = [];
+        for (var keyType in _keyTypeToKeysMap) {
+            var newKeys = _keyTypeToKeysMap[keyType];
+            newKeys.unshift(keyType);
+            keyTable.push(newKeys);
+        }
+
+        // avoid internal recursion while still allowing callbacks to cause recursion afterwards
+        this.delayCallbacks();
+        this._currentlyUpdating = true;
+        this.setSessionState(keyTable);
+        this.keyCallbacks.flushKeys();
+        this._currentlyUpdating = false;
+        this.resumeCallbacks();
+    }
+
+
+    KeySet.prototype = new weavecore.LinkableVariable();
+    KeySet.prototype.constructor = KeySet;
+
+    var p = KeySet.prototype;
+
+
+    /**
+     * Overwrite the current set of keys.
+     * @param newKeys An Array of IQualifiedKey objects.
+     * @return true if the set changes as a result of calling this function.
+     */
+    p.replaceKeys = function (newKeys) {
+        if (this._locked)
+            return false;
+
+        WeaveAPI.QKeyManager.convertToQKeys(newKeys);
+        if (newKeys === this._keys)
+            this._keys = this._keys.concat();
+
+        var key;
+        var changeDetected = false;
+
+        // copy the previous key-to-index mapping for detecting changes
+        var prevKeyIndex = this._keyIndex;
+
+        // initialize new key index
+        this._keyIndex = new Map();
+        // copy new keys and create new key index
+        this._keys.length = newKeys.length; // allow space for all keys
+        var outputIndex = 0; // index to store internally
+        for (var inputIndex = 0; inputIndex < newKeys.length; inputIndex++) {
+            key = (newKeys[inputIndex] && newKeys[inputIndex] instanceof weavedata.IQualifiedKey) ? newKeys[inputIndex] : null;
+            // avoid storing duplicate keys
+            if (this._keyIndex.get(key) !== undefined)
+                continue;
+            // copy key
+            this._keys[outputIndex] = key;
+            // save key-to-index mapping
+            this._keyIndex.set(key, outputIndex);
+            // if the previous key index did not have this key, a change has been detected.
+            if (prevKeyIndex.get(key) === undefined) {
+                changeDetected = true;
+                this.keyCallbacks.keysAdded.push(key);
+            }
+            // increase stored index
+            outputIndex++;
+        }
+        this._keys.length = outputIndex; // trim to actual length
+        // loop through old keys and see if any were removed
+        for (var key of prevKeyIndex.keys()) {
+            if (this._keyIndex.get(key) === undefined) // if this previous key is gone now, change detected
+            {
+                changeDetected = true;
+                this.keyCallbacks.keysRemoved.push(key);
+            }
+        }
+
+        if (changeDetected)
+            updateSessionState.call(this);
+
+        return changeDetected;
+    }
+
+    /**
+     * Clear the current set of keys.
+     * @return true if the set changes as a result of calling this function.
+     */
+    p.clearKeys = function () {
+        if (this._locked)
+            return false;
+
+        // stop if there are no keys to remove
+        if (this._keys.length === 0)
+            return false; // set did not change
+
+        this.keyCallbacks.keysRemoved = this.keyCallbacks.keysRemoved.concat(this._keys);
+
+        // clear key-to-index mapping
+        this._keyIndex = new Map();
+        this._keys = [];
+
+        updateSessionState.call(this);
+
+        // set changed
+        return true;
+    }
+
+    /**
+     * @param key A IQualifiedKey object to check.
+     * @return true if the given key is included in the set.
+     */
+    p.containsKey = function (key) {
+        // the key is included in the set if it is in the key-to-index mapping.
+        return this._keyIndex.get(key) !== undefined;
+    }
+
+    /**
+     * Adds a vector of additional keys to the set.
+     * @param additionalKeys A list of keys to add to this set.
+     * @return true if the set changes as a result of calling this function.
+     */
+    p.addKeys = function (additionalKeys) {
+        if (this._locked)
+            return false;
+
+        var changeDetected = false;
+        WeaveAPI.QKeyManager.convertToQKeys(additionalKeys);
+        additionalKeys.forEach(function (key) {
+            if (this._keyIndex.get(key) === undefined) {
+                // add key
+                var newIndex = this._keys.length;
+                this._keys[newIndex] = key;
+                this._keyIndex.set(key, newIndex);
+
+                changeDetected = true;
+                this.keyCallbacks.keysAdded.push(key);
+            }
+        }.bind(this))
+
+        if (changeDetected)
+            updateSessionState.call(this);
+
+        return changeDetected;
+    }
+
+    /**
+     * Removes a vector of additional keys to the set.
+     * @param unwantedKeys A list of keys to remove from this set.
+     * @return true if the set changes as a result of calling this function.
+     */
+    p.removeKeys = function (unwantedKeys) {
+        if (this._locked)
+            return false;
+
+        if (unwantedKeys === this._keys)
+            return clearKeys();
+
+        var changeDetected = false;
+        WeaveAPI.QKeyManager.convertToQKeys(unwantedKeys);
+        unwantedKeys.forEach(function (key) {
+            if (this._keyIndex.get(key) !== undefined) {
+                // drop key from this._keys vector
+                var droppedIndex = this._keyIndex.get(key);
+                if (droppedIndex < this._keys.length - 1) // if this is not the last entry
+                {
+                    // move the last entry to the droppedIndex slot
+                    var lastKey = (this._keys[keys.length - 1] && this._keys[keys.length - 1] instanceof weavedata.IQualifiedKey) ? this._keys[keys.length - 1] : null;
+                    this._keys[droppedIndex] = lastKey;
+                    this._keyIndex[lastKey] = droppedIndex;
+                }
+                // update length of vector
+                this._keys.length--;
+                // drop key from object mapping
+                this._keyIndex.delete(key);
+
+                changeDetected = true;
+                this.keyCallbacks.keysRemoved.push(key);
+            }
+        });
+
+        if (changeDetected)
+            updateSessionState.call(this);
+
+        return changeDetected;
+    }
+
+    /**
+     * This function sets the session state for the KeySet.
+     * @param value A CSV-formatted String where each row is a keyType followed by a list of key strings of that keyType.
+     */
+    p.setSessionState = function (value) {
+
+        // backwards compatibility -- parse CSV String
+        if (value.constructor === String)
+            value = WeaveAPI.CSVParser.parseCSV(value);
+
+        // expecting a two-dimensional Array at this point
+        weavecore.LinkableVariable.prototype.setSessionState.call(this, value);
+    }
+
+
+    //---------------------------------------------------------------------------------
+    // test code
+    // { test(); }
+    KeySet.test = function () {
+        var k = new KeySet();
+        var k2 = new KeySet();
+        k.addImmediateCallback(null, function () {
+            traceKeySet(k);
+        });
+
+        testFunction(k, k.replaceKeys, 'create k', 't', ['a', 'b', 'c'], 't', ['a', 'b', 'c']);
+        testFunction(k, k.addKeys, 'add', 't', ['b', 'c', 'd', 'e'], 't', ['a', 'b', 'c', 'd', 'e']);
+        testFunction(k, k.removeKeys, 'remove', 't', ['d', 'e', 'f', 'g'], 't', ['a', 'b', 'c']);
+        testFunction(k, k.replaceKeys, 'replace', 't', ['b', 'x'], 't', ['b', 'x']);
+
+        k2.replaceKeys(WeaveAPI.QKeyManager.getQKeys('t', ['a', 'b', 'x', 'y']));
+        console.log('copy k2 to k');
+        WeaveAPI.SessionManager.copySessionState(k2, k);
+        assert(k, WeaveAPI.QKeyManager.getQKeys('t', ['a', 'b', 'x', 'y']));
+
+
+
+
+        testFunction(k, k.replaceKeys, 'replace k', 't', ['1'], 't', ['1']);
+        testFunction(k, k.addKeys, 'add k', 't2', ['1'], 't', ['1'], 't2', ['1']);
+        testFunction(k, k.removeKeys, 'remove k', 't', ['1'], 't2', ['1']);
+        testFunction(k, k.addKeys, 'add k', 't2', ['1'], 't2', ['1']);
+
+        var arr = WeaveAPI.QKeyManager.getAllKeyTypes();
+        arr.forEach(function (t) {
+            console.log('all keys (' + t + '):', KeySet.getKeyStrings(WeaveAPI.QKeyManager.getAllQKeys(t)));
+        });
+    }
+
+    KeySet.getKeyStrings = function (qkeys) {
+        var keyStrings = [];
+        qkeys.forEach(function (key) {
+            keyStrings.push(key.keyType + '#' + key.localName);
+        });
+        return keyStrings;
+    }
+
+    KeySet.traceKeySet = function (keySet) {
+        console.log(' ->', KeySet.getKeyStrings(keySet.keys));
+        console.log('   ', weavecore.Compiler.stringify(WeaveAPI.SessionManager.getSessionState(keySet)));
+    }
+
+    KeySet.testFunction = function (keySet, func, comment, keyType, keys, expectedResultKeyType, expectedResultKeys, expectedResultKeyType2, expectedResultKeys2) {
+        expectedResultKeyType2 = (expectedResultKeyType2 === undefined) ? null : expectedResultKeyType2;
+        expectedResultKeys2 = (expectedResultKeys2 === undefined) ? null : expectedResultKeys2;
+
+        console.log(comment, keyType, keys);
+        func(WeaveAPI.QKeyManager.getQKeys(keyType, keys));
+        var keys1 = expectedResultKeys ? WeaveAPI.QKeyManager.getQKeys(expectedResultKeyType, expectedResultKeys) : [];
+        var keys2 = expectedResultKeys2 ? WeaveAPI.QKeyManager.getQKeys(expectedResultKeyType2, expectedResultKeys2) : [];
+        assert(keySet, keys1, keys2);
+    }
+    KeySet.assert = function (keySet, expectedKeys1, expectedKeys2) {
+        expectedKeys2 = (expectedKeys2 === undefined) ? null : expectedKeys2;
+        var qkey;
+        var qkeyMap = new Map();
+            [expectedKeys1, expectedKeys2].forEach(function (keys) {
+            keys.forEach(function (qkey) {
+                if (!keySet.containsKey(qkey))
+                    throw new Error("KeySet does not contain expected keys");
+                qkeyMap.set(qkey, true);
+            });
+        });
+
+        keySet.keys.forEach(function (qkey) {
+            if (qkeyMap.get(qkey) === undefined)
+                throw new Error("KeySet contains unexpected keys");
+        });
+    }
+
+    if (typeof exports !== 'undefined') {
+        module.exports = KeySet;
+    } else {
+
+        window.weavedata = window.weavedata ? window.weavedata : {};
+        window.weavedata.KeySet = KeySet;
+    }
+
+}());
+(function () {
+
+    /**
+     * temporary solution to save the namespace for this class/prototype
+     * @static
+     * @public
+     * @property NS
+     * @default weavecore
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(KeySetCallbackInterface, 'NS', {
+        value: 'weavedata'
+    });
+
+    /**
+     * TO-DO:temporary solution to save the CLASS-NAME constructor.name works for window object , but modular based won't work
+     * @static
+     * @public
+     * @property CLASS-NAME
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(KeySetCallbackInterface, 'CLASS_NAME', {
+        value: 'KeySetCallbackInterface'
+    });
+
+
+    /**
+     * Provides an interface for getting KeySet event-related information.
+     */
+    function KeySetCallbackInterface() {
+
+        // specify the preCallback function in super() so list callback
+        // variables will be set before each change callback.
+        weavecore.CallbackCollection.call(this, setCallbackVariables.bind(this));
+
+        /**
+         * The keys that were most recently added, causing callbacks to trigger.
+         * This can be used as a buffer prior to calling flushKeys().
+         * @see #flushKeys()
+         */
+        this.keysAdded = [];
+
+        /**
+         * The keys that were most recently removed, causing callbacks to trigger.
+         * This can be used as a buffer prior to calling flushKeys().
+         * @see #flushKeys()
+         */
+        this.keysRemoved = [];
+
+    }
+
+    function setCallbackVariables(keysAdded, keysRemoved) {
+        this.keysAdded = keysAdded;
+        this.keysRemoved = keysRemoved;
+    }
+
+    KeySetCallbackInterface.prototype = new weavecore.CallbackCollection();
+    KeySetCallbackInterface.prototype.constructor = KeySetCallbackInterface;
+
+    var p = KeySetCallbackInterface.prototype;
+
+    /**
+     * This function should be called when keysAdded and keysRemoved are ready to be shared with the callbacks.
+     * The keysAdded and keysRemoved Arrays will be reset to empty Arrays after the callbacks finish running.
+     */
+    p.flushKeys = function () {
+        if (this.keysAdded.length || this.keysRemoved.length)
+            this._runCallbacksImmediately(keysAdded, keysRemoved);
+        setCallbackVariables.call(this, [], []); // reset the variables to new arrays
+    }
+
+    if (typeof exports !== 'undefined') {
+        module.exports = KeySetCallbackInterface;
+    } else {
+
+        window.weavedata = window.weavedata ? window.weavedata : {};
+        window.weavedata.KeySetCallbackInterface = KeySetCallbackInterface;
+    }
+}());
+
+(function () {
+
+    /**
+     * temporary solution to save the namespace for this class/prototype
+     * @static
+     * @public
+     * @property NS
+     * @default weavecore
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(KeySetUnion, 'NS', {
+        value: 'weavedata'
+    });
+
+    /**
+     * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
+     * @static
+     * @public
+     * @property CLASS_NAME
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(KeySetUnion, 'CLASS_NAME', {
+        value: 'KeySetUnion'
+    });
+
+    KeySetUnion.debug = false;
+    /**
+     * This key set is the union of several other key sets.  It has no session state.
+     *
+     * @param keyInclusionLogic A function that accepts an IQualifiedKey and returns true or false.
+     * @author adufilie
+     * @author sanjay1909
+     */
+    function KeySetUnion() {
+        weavedata.IKeySet.call(this);
+        /**
+         * This will be used to determine whether or not to include a key.
+         */
+        this._keyInclusionLogic = null;
+
+        this._keySets = []; // Array of IKeySet
+        this._allKeys = []; // Array of IQualifiedKey
+        this._keyLookup = new Map(); // IQualifiedKey -> Boolean
+
+        /**
+         * Use this to check asynchronous task busy status.  This is kept separate because if we report busy status we need to
+         * trigger callbacks when an asynchronous task completes, but we don't want to trigger KeySetUnion callbacks when nothing
+         * changes as a result of completing the asynchronous task.
+         */
+        Object.defineProperty(this, 'busyStatus', {
+            value: WeaveAPI.SessionManager.registerDisposableChild(this, new weavecore.CallbackCollection()) // separate owner for the async task to avoid affecting our busy status
+        })
+
+
+        this._asyncKeys; // keys from current key set
+        this._asyncKeySetIndex; // index of current key set
+        this._asyncKeyIndex; // index of current key
+        this._prevCompareCounter; // keeps track of how many new keys are found in the old keys list
+        this._newKeyLookup; // for comparing to new keys lookup
+        this._newKeys; // new allKeys array in progress
+
+        /**
+         * This is a list of the IQualifiedKey objects that define the key set.
+         */
+        Object.defineProperty(this, 'keys', {
+            get: function () {
+                this._allKeys;
+            }
+        })
+    }
+
+    function _firstCallback() {
+        console.log(this, 'trigger', keys.length, 'keys');
+    }
+
+
+
+    function asyncStart() {
+        // remove disposed key sets
+        for (var i = this._keySets.length; i--;)
+            if (objectWasDisposed(this._keySets[i]))
+                this._keySets.splice(i, 1);
+
+            // restart async task
+        this._prevCompareCounter = 0;
+        this._newKeys = [];
+        this._newKeyLookup = new Map();
+        this._asyncKeys = null;
+        this._asyncKeySetIndex = 0;
+        this._asyncKeyIndex = 0;
+        // high priority because all visualizations depend on key sets
+        WeaveAPI.StageUtils.startTask(this.busyStatus, asyncIterate.bind(this), WeaveAPI.TASK_PRIORITY_HIGH, asyncComplete.bind(this), weavecore.StandardLib.substitute("Computing the union of {0} key sets", this._keySets.length));
+    }
+
+    function asyncIterate(stopTime) {
+        for (; this._asyncKeySetIndex < this._keySets.length; this._asyncKeySetIndex++) {
+            if (this._asyncKeys === null) {
+                this._asyncKeys = (this._keySets[this._asyncKeySetIndex]).keys;
+                this._asyncKeyIndex = 0;
+            }
+
+            for (; this._asyncKeys && this._asyncKeyIndex < this._asyncKeys.length; this._asyncKeyIndex++) {
+                if (getTimer() > stopTime)
+                    return (this._asyncKeySetIndex + this._asyncKeyIndex / this._asyncKeys.length) / this._keySets.length;
+
+                var key = (this._asyncKeys[this._asyncKeyIndex] && this._asyncKeys[this._asyncKeyIndex] instanceof weavedata.IQualifiedKey) ? this._asyncKeys[this._asyncKeyIndex] : null;
+                if (this._newKeyLookup.get(key) === undefined) // if we haven't seen this key yet
+                {
+                    var includeKey = (this._keyInclusionLogic === null) ? true : this._keyInclusionLogic(key);
+                    this._newKeyLookup.set(key, includeKey);
+
+                    if (includeKey) {
+                        _newKeys.push(key);
+
+                        // keep track of how many keys we saw both previously and currently
+                        if (this._keyLookup.get(key) === true)
+                            this._prevCompareCounter++;
+                    }
+                }
+            }
+
+            this._asyncKeys = null;
+        }
+        return 1; // avoids division by zero
+    }
+
+    function getTimer() {
+        return new Date().getTime();
+    }
+
+    function asyncComplete() {
+        // detect change
+        if (this._allKeys.length != this._newKeys.length || this._allKeys.length != this._prevCompareCounter) {
+            this._allKeys = this._newKeys;
+            this._keyLookup = this._newKeyLookup;
+            WeaveAPI.SessionManager.getCallbackCollection(this).triggerCallbacks();
+        }
+
+        this.busyStatus.triggerCallbacks();
+    }
+
+    KeySetUnion.prototype = new weavedata.IKeySet();
+    KeySetUnion.prototype.constructor = KeySetUnion;
+    var p = KeySetUnion.prototype;
+
+
+    /**
+     * This will add an IKeySet as a dependency and include its keys in the union.
+     * @param keySet
+     */
+    p.addKeySetDependency = function (keySet) {
+        if (this._keySets.indexOf(keySet) < 0) {
+            this._keySets.push(keySet);
+            WeaveAPI.SessionManager.getCallbackCollection(keySet).addDisposeCallback(this, asyncStart.bind(this));
+            WeaveAPI.SessionManager.getCallbackCollection(keySet).addImmediateCallback(this, asyncStart.bind(this), true);
+        }
+    }
+
+
+
+    /**
+     * @param key A IQualifiedKey object to check.
+     * @return true if the given key is included in the set.
+     */
+    p.containsKey = function (key) {
+        return this._keyLookup.get(key) === true;
+    }
+
+
+
+    p.dispose = function () {
+        this._keySets = null;
+        this._allKeys = null;
+        this._keyLookup = null;
+        this._newKeyLookup = null;
+    }
+
+    if (typeof exports !== 'undefined') {
+        module.exports = KeySetUnion;
+    } else {
+
+        window.weavedata = window.weavedata ? window.weavedata : {};
+        window.weavedata.KeySetUnion = KeySetUnion;
+    }
+
+}());
+(function () {
+
+    /**
+     * temporary solution to save the namespace for this class/prototype
+     * @static
+     * @public
+     * @property NS
+     * @default weavecore
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(SortedKeySet, 'NS', {
+        value: 'weavedata'
+    });
+
+    /**
+     * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
+     * @static
+     * @public
+     * @property CLASS_NAME
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(SortedKeySet, 'CLASS_NAME', {
+        value: 'SortedKeySet'
+    });
+
+
+    /**
+     * Generates a function like <code>function(keys)</code> that returns a sorted copy of an Array of keys.
+     * Note that the resulting sort function depends on WeaveAPI.StatisticsManager, so the sort function should be called
+     * again when statistics change for any of the columns you provide.
+     * @param columns An Array of IAttributeColumns or Functions mapping IQualifiedKeys to Numbers.
+     * @param sortDirections Sort directions (-1, 0, 1)
+     * @return A function that returns a sorted copy of an Array of keys.
+     */
+    SortedKeySet.generateSortCopyFunction = function (columns, sortDirections) {
+        sortDirections = (sortDirections === undefined) ? null : sortDirections;
+        return function (keys) {
+            var params = [];
+            var directions = [];
+            var lastDirection = 1;
+            for (var i = 0; i < columns.length; i++) {
+                var param = columns[i];
+                if (WeaveAPI.SessionManager.objectWasDisposed(param))
+                    continue;
+                if (param instanceof weavedata.IAttributeColumn) {
+                    var stats = WeaveAPI.StatisticsCache.getColumnStatistics(param);
+                    param = stats.hack_getNumericData();
+                }
+                if (!param || param instanceof weavedata.IKeySet)
+                    continue;
+                if (sortDirections && !sortDirections[i])
+                    continue;
+                lastDirection = (sortDirections ? sortDirections[i] : 1)
+                params.push(param);
+                directions.push(lastDirection);
+            }
+            var qkm = WeaveAPI.QKeyManager;
+            params.push(qkm.keyTypeLookup, qkm.localNameLookup);
+            directions.push(lastDirection, lastDirection);
+
+            //var t = getTimer();
+            var result = weavecore.StandardLib.sortOn(keys, params, directions, false);
+            //trace('sorted',keys.length,'keys in',getTimer()-t,'ms',DebugUtils.getCompactStackTrace(new Error()));
+            return result;
+        };
+    }
+
+    //
+    SortedKeySet._EMPTY_ARRAY = []
+
+
+    /**
+     * This provides the keys from an existing IKeySet in a sorted order.
+     * Callbacks will trigger when the sorted result changes.
+     */
+    function SortedKeySet(keySet, sortCopyFunction, dependencies) {
+        sortCopyFunction = (sortCopyFunction === undefined) ? null : sortCopyFunction;
+        dependencies = (dependencies === undefined) ? null : dependencies;
+        weavedata.IKeySet.call(this);
+
+        this._triggerCounter = 0;
+        this._dependencies = WeaveAPI.SessionManager.registerLinkableChild(this, new weavecore.CallbackCollection());
+        this._keySet;
+        this._sortCopyFunction = WeaveAPI.QKeyManager.keySortCopy;
+        this._sortedKeys = [];
+
+
+        this._keySet = keySet;
+        this._sortCopyFunction = (sortCopyFunction) ? sortCopyFunction : QKeyManager.keySortCopy;
+
+        dependencies.forEach(function (object) {
+            WeaveAPI.SessionManager.registerLinkableChild(this._dependencies, object);
+            if (object instanceof weavedata.IAttributeColumn) {
+                var stats = WeaveAPI.StatisticsCache.getColumnStatistics(object);
+                WeaveAPI.SessionManager.registerLinkableChild(this._dependencies, stats);
+            }
+        });
+        WeaveAPI.SessionManager.registerLinkableChild(this._dependencies, this._keySet);
+        /**
+         * This is the list of keys from the IKeySet, sorted.
+         */
+        Object.defineProperty(this, 'keys', {
+            get: function () {
+                if (this._triggerCounter != this._dependencies.triggerCounter)
+                    _validate.call(this);
+                return this._sortedKeys;
+            }
+        })
+
+    }
+
+
+
+    function _validate() {
+        this._triggerCounter = this._dependencies.triggerCounter;
+        if (WeaveAPI.SessionManager.linkableObjectIsBusy(this))
+            return;
+
+        WeaveAPI.StageUtils.startTask(this, _asyncTask.bind(this), WeaveAPI.TASK_PRIORITY_NORMAL, _asyncComplete.bind(this));
+    }
+
+
+
+
+    function _asyncTask() {
+        // first try sorting an empty array to trigger any column statistics requests
+        this._sortCopyFunction(SortedKeySet._EMPTY_ARRAY);
+
+        // stop if any async tasks were started
+        if (WeaveAPI.SessionManager.linkableObjectIsBusy(this._dependencies))
+            return 1;
+
+        // sort the keys
+        this._sortedKeys = this._sortCopyFunction(this._keySet.keys);
+
+        return 1;
+    }
+
+
+    function _asyncComplete() {
+        if (WeaveAPI.SessionManager.linkableObjectIsBusy(this._dependencies) || this._triggerCounter != this._dependencies.triggerCounter)
+            return;
+
+        WeaveAPI.SessionManager.getCallbackCollection(this).triggerCallbacks();
+    }
+
+    SortedKeySet.prototype = new weavedata.IKeySet();
+    SortedKeySet.prototype.constructor = SortedKeySet;
+    var p = SortedKeySet.prototype;
+
+    /**
+     * @inheritDoc
+     */
+    p.containsKey = function (key) {
+        return this._keySet.containsKey(key);
+    }
+
+    if (typeof exports !== 'undefined') {
+        module.exports = SortedKeySet;
+    } else {
+
+        window.weavedata = window.weavedata ? window.weavedata : {};
+        window.weavedata.SortedKeySet = SortedKeySet;
     }
 
 }());
@@ -2479,6 +4562,7 @@
         window.weavedata.AbstractAttributeColumn = AbstractAttributeColumn;
     }
 }());
+
 /**
  * This column is defined by two columns of CSV data: keys and values.
  *
@@ -2698,10 +4782,11 @@
 
 
 }());
+
 (function () {
     function ColumnDataTask(parentColumn, dataFilter, callback) {
-        dataFilter = (dataFilter === undefined) ? dataFilter : null;
-        callback = (callback === undefined) ? callback : null;
+        dataFilter = (dataFilter === undefined) ? null : dataFilter;
+        callback = (callback === undefined) ? null : callback;
 
         if (callback === null)
             callback = parentColumn.triggerCallbacks;
@@ -2740,11 +4825,11 @@
         if (inputKeys.length !== inputData.length)
             throw new Error(weavecore.StandardLib.substitute("Arrays are of different length ({0} != {1})", inputKeys.length, inputData.length));
 
-        this._dataFilter = dataFilter;
+        this._dataFilter = this._dataFilter;
         this._keys = inputKeys;
         this._data = inputData;
         this._i = 0;
-        this._n = keys.length;
+        this._n = this._keys.length;
         this.uniqueKeys = [];
         this.arrayData = new Map();
 
@@ -2753,15 +4838,16 @@
     }
 
     function iterate(stopTime) {
+        console.log(this._i, this._n);
         for (; this._i < this._n; this._i++) {
             if (getTimer() > stopTime)
                 return this._i / this._n;
 
             var value = this._data[this._i];
-            if (this._dataFilter !== null && !this._dataFilter(value))
+            if ((this._dataFilter !== null || this._dataFilter !== undefined) && !this._dataFilter(value))
                 continue;
 
-            var key = keys[this._i];
+            var key = this._keys[this._i];
             var array = this.arrayData.get(key);
             if (!array) {
                 this.uniqueKeys.push(key);
@@ -2771,6 +4857,7 @@
                 array.push(value);
             }
         }
+        console.log(this._i, this._n, this.arrayData.get(key));
         return 1;
     }
 
@@ -2786,7 +4873,6 @@
         window.weavedata.ColumnDataTask = ColumnDataTask;
     }
 }());
-
 /**
  *
  * @author adufilie
@@ -2844,6 +4930,7 @@
 
 
 }());
+
 /**
  * This provides a wrapper for a dynamically created column.
  *
@@ -3014,6 +5101,251 @@
      * @readOnly
      * @type String
      */
+    Object.defineProperty(ExtendedDynamicColumn, 'NS', {
+        value: 'weavedata'
+    });
+
+    /**
+     * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
+     * @static
+     * @public
+     * @property CLASS_NAME
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(ExtendedDynamicColumn, 'CLASS_NAME', {
+        value: 'ExtendedDynamicColumn'
+    });
+
+    ExtendedDynamicColumn._instanceCount = 0;
+    Object.defineProperty(ExtendedDynamicColumn, 'instanceCount', {
+
+        get: function () {
+            return ExtendedDynamicColumn._instanceCount = ExtendedDynamicColumn._instanceCount + 1
+        }
+    });
+
+
+    /**
+     * This provides a wrapper for a dynamic column, and allows new properties to be added.
+     * The purpose of this class is to provide a base for extending DynamicColumn.
+     *
+     * @author adufilie
+     * @author sanjay1909
+     */
+    function ExtendedDynamicColumn() {
+        weavecore.CallbackCollection.call(this);
+
+
+        Object.defineProperty(this, '_internalDynamicColumn', {
+            value: WeaveAPI.SessionManager.registerLinkableChild(this, new weavedata.DynamicColumn())
+        });
+
+        /**
+         * This is the internal DynamicColumn object that is being extended.
+         */
+        Object.defineProperty(this, 'internalDynamicColumn', {
+            get: function () {
+                return this._internalDynamicColumn;
+            }
+        });
+
+
+
+        this.name = "ExtendedDynamicColumn" + ExtendedDynamicColumn._instanceCount;
+
+        /**
+         * @return the keys associated with this column.
+         */
+        Object.defineProperty(this, 'keys', {
+            get: function () {
+                return this.internalDynamicColumn.keys;
+            },
+            configurable: true
+        });
+
+
+        WeaveAPI.SessionManager.registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(this.internalDynamicColumn));
+
+
+    }
+
+    ExtendedDynamicColumn.prototype = new weavecore.CallbackCollection();
+    ExtendedDynamicColumn.prototype.constructor = ExtendedDynamicColumn;
+
+    var p = ExtendedDynamicColumn.prototype;
+    /**
+     * This is for the IColumnWrapper interface.
+     */
+    p.getInternalColumn = function () {
+        return this.internalDynamicColumn.getInternalColumn();
+    }
+
+
+    /************************************
+     * Begin IAttributeColumn interface
+     ************************************/
+
+    p.getMetadata = function (propertyName) {
+        return this.internalDynamicColumn.getMetadata(propertyName);
+    }
+
+    p.getMetadataPropertyNames = function () {
+        return this.internalDynamicColumn.getMetadataPropertyNames();
+    }
+
+
+
+    /**
+     * @param key A key to test.
+     * @return true if the key exists in this IKeySet.
+     */
+    p.containsKey = function (key) {
+        return this.internalDynamicColumn.containsKey(key);
+    }
+
+    /**
+     * getValueFromKey
+     * @param key A key of the type specified by keyType.
+     * @return The value associated with the given key.
+     */
+    p.getValueFromKey = function (key, dataType) {
+        dataType = (dataType === undefined) ? null : dataType;
+        return this.internalDynamicColumn.getValueFromKey(key, dataType);
+    }
+
+    p.toString = function () {
+        return WeaveAPI.debugId(this) + '(' + (this.getInternalColumn() ? this.getInternalColumn() : weavedata.ColumnUtils.getTitle(this)) + ')';
+    }
+
+    if (typeof exports !== 'undefined') {
+        module.exports = ExtendedDynamicColumn;
+    } else {
+
+        window.weavedata = window.weavedata ? window.weavedata : {};
+        window.weavedata.ExtendedDynamicColumn = ExtendedDynamicColumn;
+    }
+
+}());
+(function () {
+
+    /**
+     * temporary solution to save the namespace for this class/prototype
+     * @static
+     * @public
+     * @property NS
+     * @default weavecore
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(FilteredColumn, 'NS', {
+        value: 'weavedata'
+    });
+
+    /**
+     * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
+     * @static
+     * @public
+     * @property CLASS_NAME
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(FilteredColumn, 'CLASS_NAME', {
+        value: 'FilteredColumn'
+    });
+
+    function FilteredColumn() {
+
+        weavedata.ExtendedDynamicColumn.call(this);
+
+        /**
+         * This is private because it doesn't need to appear in the session state -- keys are returned by the "get keys()" accessor function
+         */
+        Object.defineProperty(this, '_filteredKeySet', {
+            value: WeaveAPI.SessionManager.registerLinkableChild(this, new weavedata.FilteredKeySet())
+        })
+
+        /**
+         * This is the dynamically created filter that filters the keys in the column.
+         */
+        Object.defineProperty(this, 'filter', {
+            value: WeaveAPI.SessionManager.registerLinkableChild(this, this._filteredKeySet.keyFilter)
+        })
+
+
+        /**
+         * This stores the filtered keys
+         */
+        this._keys;
+
+        Object.defineProperty(this, 'keys', {
+            get: function () {
+                // also make internal column request because it may trigger callbacks
+                this.internalDynamicColumn.keys;
+                return this._filteredKeySet.keys;
+            },
+            configurable: true
+        });
+
+
+
+        this._filteredKeySet.setSingleKeySource(this.internalDynamicColumn);
+    }
+
+
+    FilteredColumn.prototype = new weavedata.ExtendedDynamicColumn();
+    FilteredColumn.prototype.constructor = FilteredColumn;
+
+    var p = FilteredColumn.prototype;
+
+    /**
+     * The filter removes certain records from the column.  This function will return false if the key is not contained in the filter.
+     */
+    p.containsKey = function (key) {
+        // also make internal column request because it may trigger callbacks
+        this.internalDynamicColumn.containsKey(key);
+        return this._filteredKeySet.containsKey(key);
+    }
+
+    p.getValueFromKey = function (key, dataType) {
+        dataType = (dataType === undefined) ? null : dataType;
+        var column = this.internalDynamicColumn.getInternalColumn();
+        var keyFilter = this.filter.getInternalKeyFilter();
+        if (column) {
+            // always make internal column request because it may trigger callbacks
+            var value = column.getValueFromKey(key, dataType);
+            if (!keyFilter || keyFilter.containsKey(key))
+                return value;
+        }
+
+        if (dataType)
+            return weavedata.EquationColumnLib.cast(undefined, dataType);
+
+        return undefined;
+    }
+
+
+    if (typeof exports !== 'undefined') {
+        module.exports = FilteredColumn;
+    } else {
+
+        window.weavedata = window.weavedata ? window.weavedata : {};
+        window.weavedata.FilteredColumn = FilteredColumn;
+    }
+
+}());
+
+(function () {
+
+    /**
+     * temporary solution to save the namespace for this class/prototype
+     * @static
+     * @public
+     * @property NS
+     * @default weavecore
+     * @readOnly
+     * @type String
+     */
     Object.defineProperty(IColumnWrapper, 'NS', {
         value: 'weavedata'
     });
@@ -3063,6 +5395,7 @@
         window.weavedata.IColumnWrapper = IColumnWrapper;
     }
 }());
+
 /**
  *
  * @author adufilie
@@ -3157,6 +5490,7 @@ Object.defineProperty(KeyColumn, 'CLASS_NAME', {
 
 
 }());
+
 /**
  *
  * @author adufilie
@@ -3217,7 +5551,7 @@ Object.defineProperty(KeyColumn, 'CLASS_NAME', {
     p.getMetadata = function (propertyName) {
         if (propertyName == weavedata.ColumnMetadata.DATA_TYPE)
             return weavedata.DataType.NUMBER;
-        return weavedata.AbstractAttributeColumn.prototype.getMetadata.call(this,propertyName);
+        return weavedata.AbstractAttributeColumn.prototype.getMetadata.call(this, propertyName);
     }
 
     //TODO - implement IBaseColumn
@@ -3226,7 +5560,7 @@ Object.defineProperty(KeyColumn, 'CLASS_NAME', {
 
         this._numberToStringFunction = null;
         // compile the string format function from the metadata
-        var stringFormat = this.getMetadata(ColumnMetadata.STRING);
+        var stringFormat = this.getMetadata(weavedata.ColumnMetadata.STRING);
         if (stringFormat) {
             try {
                 this._numberToStringFunction = NumberColumn.compiler.compileToFunction(stringFormat, null, errorHandler.bind(this), false, [weavedata.ColumnMetadata.NUMBER, 'array']);
@@ -3493,14 +5827,14 @@ Object.defineProperty(KeyColumn, 'CLASS_NAME', {
             return;
 
         // clean up ties to previous column
-        if (this._internalColumn != null)
+        if (this._internalColumn !== null)
             WeaveAPI.SessionManager.unregisterLinkableChild(this, this._internalColumn);
 
         // save pointer to new column
         this._internalColumn = newColumn;
 
         // initialize for new column
-        if (this._internalColumn != null)
+        if (this._internalColumn !== null)
             WeaveAPI.SessionManager.registerLinkableChild(this, this._internalColumn);
 
         this.triggerCallbacks();
@@ -3621,19 +5955,19 @@ Object.defineProperty(KeyColumn, 'CLASS_NAME', {
          * This is the name of an IDataSource in the top level session state.
          */
         Object.defineProperty(this, 'dataSourceName', {
-            value: WeaveAPI.SessionManager.registerLinkableChild(this, weavecore.LinkableString, this._updateDataSource.bind(this)),
+            value: WeaveAPI.SessionManager.registerLinkableChild(this, new weavecore.LinkableString(), this._updateDataSource.bind(this)),
             writable: false
         });
         /**
          * This holds the metadata used to identify a column.
          */
         Object.defineProperty(this, 'metadata', {
-            value: WeaveAPI.SessionManager.registerLinkableChild(this, weavecore.LinkableVariable),
+            value: WeaveAPI.SessionManager.registerLinkableChild(this,  new weavecore.LinkableVariable()),
             writable: false
         });
 
         Object.defineProperty(this, '_columnWatcher', {
-            value: WeaveAPI.SessionManager.registerLinkableChild(this, weavecore.LinkableWatcher),
+            value: WeaveAPI.SessionManager.registerLinkableChild(this, new weavecore.LinkableWatcher()),
             writable: false
         });
 
@@ -3750,6 +6084,7 @@ Object.defineProperty(KeyColumn, 'CLASS_NAME', {
 
 
 }());
+
 /**
  *
  * @author adufilie
@@ -3875,7 +6210,7 @@ Object.defineProperty(KeyColumn, 'CLASS_NAME', {
     var p = StringColumn.prototype;
 
     p.getMetadata = function (propertyName) {
-        var value = weavedata.StringColumn.prototype.getMetadata(propertyName);
+        var value = weavedata.AbstractAttributeColumn.prototype.getMetadata.call(this, propertyName);
         if (!value && propertyName === weavedata.ColumnMetadata.DATA_TYPE)
             return weavedata.DataType.STRING;
         return value;
@@ -3960,7 +6295,7 @@ Object.defineProperty(KeyColumn, 'CLASS_NAME', {
     function asyncComplete() {
         // cache needs to be cleared after async task completes because some values may have been cached while the task was busy
         this.dataCache = new weavecore.Dictionary2D();
-        this.triggerCallbacks();
+        this.triggerCallbacks.call(this);
     }
 
 
@@ -4253,6 +6588,7 @@ Object.defineProperty(KeyColumn, 'CLASS_NAME', {
     }
 
 }());
+
 (function () {
 
     /**
@@ -4342,8 +6678,7 @@ Object.defineProperty(KeyColumn, 'CLASS_NAME', {
         Object.defineProperty(this, 'initializationComplete', {
             get: function () {
                 // make sure csv data is set before column requests are handled.
-                console.log('CSVDataSource.prototype.initializationComplete:', CSVDataSource.prototype.initializationComplete);
-                return weavedata.AbstractDataSource.prototype.initializationComplete && this._parsedRows && this._keysVector && !WeaveAPI.SessionManager.linkableObjectIsBusy(this._keysCallbacks);
+                return this.__proto__.initializationComplete && this._parsedRows && this._keysVector && !WeaveAPI.SessionManager.linkableObjectIsBusy(this._keysCallbacks);
             }
         });
 
@@ -4411,7 +6746,7 @@ Object.defineProperty(KeyColumn, 'CLASS_NAME', {
         // save parsedRows only if csvData has non-null session state
         var rows = this.csvData.getSessionState();
         // clear url value when we specify csvData session state
-        if (this.url.value && rows != null && rows.length)
+        if (this.url.value && (rows !== null || rows !== undefined) && rows.length)
             this.url.value = null;
         if (!this.url.value)
             handleParsedRows.call(this, rows);
@@ -4498,7 +6833,7 @@ Object.defineProperty(KeyColumn, 'CLASS_NAME', {
 
         // get column id from metadata
         var columnId = metadata[CSVDataSource.METADATA_COLUMN_INDEX];
-        if (columnId !== null) {
+        if (columnId !== null || columnId !== undefined) {
             columnId = Number(columnId);
         } else {
             columnId = metadata[CSVDataSource.METADATA_COLUMN_NAME];
@@ -4557,11 +6892,11 @@ Object.defineProperty(KeyColumn, 'CLASS_NAME', {
 
         var dataType = metadata[weavedata.ColumnMetadata.DATA_TYPE];
 
-        if (dataType === null || dataType === weavedata.DataType.NUMBER) {
+        if (dataType === null || dataType === undefined || dataType === weavedata.DataType.NUMBER) {
             numbers = stringsToNumbers.call(this, strings, dataType === weavedata.DataType.NUMBER);
         }
 
-        if ((!numbers && dataType === null) || dataType === weavedata.DataType.DATE) {
+        if ((!numbers && (dataType === null || dataType === undefined)) || dataType === weavedata.DataType.DATE) {
             dateFormats = weavedata.DateColumn.detectDateFormats(strings);
         }
 
@@ -4640,8 +6975,8 @@ Object.defineProperty(KeyColumn, 'CLASS_NAME', {
         var i = strings.length;
         outerLoop: while (i--) {
             var string = strings[i].trim();
-            for (var j = 0; j < nullValues.length; j++) {
-                var nullValue = nullValues[j];
+            for (var j = 0; j < this._nullValues.length; j++) {
+                var nullValue = this._nullValues[j];
                 var a = nullValue && nullValue.toLocaleLowerCase();
                 var b = string && string.toLocaleLowerCase();
                 if (a === b) {
@@ -4802,7 +7137,7 @@ Object.defineProperty(KeyColumn, 'CLASS_NAME', {
         if (!sourceOwner)
             return false;
 
-        var dc = dynamicColumnOrPath;
+        var dc = (dynamicColumnOrPath && dynamicColumnOrPath instanceof weavedata.DynamicColumn) ? dynamicColumnOrPath : null;
         if (!dc) {
             WeaveAPI.ExternalSessionStateInterface.requestObject(dynamicColumnOrPath, weavedata.DynamicColumn.className);
             dc = WeaveAPI.getObject(dynamicColumnOrPath);
@@ -4811,8 +7146,8 @@ Object.defineProperty(KeyColumn, 'CLASS_NAME', {
             return false;
 
         WeaveAPI.SessionManager.getCallbackCollection(dc).delayCallbacks();
-        var refCol = dc.requestLocalObject(ReferencedColumn, false);
-        refCol.setColumnReference(this, generateMetadataForColumnId(columnNameOrIndex));
+        var refCol = dc.requestLocalObject(weavedata.ReferencedColumn, false);
+        refCol.setColumnReference(this, this.generateMetadataForColumnId(columnNameOrIndex));
         WeaveAPI.SessionManager.getCallbackCollection(dc).resumeCallbacks();
 
         return true;
@@ -4851,6 +7186,283 @@ Object.defineProperty(KeyColumn, 'CLASS_NAME', {
 
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.CSVDataSource = CSVDataSource;
+    }
+
+}());
+(function () {
+
+    /**
+     * A node in a tree whose leaves identify attribute columns.
+     * The following properties are used for equality comparison, in addition to node class definitions:<br>
+     * <code>dependency, data</code><br>
+     * The following properties are used by WeaveTreeDescriptorNode but not for equality comparison:<br>
+     * <code>label, children, hasChildBranches</code><br>
+     */
+    function WeaveTreeDescriptorNode(params) {
+        weavecore.WeaveTreeItem.call(this);
+
+        this.__hasChildBranches = null;
+        /**
+         * Set this to true if this node is a branch, or false if it is not.
+         * Otherwise, hasChildBranches() will check isBranch() on each child returned by getChildren().
+         */
+        Object.defineProperty(this, '_hasChildBranches', {
+            set: function (value) {
+                this._counter['hasChildBranches'] = undefined;
+                this.__hasChildBranches = value;
+            }
+        })
+
+        this.childItemClass = WeaveTreeDescriptorNode;
+
+        for (var key in params) {
+            if (this[key] instanceof Function && this.hasOwnProperty('_' + key))
+                this['_' + key] = params[key];
+            else
+                this[key] = params[key];
+        }
+    }
+
+    WeaveTreeDescriptorNode.prototype = new weavecore.WeaveTreeItem();
+    WeaveTreeDescriptorNode.prototype.constructor = WeaveTreeDescriptorNode;
+
+    var p = WeaveTreeDescriptorNode.prototype;
+    /**
+     * @inheritDoc
+     */
+    p.equals = function (other) {
+        var that = (other && other instanceof WeaveTreeDescriptorNode) ? other : null;
+        if (!that)
+            return false;
+
+        // compare constructor
+        if (Object(this).constructor !== Object(that).constructor)
+            return false; // constructor differs
+
+        // compare dependency
+        if (this.dependency !== that.dependency)
+            return false; // dependency differs
+
+        if (weavecore.StandardLib.compare(this.data, that.data) !== 0)
+            return false; // data differs
+
+        return true;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    p.getLabel = function () {
+        return this.label;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    p.isBranch = function () {
+        // assume that if children property was defined that this is a branch
+        return this._children != null;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    p.hasChildBranches = function () {
+        const id = 'hasChildBranches';
+        if (this.isCached(id))
+            return this.cache(id);
+
+        if (this.__hasChildBranches !== null)
+            return this.cache(id, this.getBoolean(this.__hasChildBranches, id));
+
+        var children = this.getChildren();
+        for (var i = 0; i < children.length; i++) {
+            var child = children[i];
+            if (child.isBranch())
+                return this.cache(id, true);
+        }
+
+
+        return this.cache(id, false);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    p.getChildren = function () {
+        return this.children;
+    }
+
+
+    if (typeof exports !== 'undefined') {
+        module.exports = WeaveTreeDescriptorNode;
+    } else {
+
+        window.weavedata = window.weavedata ? window.weavedata : {};
+        window.weavedata.WeaveTreeDescriptorNode = WeaveTreeDescriptorNode;
+    }
+}());
+/**
+ * A node in a tree whose leaves identify attribute columns.
+ * The <code>data</code> property is used for column metadata on leaf nodes.
+ * The following properties are used for equality comparison, in addition to node class definitions:<br>
+ * <code>dataSource, data, idFields</code><br>
+ * The following properties are used by ColumnTreeNode but not for equality comparison:<br>
+ * <code>label, children, hasChildBranches</code><br>
+ */
+(function () {
+    /**
+     * The <code>data</code> parameter is used for column metadata on leaf nodes.
+     * The following properties are used for equality comparison, in addition to node class definitions:
+     *     <code>dependency, data, dataSource, idFields</code><br>
+     * The following properties are used by ColumnTreeNode but not for equality comparison:
+     *     <code>label, children, hasChildBranches</code><br>
+     * @params An values for the properties of this ColumnTreeNode.
+     *         The <code>dataSource</code> property is required.
+     *         If no <code>dependency</code> property is given, <code>dataSource.hierarchyRefresh</code> will be used as the dependency.
+     */
+
+    function ColumnTreeNode(params) {
+        weavedata.WeaveTreeDescriptorNode.call(this, params);
+
+        /**
+         * IDataSource for this node.
+         */
+        this.dataSource = null;
+
+        /**
+         * A list of data fields to use for node equality tests.
+         */
+        this.idFields = null;
+
+        /**
+         * If there is no label, this will use data['title'] if defined.
+         */
+        Object.defineProperty(this, 'label', {
+            get: function () {
+                var str = weavedata.WeaveTreeDescriptorNode.prototype.label;
+                if (!str && data)
+                    str = (typeof data === 'object' && data.hasOwnProperty(weavedata.ColumnMetadata.TITLE)) ? data[weavedata.ColumnMetadata.TITLE] : data.toString();
+                return str;
+            },
+            configurable: true
+        });
+
+        this.childItemClass = ColumnTreeNode;
+
+        if (!this.dataSource)
+            throw new Error('ColumnTreeNode constructor: "dataSource" parameter is required');
+        if (!this.dependency)
+            this.dependency = this.dataSource.hierarchyRefresh;
+
+    }
+    ColumnTreeNode.prototype = new weavedata.WeaveTreeDescriptorNode();
+    ColumnTreeNode.prototype.constructor = ColumnTreeNode;
+
+    var p = ColumnTreeNode.prototype;
+
+
+    /**
+     * Compares constructor, dataSource, dependency, data, idFields.
+     * @inheritDoc
+     */
+    p.equals = function (other) {
+        var that = (other && other instanceof ColumnTreeNode) ? other : null;
+        if (!that)
+            return false;
+
+        // compare constructor
+        if (Object(this).constructor !== Object(that).constructor)
+            return false; // constructor differs
+
+        // compare dependency
+        if (this.dependency !== that.dependency)
+            return false; // dependency differs
+
+        // compare dataSource
+        if (this.dataSource !== that.dataSource)
+            return false; // dataSource differs
+
+        // compare idFields
+        if (weavecore.StandardLib.compare(this.idFields, that.idFields) !== 0)
+            return false; // idFields differs
+
+        // compare data
+        if (this.idFields) // partial data comparison
+        {
+            for (var i = 0; i < idFields.length; i++) {
+                var field = idFields[i];
+                if (weavecore.StandardLib.compare(this.data[field], that.data[field]) !== 0)
+                    return false; // data differs
+            }
+        } else if (weavecore.StandardLib.compare(this.data, that.data) !== 0) // full data comparison
+            return false; // data differs
+
+        return true;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    p.getDataSource = function () {
+        return this.dataSource;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    p.getColumnMetadata = function () {
+        if (this.isBranch())
+            return null;
+        return data;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    p.findPathToNode = function (descendant) {
+        // base case - if nodes are equal
+        if (this.equals(descendant))
+            return [this];
+
+        // stopping condition - if ColumnTreeNode descendant dataSource or idFields values differ
+        var _descendant = (descendant && descendant instanceof ColumnTreeNode) ? descendant : null;
+        if (_descendant) {
+            // don't look for a descendant with different a dataSource
+            if (weavecore.StandardLib.compare(this.dataSource, _descendant.dataSource) != 0)
+                return null;
+
+            // if this node has idFields, make sure the id values match those of the descendant
+
+            if (this.idFields && this.data && _descendant.data)
+                for (var i = 0; i < idFields.length; i++) {
+                    var field = idFields[i];
+                    if (this.data[field] != _descendant.data[field])
+                        return null;
+                }
+
+        }
+
+        // finally, check each child
+        var children = this.getChildren()
+        for (var i = 0; i < children.length; i++) {
+            var child = children[i];
+            var path = weavedata.HierarchyUtils.findPathToNode(child, descendant);
+            if (path) {
+                path.unshift(this);
+                return path;
+            }
+        }
+
+        return null;
+    }
+
+    if (typeof exports !== 'undefined') {
+        module.exports = ColumnTreeNode;
+    } else {
+
+        window.weavedata = window.weavedata ? window.weavedata : {};
+        window.weavedata.ColumnTreeNode = ColumnTreeNode;
     }
 
 }());

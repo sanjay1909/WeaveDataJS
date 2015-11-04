@@ -66,13 +66,14 @@
          * @return the keys associated with this column.
          */
         Object.defineProperty(this, 'keys', {
-    get: function () {
-        return this.internalDynamicColumn.keys;
-    },
-    configurable: true
-});
+            get: function () {
+                return this.internalDynamicColumn.keys;
+            },
+            configurable: true
+        });
 
 
+        WeaveAPI.SessionManager.registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(this.internalDynamicColumn));
 
 
     }

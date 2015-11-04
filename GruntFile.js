@@ -9,7 +9,9 @@ module.exports = function (grunt) {
             dist: {
                 src: [
                     'src/utils/*.js',
+
                     'src/data/Aggregation.js',
+                    'src/data/StatisticsCache.js',
                     'src/data/AttributeColumnCache.js',
                     'src/data/QKeyManager.js',
                     'src/data/CSVParser.js',
@@ -17,9 +19,13 @@ module.exports = function (grunt) {
                     'src/data/DataType.js',
                     'src/data/DateFormat.js',
                     'src/data/EntityType.js',
+
+                    'src/data/KeySets/*.js',
                     'src/data/AttributeColumns/*.js',
-                     'src/data/DataSources/*.js',
-                    'src/data/hierarchy/*.js'
+                    'src/data/DataSources/*.js',
+
+                    'src/data/hierarchy/WeaveTreeDescriptorNode.js',
+                    'src/data/hierarchy/ColumnTreeNode.js'
                 ],
                 dest: 'weavedata.js',
             }

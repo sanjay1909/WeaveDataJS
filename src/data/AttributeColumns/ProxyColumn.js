@@ -147,14 +147,14 @@
             return;
 
         // clean up ties to previous column
-        if (this._internalColumn != null)
+        if (this._internalColumn !== null)
             WeaveAPI.SessionManager.unregisterLinkableChild(this, this._internalColumn);
 
         // save pointer to new column
         this._internalColumn = newColumn;
 
         // initialize for new column
-        if (this._internalColumn != null)
+        if (this._internalColumn !== null)
             WeaveAPI.SessionManager.registerLinkableChild(this, this._internalColumn);
 
         this.triggerCallbacks();

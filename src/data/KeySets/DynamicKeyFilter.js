@@ -43,7 +43,7 @@
      * @author sanjay1909
      */
     function DynamicKeyFilter() {
-        weavecore.LinkableDynamicObject.call(weavedata.KeyFilter);
+        weavecore.LinkableDynamicObject.call(this, weavedata.KeyFilter);
     }
 
     DynamicKeyFilter.prototype = new weavecore.LinkableDynamicObject();

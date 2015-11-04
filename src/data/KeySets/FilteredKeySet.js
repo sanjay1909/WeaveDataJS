@@ -178,11 +178,11 @@
     var p = FilteredKeySet.prototype;
 
     function _firstCallback() {
-        console.log(this, 'trigger', keys.length, 'keys');
+        console.log(this, 'trigger', this.keys.length, 'keys');
     }
 
     p.dispose = function () {
-        super.dispose();
+        weavecore.CallbackCollection.prototype.dispose.call(this);
         this.setColumnKeySources(null);
     }
 

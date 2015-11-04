@@ -81,8 +81,9 @@
     function handleIncludeChange() {
         var includedKeys = this.included.keys;
         this._includedKeyTypeMap = {};
-        for each(var key in includedKeys)
-        this._includedKeyTypeMap[key.keyType] = true;
+        includedKeys.forEach(function (key) {
+            this._includedKeyTypeMap[key.keyType] = true;
+        });
 
         this.excluded.removeKeys(includedKeys);
     }
@@ -92,8 +93,9 @@
     function handleExcludeChange() {
         var excludedKeys = this.excluded.keys;
         this._excludedKeyTypeMap = {};
-        for each(var key in excludedKeys)
-        this._excludedKeyTypeMap[key.keyType] = true;
+        excludedKeys.forEach(function (key) {
+            this._excludedKeyTypeMap[key.keyType] = true;
+        });
 
         this.included.removeKeys(excludedKeys);
     }

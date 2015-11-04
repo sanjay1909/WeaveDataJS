@@ -273,14 +273,14 @@
 
         var changeDetected = false;
         WeaveAPI.QKeyManager.convertToQKeys(unwantedKeys);
-        for each(var key in unwantedKeys) {
+        unwantedKeys.forEach(function (key) {
             if (this._keyIndex.get(key) !== undefined) {
                 // drop key from this._keys vector
                 var droppedIndex = this._keyIndex.get(key);
                 if (droppedIndex < this._keys.length - 1) // if this is not the last entry
                 {
                     // move the last entry to the droppedIndex slot
-                    var lastKey = this._keys[keys.length - 1] as IQualifiedKey;
+                    var lastKey = (this._keys[keys.length - 1] && this._keys[keys.length - 1] instanceof weavedata.IQualifiedKey) ? this._keys[keys.length - 1] : null;
                     this._keys[droppedIndex] = lastKey;
                     this._keyIndex[lastKey] = droppedIndex;
                 }
@@ -292,7 +292,7 @@
                 changeDetected = true;
                 this.keyCallbacks.keysRemoved.push(key);
             }
-        }
+        });
 
         if (changeDetected)
             updateSessionState.call(this);

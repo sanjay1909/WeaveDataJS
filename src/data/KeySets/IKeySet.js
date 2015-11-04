@@ -46,7 +46,7 @@
         })
     }
 
-    IKeySet.prototype = new weavecore.IKeyFilter();
+    IKeySet.prototype = new weavedata.IKeyFilter();
     IKeySet.prototype.constructor = IKeySet;
 
     if (typeof exports !== 'undefined') {

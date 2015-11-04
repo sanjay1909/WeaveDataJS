@@ -80,8 +80,8 @@
 
     p.getValueFromKey = function (key, dataType) {
         dataType = (dataType === undefined) ? null : dataType;
-        var column: IAttributeColumn = this.internalDynamicColumn.getInternalColumn();
-        var keyFilter: IKeyFilter = this.filter.getInternalKeyFilter();
+        var column = this.internalDynamicColumn.getInternalColumn();
+        var keyFilter = this.filter.getInternalKeyFilter();
         if (column) {
             // always make internal column request because it may trigger callbacks
             var value = column.getValueFromKey(key, dataType);

@@ -58,7 +58,7 @@
     p.getMetadata = function (propertyName) {
         if (propertyName == weavedata.ColumnMetadata.DATA_TYPE)
             return weavedata.DataType.NUMBER;
-        return weavedata.AbstractAttributeColumn.prototype.getMetadata.call(this,propertyName);
+        return weavedata.AbstractAttributeColumn.prototype.getMetadata.call(this, propertyName);
     }
 
     //TODO - implement IBaseColumn
@@ -67,7 +67,7 @@
 
         this._numberToStringFunction = null;
         // compile the string format function from the metadata
-        var stringFormat = this.getMetadata(ColumnMetadata.STRING);
+        var stringFormat = this.getMetadata(weavedata.ColumnMetadata.STRING);
         if (stringFormat) {
             try {
                 this._numberToStringFunction = NumberColumn.compiler.compileToFunction(stringFormat, null, errorHandler.bind(this), false, [weavedata.ColumnMetadata.NUMBER, 'array']);
