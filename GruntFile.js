@@ -28,7 +28,10 @@ module.exports = function (grunt) {
                     'src/data/DataSources/CSVDataSource.js',
 
                     'src/data/hierarchy/WeaveTreeDescriptorNode.js',
-                    'src/data/hierarchy/ColumnTreeNode.js'
+                    'src/data/hierarchy/ColumnTreeNode.js',
+                    'src/data/hierarchy/WeaveRootDataTreeNode.js',
+
+                    'src/WeavePathData.js'
                 ],
                 dest: 'weavedata.js',
             }

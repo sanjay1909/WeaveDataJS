@@ -7,6 +7,10 @@
 
 <body>
     <script>
+        WeaveAPI.globalHashMap.requestObject('defaultProbeKeySet', weavecore.LinkableVariable);
+        WeaveAPI.globalHashMap.requestObject('defaultSelectionKeySet', weavecore.LinkableVariable);
+        WeaveAPI.globalHashMap.requestObject('defaultSubsetKeyFilter', weavecore.LinkableVariable);
+
         var ds = WeaveAPI.globalHashMap.requestObject('CSVdataSource', weavedata.CSVDataSource);
         var prom = new weavecore.WeavePromise();
 
