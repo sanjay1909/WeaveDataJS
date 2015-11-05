@@ -134,4 +134,6 @@
         window.weavedata.ExtendedDynamicColumn = ExtendedDynamicColumn;
     }
 
+    weavecore.ClassUtils.registerClass('weavedata.ExtendedDynamicColumn', weavedata.ExtendedDynamicColumn);
+
 }());

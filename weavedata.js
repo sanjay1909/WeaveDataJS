@@ -1629,6 +1629,8 @@
         window.weavedata.ColumnStatistics = ColumnStatistics;
     }
 
+    weavecore.ClassUtils.registerClass('weavedata.ColumnStatistics', weavedata.ColumnStatistics);
+
 }());
 (function () {
 
@@ -1826,6 +1828,8 @@
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.GlobalColumnDataSource = GlobalColumnDataSource;
     }
+
+    weavecore.ClassUtils.registerClass('weavedata.GlobalColumnDataSource', weavedata.GlobalColumnDataSource);
 
 }());
 /**
@@ -2155,6 +2159,7 @@
         window.weavedata.QKeyGetter = QKeyGetter;
     }
 }());
+
 (function () {
 
     /**
@@ -2619,8 +2624,9 @@
         WeaveAPI.CSVParser = new CSVParser();
     }
 
-}());
 
+    weavecore.ClassUtils.registerClass('weavedata.CSVParser', weavedata.CSVParser);
+}());
 (function () {
     function ColumnMetadata() {
 
@@ -2952,7 +2958,7 @@
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.DynamicKeyFilter = DynamicKeyFilter;
     }
-
+    weavecore.ClassUtils.registerClass('weavedata.DynamicKeyFilter', weavedata.DynamicKeyFilter);
 }());
 (function () {
 
@@ -3245,6 +3251,8 @@
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.FilteredKeySet = FilteredKeySet;
     }
+
+    weavecore.ClassUtils.registerClass('weavedata.FilteredKeySet', weavedata.FilteredKeySet);
 }());
 (function () {
 
@@ -3304,8 +3312,9 @@
         window.weavedata.IKeyFilter = IKeyFilter;
     }
 
-}());
+    weavecore.ClassUtils.registerClass('weavedata.IKeyFilter', weavedata.IKeyFilter);
 
+}());
 (function () {
 
     /**
@@ -3364,6 +3373,8 @@
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.IKeySet = IKeySet;
     }
+
+    weavecore.ClassUtils.registerClass('weavedata.IKeySet', weavedata.IKeySet);
 
 }());
 (function () {
@@ -3547,6 +3558,8 @@
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.KeyFilter = KeyFilter;
     }
+
+    weavecore.ClassUtils.registerClass('weavedata.KeyFilter', weavedata.KeyFilter);
 
 }());
 (function () {
@@ -3949,6 +3962,8 @@
         window.weavedata.KeySet = KeySet;
     }
 
+    weavecore.ClassUtils.registerClass('weavedata.KeySet', weavedata.KeySet);
+
 }());
 (function () {
 
@@ -4030,8 +4045,10 @@
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.KeySetCallbackInterface = KeySetCallbackInterface;
     }
-}());
 
+    weavecore.ClassUtils.registerClass('weavedata.KeySetCallbackInterface', weavedata.KeySetCallbackInterface);
+
+}());
 (function () {
 
     /**
@@ -4219,6 +4236,8 @@
         window.weavedata.KeySetUnion = KeySetUnion;
     }
 
+    weavecore.ClassUtils.registerClass('weavedata.KeySetUnion', weavedata.KeySetUnion);
+
 }());
 (function () {
 
@@ -4386,6 +4405,8 @@
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.SortedKeySet = SortedKeySet;
     }
+
+    weavecore.ClassUtils.registerClass('weavedata.SortedKeySet', weavedata.SortedKeySet);
 
 }());
 /**
@@ -4561,8 +4582,9 @@
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.AbstractAttributeColumn = AbstractAttributeColumn;
     }
-}());
 
+    weavecore.ClassUtils.registerClass('weavedata.AbstractAttributeColumn', weavedata.AbstractAttributeColumn);
+}());
 /**
  * This column is defined by two columns of CSV data: keys and values.
  *
@@ -4779,10 +4801,9 @@
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.CSVColumn = CSVColumn;
     }
-
+    weavecore.ClassUtils.registerClass('weavedata.CSVColumn', weavedata.CSVColumn);
 
 }());
-
 (function () {
     function ColumnDataTask(parentColumn, dataFilter, callback) {
         dataFilter = (dataFilter === undefined) ? null : dataFilter;
@@ -4872,6 +4893,8 @@
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.ColumnDataTask = ColumnDataTask;
     }
+
+
 }());
 /**
  *
@@ -4928,9 +4951,9 @@
         window.weavedata.DateColumn = DateColumn;
     }
 
+    weavecore.ClassUtils.registerClass('weavedata.DateColumn', weavedata.DateColumn);
 
 }());
-
 /**
  * This provides a wrapper for a dynamically created column.
  *
@@ -5088,8 +5111,8 @@
         window.weavedata.DynamicColumn = DynamicColumn;
     }
 
+    weavecore.ClassUtils.registerClass('weavedata.DynamicColumn', weavedata.DynamicColumn);
 }());
-
 (function () {
 
     /**
@@ -5226,6 +5249,8 @@
         window.weavedata.ExtendedDynamicColumn = ExtendedDynamicColumn;
     }
 
+    weavecore.ClassUtils.registerClass('weavedata.ExtendedDynamicColumn', weavedata.ExtendedDynamicColumn);
+
 }());
 (function () {
 
@@ -5333,6 +5358,8 @@
         window.weavedata.FilteredColumn = FilteredColumn;
     }
 
+    weavecore.ClassUtils.registerClass('weavedata.FilteredColumn', weavedata.FilteredColumn);
+
 }());
 
 (function () {
@@ -5394,6 +5421,8 @@
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.IColumnWrapper = IColumnWrapper;
     }
+     weavecore.ClassUtils.registerClass('weavedata.IColumnWrapper', weavedata.IColumnWrapper);
+
 }());
 
 /**
@@ -5404,29 +5433,29 @@
 (function () {
 
     /**
- * temporary solution to save the namespace for this class/prototype
- * @static
- * @public
- * @property NS
- * @default weavecore
- * @readOnly
- * @type String
- */
-Object.defineProperty(KeyColumn, 'NS', {
-    value: 'weavedata'
-});
+     * temporary solution to save the namespace for this class/prototype
+     * @static
+     * @public
+     * @property NS
+     * @default weavecore
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(KeyColumn, 'NS', {
+        value: 'weavedata'
+    });
 
-/**
- * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
- * @static
- * @public
- * @property CLASS_NAME
- * @readOnly
- * @type String
- */
-Object.defineProperty(KeyColumn, 'CLASS_NAME', {
-    value: 'KeyColumn'
-});
+    /**
+     * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
+     * @static
+     * @public
+     * @property CLASS_NAME
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(KeyColumn, 'CLASS_NAME', {
+        value: 'KeyColumn'
+    });
 
     function KeyColumn(metadata) {
         metadata = (metadata === undefined) ? null : metadata;
@@ -5488,9 +5517,9 @@ Object.defineProperty(KeyColumn, 'CLASS_NAME', {
         window.weavedata.KeyColumn = KeyColumn;
     }
 
+    weavecore.ClassUtils.registerClass('weavedata.KeyColumn', weavedata.KeyColumn);
 
 }());
-
 /**
  *
  * @author adufilie
@@ -5676,8 +5705,11 @@ Object.defineProperty(KeyColumn, 'CLASS_NAME', {
         window.weavedata.NumberColumn = NumberColumn;
     }
 
+    weavecore.ClassUtils.registerClass('weavedata.NumberColumn', weavedata.NumberColumn);
+
 
 }());
+
 /**
  *
  * @author adufilie
@@ -5893,7 +5925,7 @@ Object.defineProperty(KeyColumn, 'CLASS_NAME', {
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.ProxyColumn = ProxyColumn;
     }
-
+    weavecore.ClassUtils.registerClass('weavedata.ProxyColumn', weavedata.ProxyColumn);
 
 }());
 /**
@@ -5962,7 +5994,7 @@ Object.defineProperty(KeyColumn, 'CLASS_NAME', {
          * This holds the metadata used to identify a column.
          */
         Object.defineProperty(this, 'metadata', {
-            value: WeaveAPI.SessionManager.registerLinkableChild(this,  new weavecore.LinkableVariable()),
+            value: WeaveAPI.SessionManager.registerLinkableChild(this, new weavecore.LinkableVariable()),
             writable: false
         });
 
@@ -6082,9 +6114,8 @@ Object.defineProperty(KeyColumn, 'CLASS_NAME', {
         window.weavedata.ReferencedColumn = ReferencedColumn;
     }
 
-
+    weavecore.ClassUtils.registerClass('weavedata.ReferencedColumn', weavedata.ReferencedColumn);
 }());
-
 /**
  *
  * @author adufilie
@@ -6351,6 +6382,95 @@ Object.defineProperty(KeyColumn, 'CLASS_NAME', {
         window.weavedata.StringColumn = StringColumn;
     }
 
+    weavecore.ClassUtils.registerClass('weavedata.StringColumn', weavedata.StringColumn);
+
+}());
+(function () {
+
+    /**
+     * temporary solution to save the namespace for this class/prototype
+     * @static
+     * @public
+     * @property NS
+     * @default weavecore
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(IDataSource, 'NS', {
+        value: 'weavedata'
+    });
+
+    /**
+     * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
+     * @static
+     * @public
+     * @property CLASS_NAME
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(IDataSource, 'CLASS_NAME', {
+        value: 'IDataSource'
+    });
+
+
+    /**
+     * This is a simple and generic interface for getting columns of data from a source.
+     *
+     * @author adufilie
+     * @author sanjay1909
+     */
+    function IDataSource() {
+        weavecore.ILinkableObject.call(this);
+
+
+        /**
+         * When explicitly triggered, this will force the hierarchy to be refreshed.
+         * This should not be used to determine when the hierarchy is updated.
+         * For that purpose, add a callback directly to the IDataSource instead.
+         */
+        Object.defineProperty(this, "hierarchyRefresh", {
+            get: function () {
+                return null;
+            },
+            configurable: true
+        });
+    }
+
+    IDataSource.prototype = new weavecore.ILinkableObject();
+    IDataSource.prototype.constructor = IDataSource;
+    var p = IDataSource.prototype;
+
+
+    /**
+     * Gets the root node of the attribute hierarchy, which should have descendant nodes that implement IColumnReference.
+     */
+    p.getHierarchyRoot = function () {};
+
+    /**
+     * Finds the hierarchy node that corresponds to a set of metadata, or null if there is no such node.
+     * @param metadata Metadata used to identify a node in the hierarchy, which may or may not reference a column.
+     * @return The hierarchy node corresponding to the metadata or null if there is no corresponding node.
+     */
+    p.findHierarchyNode = function (metadata) {};
+
+    /**
+     * Retrieves an IAttributeColumn from this IDataSource.
+     * @param metadata Metadata used to identify a column in this IDataSource.
+     * @return An IAttributeColumn object that will be updated when the column data is available.
+     */
+    p.getAttributeColumn = function (metadata) {};
+
+
+    if (typeof exports !== 'undefined') {
+        module.exports = IDataSource;
+    } else {
+
+        window.weavedata = window.weavedata ? window.weavedata : {};
+        window.weavedata.IDataSource = IDataSource;
+
+    }
+
+    weavecore.ClassUtils.registerClass('weavedata.IDataSource', weavedata.IDataSource);
 
 }());
 /**
@@ -6390,7 +6510,7 @@ Object.defineProperty(KeyColumn, 'CLASS_NAME', {
     });
 
     function AbstractDataSource() {
-        weavecore.ILinkableObject.call(this);
+        weavedata.IDataSource.call(this);
         /*
          *
          * This variable is set to false when the session state changes and true when initialize() is called.*/
@@ -6436,7 +6556,7 @@ Object.defineProperty(KeyColumn, 'CLASS_NAME', {
     }
 
 
-    AbstractDataSource.prototype = new weavecore.ILinkableObject();
+    AbstractDataSource.prototype = new weavedata.IDataSource();
     AbstractDataSource.prototype.constructor = AbstractDataSource;
 
     var p = AbstractDataSource.prototype;
@@ -6587,8 +6707,9 @@ Object.defineProperty(KeyColumn, 'CLASS_NAME', {
         window.weavedata.AbstractDataSource = AbstractDataSource;
     }
 
-}());
+    weavecore.ClassUtils.registerClass('weavedata.AbstractDataSource', weavedata.AbstractDataSource);
 
+}());
 (function () {
 
     /**
@@ -7188,6 +7309,8 @@ Object.defineProperty(KeyColumn, 'CLASS_NAME', {
         window.weavedata.CSVDataSource = CSVDataSource;
     }
 
+    weavecore.ClassUtils.registerClass('weavedata.CSVDataSource', weavedata.CSVDataSource);
+
 }());
 (function () {
 
@@ -7199,6 +7322,7 @@ Object.defineProperty(KeyColumn, 'CLASS_NAME', {
      * <code>label, children, hasChildBranches</code><br>
      */
     function WeaveTreeDescriptorNode(params) {
+
         weavecore.WeaveTreeItem.call(this);
 
         this.__hasChildBranches = null;
@@ -7301,6 +7425,7 @@ Object.defineProperty(KeyColumn, 'CLASS_NAME', {
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.WeaveTreeDescriptorNode = WeaveTreeDescriptorNode;
     }
+
 }());
 /**
  * A node in a tree whose leaves identify attribute columns.

@@ -57,4 +57,6 @@
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.IColumnWrapper = IColumnWrapper;
     }
+     weavecore.ClassUtils.registerClass('weavedata.IColumnWrapper', weavedata.IColumnWrapper);
+
 }());

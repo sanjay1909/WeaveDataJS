@@ -78,4 +78,7 @@
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.KeySetCallbackInterface = KeySetCallbackInterface;
     }
+
+    weavecore.ClassUtils.registerClass('weavedata.KeySetCallbackInterface', weavedata.KeySetCallbackInterface);
+
 }());

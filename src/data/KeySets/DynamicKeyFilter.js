@@ -65,5 +65,5 @@
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.DynamicKeyFilter = DynamicKeyFilter;
     }
-
+    weavecore.ClassUtils.registerClass('weavedata.DynamicKeyFilter', weavedata.DynamicKeyFilter);
 }());

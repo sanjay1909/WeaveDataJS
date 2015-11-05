@@ -87,4 +87,6 @@
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.ColumnDataTask = ColumnDataTask;
     }
+
+
 }());

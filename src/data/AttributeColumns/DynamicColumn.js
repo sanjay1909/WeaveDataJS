@@ -155,4 +155,5 @@
         window.weavedata.DynamicColumn = DynamicColumn;
     }
 
+    weavecore.ClassUtils.registerClass('weavedata.DynamicColumn', weavedata.DynamicColumn);
 }());

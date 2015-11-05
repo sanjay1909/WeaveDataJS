@@ -22,7 +22,10 @@ module.exports = function (grunt) {
 
                     'src/data/KeySets/*.js',
                     'src/data/AttributeColumns/*.js',
-                    'src/data/DataSources/*.js',
+
+                    'src/data/DataSources/IDataSource.js',
+                    'src/data/DataSources/AbstractDataSource.js',
+                    'src/data/DataSources/CSVDataSource.js',
 
                     'src/data/hierarchy/WeaveTreeDescriptorNode.js',
                     'src/data/hierarchy/ColumnTreeNode.js'

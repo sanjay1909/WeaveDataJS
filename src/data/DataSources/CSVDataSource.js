@@ -597,4 +597,6 @@
         window.weavedata.CSVDataSource = CSVDataSource;
     }
 
+    weavecore.ClassUtils.registerClass('weavedata.CSVDataSource', weavedata.CSVDataSource);
+
 }());

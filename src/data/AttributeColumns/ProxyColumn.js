@@ -213,6 +213,6 @@
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.ProxyColumn = ProxyColumn;
     }
-
+    weavecore.ClassUtils.registerClass('weavedata.ProxyColumn', weavedata.ProxyColumn);
 
 }());

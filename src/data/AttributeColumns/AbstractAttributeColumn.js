@@ -171,4 +171,6 @@
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.AbstractAttributeColumn = AbstractAttributeColumn;
     }
+
+    weavecore.ClassUtils.registerClass('weavedata.AbstractAttributeColumn', weavedata.AbstractAttributeColumn);
 }());

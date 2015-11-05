@@ -6,29 +6,29 @@
 (function () {
 
     /**
- * temporary solution to save the namespace for this class/prototype
- * @static
- * @public
- * @property NS
- * @default weavecore
- * @readOnly
- * @type String
- */
-Object.defineProperty(KeyColumn, 'NS', {
-    value: 'weavedata'
-});
+     * temporary solution to save the namespace for this class/prototype
+     * @static
+     * @public
+     * @property NS
+     * @default weavecore
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(KeyColumn, 'NS', {
+        value: 'weavedata'
+    });
 
-/**
- * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
- * @static
- * @public
- * @property CLASS_NAME
- * @readOnly
- * @type String
- */
-Object.defineProperty(KeyColumn, 'CLASS_NAME', {
-    value: 'KeyColumn'
-});
+    /**
+     * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
+     * @static
+     * @public
+     * @property CLASS_NAME
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(KeyColumn, 'CLASS_NAME', {
+        value: 'KeyColumn'
+    });
 
     function KeyColumn(metadata) {
         metadata = (metadata === undefined) ? null : metadata;
@@ -90,5 +90,6 @@ Object.defineProperty(KeyColumn, 'CLASS_NAME', {
         window.weavedata.KeyColumn = KeyColumn;
     }
 
+    weavecore.ClassUtils.registerClass('weavedata.KeyColumn', weavedata.KeyColumn);
 
 }());

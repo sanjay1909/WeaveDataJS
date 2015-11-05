@@ -53,5 +53,6 @@
         window.weavedata.DateColumn = DateColumn;
     }
 
+    weavecore.ClassUtils.registerClass('weavedata.DateColumn', weavedata.DateColumn);
 
 }());

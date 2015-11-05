@@ -462,4 +462,6 @@
         WeaveAPI.CSVParser = new CSVParser();
     }
 
+
+    weavecore.ClassUtils.registerClass('weavedata.CSVParser', weavedata.CSVParser);
 }());

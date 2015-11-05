@@ -104,4 +104,6 @@
         window.weavedata.FilteredColumn = FilteredColumn;
     }
 
+    weavecore.ClassUtils.registerClass('weavedata.FilteredColumn', weavedata.FilteredColumn);
+
 }());

@@ -289,4 +289,6 @@
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.FilteredKeySet = FilteredKeySet;
     }
+
+    weavecore.ClassUtils.registerClass('weavedata.FilteredKeySet', weavedata.FilteredKeySet);
 }());

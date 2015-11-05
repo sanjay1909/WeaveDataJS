@@ -375,4 +375,6 @@
         window.weavedata.ColumnStatistics = ColumnStatistics;
     }
 
+    weavecore.ClassUtils.registerClass('weavedata.ColumnStatistics', weavedata.ColumnStatistics);
+
 }());

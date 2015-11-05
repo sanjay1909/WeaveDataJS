@@ -398,4 +398,6 @@
         window.weavedata.KeySet = KeySet;
     }
 
+    weavecore.ClassUtils.registerClass('weavedata.KeySet', weavedata.KeySet);
+
 }());

@@ -35,7 +35,7 @@
     });
 
     function AbstractDataSource() {
-        weavecore.ILinkableObject.call(this);
+        weavedata.IDataSource.call(this);
         /*
          *
          * This variable is set to false when the session state changes and true when initialize() is called.*/
@@ -81,7 +81,7 @@
     }
 
 
-    AbstractDataSource.prototype = new weavecore.ILinkableObject();
+    AbstractDataSource.prototype = new weavedata.IDataSource();
     AbstractDataSource.prototype.constructor = AbstractDataSource;
 
     var p = AbstractDataSource.prototype;
@@ -231,5 +231,7 @@
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.AbstractDataSource = AbstractDataSource;
     }
+
+    weavecore.ClassUtils.registerClass('weavedata.AbstractDataSource', weavedata.AbstractDataSource);
 
 }());

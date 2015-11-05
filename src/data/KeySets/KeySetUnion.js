@@ -185,4 +185,6 @@
         window.weavedata.KeySetUnion = KeySetUnion;
     }
 
+    weavecore.ClassUtils.registerClass('weavedata.KeySetUnion', weavedata.KeySetUnion);
+
 }());

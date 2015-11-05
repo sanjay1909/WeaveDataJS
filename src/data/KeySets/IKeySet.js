@@ -57,4 +57,6 @@
         window.weavedata.IKeySet = IKeySet;
     }
 
+    weavecore.ClassUtils.registerClass('weavedata.IKeySet', weavedata.IKeySet);
+
 }());

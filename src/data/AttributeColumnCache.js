@@ -195,4 +195,6 @@
         window.weavedata.GlobalColumnDataSource = GlobalColumnDataSource;
     }
 
+    weavecore.ClassUtils.registerClass('weavedata.GlobalColumnDataSource', weavedata.GlobalColumnDataSource);
+
 }());

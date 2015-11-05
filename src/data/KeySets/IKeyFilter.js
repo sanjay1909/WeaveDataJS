@@ -56,4 +56,6 @@
         window.weavedata.IKeyFilter = IKeyFilter;
     }
 
+    weavecore.ClassUtils.registerClass('weavedata.IKeyFilter', weavedata.IKeyFilter);
+
 }());

@@ -8,9 +8,9 @@
 <body>
     <script>
         var ds = WeaveAPI.globalHashMap.requestObject('CSVdataSource', weavedata.CSVDataSource);
-        ds.url.value = 'http://as-me.github.io/dashboard/data/testCereal.csv';
-        //var dd = ds.generateMetadataForColumnId("name")
-        //var pc = ds.getAttributeColumn(dd);
+        var prom = new weavecore.WeavePromise();
+
+
 
         filteredDataX = WeaveAPI.SessionManager.registerDisposableChild(this, new weavedata.FilteredColumn());
         filteredDataY = WeaveAPI.SessionManager.registerDisposableChild(this, new weavedata.FilteredColumn());
@@ -22,10 +22,35 @@
             return filteredDataY.internalDynamicColumn;
         }
 
-        assignXYColumnsFromSource = function (source) {
-            source.putColumn(5, getDataX());
-            source.putColumn(6, getDataY());
+        assignXYColumnsFromSource = function () {
+            ds.putColumn(5, getDataX());
+            ds.putColumn(6, getDataY());
         }
+        ds.url.addImmediateCallback(ds, assignXYColumnsFromSource);
+
+        /* prom.depend(ds.url).then(function () {
+             return getDataX().getInternalColumn();
+         }, function () {
+             console.log(arguments);
+         }).then(function (rc) {
+             return rc.getInternalColumn();
+         }, function () {
+             console.log(arguments);
+         }).then(function (pc) {
+             return pc.getInternalColumn();
+         }, function () {
+             console.log(arguments);
+         }).then(function (col) {
+             return col.keys;
+         }, function () {
+             console.log(arguments);
+         }).then(function (keys) {
+             console.log(keys);
+         }, function () {
+             console.log(arguments);
+         });*/
+
+        ds.url.value = 'http://as-me.github.io/dashboard/data/testCereal.csv';
     </script>
 
 </body>

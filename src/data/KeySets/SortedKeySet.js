@@ -165,4 +165,6 @@
         window.weavedata.SortedKeySet = SortedKeySet;
     }
 
+    weavecore.ClassUtils.registerClass('weavedata.SortedKeySet', weavedata.SortedKeySet);
+
 }());

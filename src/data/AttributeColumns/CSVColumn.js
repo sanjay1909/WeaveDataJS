@@ -214,6 +214,6 @@
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.CSVColumn = CSVColumn;
     }
-
+    weavecore.ClassUtils.registerClass('weavedata.CSVColumn', weavedata.CSVColumn);
 
 }());

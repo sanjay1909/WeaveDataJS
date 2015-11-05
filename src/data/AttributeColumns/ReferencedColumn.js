@@ -64,7 +64,7 @@
          * This holds the metadata used to identify a column.
          */
         Object.defineProperty(this, 'metadata', {
-            value: WeaveAPI.SessionManager.registerLinkableChild(this,  new weavecore.LinkableVariable()),
+            value: WeaveAPI.SessionManager.registerLinkableChild(this, new weavecore.LinkableVariable()),
             writable: false
         });
 
@@ -184,5 +184,5 @@
         window.weavedata.ReferencedColumn = ReferencedColumn;
     }
 
-
+    weavecore.ClassUtils.registerClass('weavedata.ReferencedColumn', weavedata.ReferencedColumn);
 }());

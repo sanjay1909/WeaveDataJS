@@ -180,4 +180,6 @@
         window.weavedata.KeyFilter = KeyFilter;
     }
 
+    weavecore.ClassUtils.registerClass('weavedata.KeyFilter', weavedata.KeyFilter);
+
 }());

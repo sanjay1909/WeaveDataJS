@@ -183,5 +183,7 @@
         window.weavedata.NumberColumn = NumberColumn;
     }
 
+    weavecore.ClassUtils.registerClass('weavedata.NumberColumn', weavedata.NumberColumn);
+
 
 }());

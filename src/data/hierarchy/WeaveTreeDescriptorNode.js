@@ -8,6 +8,7 @@
      * <code>label, children, hasChildBranches</code><br>
      */
     function WeaveTreeDescriptorNode(params) {
+
         weavecore.WeaveTreeItem.call(this);
 
         this.__hasChildBranches = null;
@@ -110,4 +111,5 @@
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.WeaveTreeDescriptorNode = WeaveTreeDescriptorNode;
     }
+
 }());

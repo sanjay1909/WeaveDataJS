@@ -264,5 +264,6 @@
         window.weavedata.StringColumn = StringColumn;
     }
 
+    weavecore.ClassUtils.registerClass('weavedata.StringColumn', weavedata.StringColumn);
 
 }());
