@@ -1632,6 +1632,7 @@
     weavecore.ClassUtils.registerClass('weavedata.ColumnStatistics', weavedata.ColumnStatistics);
 
 }());
+
 (function () {
 
     AttributeColumnCache._globalColumnDataSource;
@@ -1832,6 +1833,7 @@
     weavecore.ClassUtils.registerClass('weavedata.GlobalColumnDataSource', weavedata.GlobalColumnDataSource);
 
 }());
+
 /**
  * This class manages a global list of IQualifiedKey objects.
  *
@@ -2627,6 +2629,7 @@
 
     weavecore.ClassUtils.registerClass('weavedata.CSVParser', weavedata.CSVParser);
 }());
+
 (function () {
     function ColumnMetadata() {
 
@@ -2960,6 +2963,7 @@
     }
     weavecore.ClassUtils.registerClass('weavedata.DynamicKeyFilter', weavedata.DynamicKeyFilter);
 }());
+
 (function () {
 
     /**
@@ -3254,6 +3258,7 @@
 
     weavecore.ClassUtils.registerClass('weavedata.FilteredKeySet', weavedata.FilteredKeySet);
 }());
+
 (function () {
 
     /**
@@ -3315,6 +3320,7 @@
     weavecore.ClassUtils.registerClass('weavedata.IKeyFilter', weavedata.IKeyFilter);
 
 }());
+
 (function () {
 
     /**
@@ -3377,6 +3383,7 @@
     weavecore.ClassUtils.registerClass('weavedata.IKeySet', weavedata.IKeySet);
 
 }());
+
 (function () {
 
     /**
@@ -3562,6 +3569,7 @@
     weavecore.ClassUtils.registerClass('weavedata.KeyFilter', weavedata.KeyFilter);
 
 }());
+
 (function () {
     /**
      * temporary solution to save the namespace for this class/prototype
@@ -3965,6 +3973,7 @@
     weavecore.ClassUtils.registerClass('weavedata.KeySet', weavedata.KeySet);
 
 }());
+
 (function () {
 
     /**
@@ -4049,6 +4058,7 @@
     weavecore.ClassUtils.registerClass('weavedata.KeySetCallbackInterface', weavedata.KeySetCallbackInterface);
 
 }());
+
 (function () {
 
     /**
@@ -4239,6 +4249,7 @@
     weavecore.ClassUtils.registerClass('weavedata.KeySetUnion', weavedata.KeySetUnion);
 
 }());
+
 (function () {
 
     /**
@@ -4409,6 +4420,151 @@
     weavecore.ClassUtils.registerClass('weavedata.SortedKeySet', weavedata.SortedKeySet);
 
 }());
+
+/**
+ * This object contains a mapping from keys to data values.
+ *
+ * @author adufilie
+ * @author sanjay1909
+ */
+
+(function () {
+
+    /**
+     * temporary solution to save the namespace for this class/prototype
+     * @static
+     * @public
+     * @property NS
+     * @default weavecore
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(IAttributeColumn, 'NS', {
+        value: 'weavedata'
+    });
+
+    /**
+     * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
+     * @static
+     * @public
+     * @property CLASS_NAME
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(IAttributeColumn, 'CLASS_NAME', {
+        value: 'IAttributeColumn'
+    });
+
+    function IAttributeColumn() {
+        weavecore.CallbackCollection.call(this);
+
+
+
+    }
+
+
+
+    IAttributeColumn.prototype = new weavecore.CallbackCollection();
+    IAttributeColumn.prototype.constructor = IAttributeColumn;
+
+    var p = IAttributeColumn.prototype;
+
+    /**
+     * This function gets metadata associated with the column.
+     * For standard metadata property names, refer to the ColumnMetadata class.
+     * @param propertyName The name of the metadata property to retrieve.
+     * @return The value of the specified metadata property.
+     */
+    p.getMetadata = function (propertyName) {};
+
+    /**
+     * Retrieves all metadata property names for this column.
+     * @return An Array of all available metadata property names.
+     */
+    p.getMetadataPropertyNames = function () {};
+
+    /**
+     * This function gets a value associated with a record key.
+     * @param key A record key.
+     * @param dataType The desired value type (Examples: Number, String, Date, Array, IQualifiedKey)
+     * @return The value associated with the given record key.
+     */
+    p.getValueFromKey = function (key, dataType) {};
+
+    weavedata.IAttributeColumn = IAttributeColumn;
+
+    if (typeof exports !== 'undefined') {
+        module.exports = IAttributeColumn;
+    } else {
+
+        window.weavedata = window.weavedata ? window.weavedata : {};
+        window.weavedata.IAttributeColumn = IAttributeColumn;
+    }
+
+    weavecore.ClassUtils.registerClass('weavedata.IAttributeColumn', weavedata.IAttributeColumn);
+}());
+(function () {
+
+    /**
+     * temporary solution to save the namespace for this class/prototype
+     * @static
+     * @public
+     * @property NS
+     * @default weavecore
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(IColumnWrapper, 'NS', {
+        value: 'weavedata'
+    });
+
+    /**
+     * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
+     * @static
+     * @public
+     * @property CLASS_NAME
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(IColumnWrapper, 'CLASS_NAME', {
+        value: 'IColumnWrapper'
+    });
+
+    /**
+     * This is an prototype for a column that is a wrapper for another column.
+     * The data should always be retrieved from the wrapper class because the getValueFromKey() function may modify the data before returning it.
+     * The purpose of this prototype is to allow you to check the type of the internal column.
+     * One example usage of this is to check if the internal column is a StreamedGeometryColumn
+     * so that you can request more detail from the tile service.
+     *
+     * @author adufilie
+     * @author sanjay1909
+     */
+    function IColumnWrapper() {
+        weavedata.IAttributeColumn.call(this);
+    }
+
+    IColumnWrapper.prototype = new weavedata.IAttributeColumn();
+    IColumnWrapper.prototype.constructor = IColumnWrapper;
+
+    var p = IColumnWrapper.prototype;
+    /**
+     * @return The internal column this object is a wrapper for.
+     */
+    p.getInternalColumn = function () {
+        console.log("Implement in Child");
+    };
+
+    if (typeof exports !== 'undefined') {
+        module.exports = IColumnWrapper;
+    } else {
+
+        window.weavedata = window.weavedata ? window.weavedata : {};
+        window.weavedata.IColumnWrapper = IColumnWrapper;
+    }
+    weavecore.ClassUtils.registerClass('weavedata.IColumnWrapper', weavedata.IColumnWrapper);
+
+}());
 /**
  * This object contains a mapping from keys to data values.
  *
@@ -4446,7 +4602,7 @@
     function AbstractAttributeColumn(metadata) {
         // set default argument values
         if (metadata === undefined) metadata = null;
-        weavecore.CallbackCollection.call(this);
+        weavedata.IAttributeColumn.call(this);
 
 
         this._metadata = null;
@@ -4497,7 +4653,7 @@
         return obj;
     }
 
-    AbstractAttributeColumn.prototype = new weavecore.CallbackCollection();
+    AbstractAttributeColumn.prototype = new weavedata.IAttributeColumn();
     AbstractAttributeColumn.prototype.constructor = AbstractAttributeColumn;
 
     var p = AbstractAttributeColumn.prototype;
@@ -4586,317 +4742,6 @@
     weavecore.ClassUtils.registerClass('weavedata.AbstractAttributeColumn', weavedata.AbstractAttributeColumn);
 }());
 /**
- * This column is defined by two columns of CSV data: keys and values.
- *
- * @author adufilie
- * @author asanjay
- */
-
-(function () {
-
-    /**
-     * temporary solution to save the namespace for this class/prototype
-     * @static
-     * @public
-     * @property NS
-     * @default weavecore
-     * @readOnly
-     * @type String
-     */
-    Object.defineProperty(CSVColumn, 'NS', {
-        value: 'weavedata'
-    });
-
-    /**
-     * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
-     * @static
-     * @public
-     * @property CLASS_NAME
-     * @readOnly
-     * @type String
-     */
-    Object.defineProperty(CSVColumn, 'CLASS_NAME', {
-        value: 'CSVColumn'
-    });
-
-    function CSVColumn() {
-        weavedata.AbstractAttributeColumn.call(this);
-
-        Object.defineProperty(this, "title", {
-            value: WeaveAPI.SessionManager.registerLinkableChild(this, new weavecore.LinkableString())
-        });
-        /**
-         * This should contain a two-column CSV with the first column containing the keys and the second column containing the values.
-         */
-        Object.defineProperty(this, "data", {
-            value: WeaveAPI.SessionManager.registerLinkableChild(this, new weavecore.LinkableVariable(), this.invalidate.bind(this))
-        });
-
-        /**
-         * If this is set to true, the data will be parsed as numbers to produce the numeric data.
-         */
-        Object.defineProperty(this, "numericMode", {
-            value: WeaveAPI.SessionManager.registerLinkableChild(this, new weavecore.LinkableBoolean(), this.invalidate.bind(this))
-        });
-
-        /**
-         * This is the key type of the first column in the csvData.
-         */
-        Object.defineProperty(this, "keyType", {
-            value: WeaveAPI.SessionManager.registerLinkableChild(this, new weavecore.LinkableString(), this.invalidate.bind(this))
-        });
-
-
-        /**
-         * This function returns the list of String values from the first column in the CSV data.
-         */
-        Object.defineProperty(this, "keys", {
-            get: function () {
-                // refresh the data if necessary
-                if (this._dirty)
-                    validate.call(this);
-
-                return this._keys;
-            }
-        });
-
-
-        this._keyToIndexMap = null; // This maps a key to a row index.
-        this._keys = []; // list of keys from the first CSV column
-        this._stringValues = []; // list of Strings from the first CSV column
-        this._numberValues = []; // list of Numbers from the first CSV column
-
-        this._dirty = true;
-        this.numericMode.value = false;
-
-    }
-
-    function invalidate() {
-        this._dirty = true;
-    }
-
-
-    /**
-     * This function generates three Vectors from the CSV data: _keys, _stringValues, _numberValues
-     */
-    function validate() {
-        // replace the previous _keyToIndexMap with a new empty one
-        this._keyToIndexMap = new Map();
-        this._keys.length = 0;
-        this._stringValues.length = 0;
-        this._numberValues.length = 0;
-
-        var key;
-        var value;
-        var table = this.data.getSessionState() ? this.data.getSessionState() : [];
-        for (var i = 0; i < table.length; i++) {
-            var row = table[i];
-            if (row === null || row.length === 0)
-                continue; // skip blank lines
-
-            // get the key from the first column and the value from the second.
-            key = WeaveAPI.QKeyManager.getQKey(keyType.value, String(row[0]));
-            value = String(row.length > 1 ? row[1] : '');
-
-            // save the results of parsing the CSV row
-            this._keyToIndexMap.set(this._keys.length);
-            this._keys.push(key);
-            this._stringValues.push(value);
-            try {
-                this._numberValues.push(Number(value));
-            } catch (e) {
-                this._numberValues.push(NaN);
-            }
-        }
-        this.dirty = false;
-    }
-
-    CSVColumn.prototype = new weavedata.AbstractAttributeColumn();
-    CSVColumn.prototype.constructor = CSVColumn;
-    var p = CSVColumn.prototype;
-
-    p.getMetadata = function (propertyName) {
-        switch (propertyName) {
-        case ColumnMetadata.TITLE:
-            return this.title.value;
-        case ColumnMetadata.KEY_TYPE:
-            return this.keyType.value;
-        case ColumnMetadata.DATA_TYPE:
-            return this.numericMode.value ? 'number' : 'string';
-        }
-        return weavedata.AbstractAttributeColumn.prototype.getMetadata.call(this, propertyName);
-    }
-
-    /**
-     * Use this function to set the keys and data of the column.
-     * @param table An Array of rows where each row is an Array containing a key and a data value.
-     */
-    p.setDataTable = function (table) {
-        var stringTable = [];
-        for (var r = 0; r < table.length; r++) {
-            var row = table[r].concat(); // make a copy of the row
-            // convert each value to a string
-            for (var c = 0; c < row.length; c++)
-                row[c] = String(row[c]);
-            stringTable[r] = row; // save the copied row
-        }
-        this.data.setSessionState(stringTable);
-    }
-
-    /**
-     * @param key A key to test.
-     * @return true if the key exists in this IKeySet.
-     */
-    p.containsKey = function (key) {
-        // refresh the data if necessary
-        if (this._dirty)
-            validate.call(this);
-
-        return this._keyToIndexMap.get(key) !== undefined;
-    }
-
-    /**
-     * This function returns the corresponding numeric or string value depending on the dataType parameter and the numericMode setting.
-     */
-
-
-    p.getValueFromKey = function (key, dataType) {
-        dataType = dataType ? dataType : null;
-        // refresh the data if necessary
-        if (this._dirty)
-            validate.call(this);
-
-        // get the index from the key
-        var keyIndex = this._keyToIndexMap.get(key);
-
-        // cast to different data types
-        if (dataType === Boolean) {
-            return !isNaN(keyIndex);
-        }
-        if (dataType === Number) {
-            if (isNaN(keyIndex))
-                return NaN;
-            return this._numberValues[keyIndex];
-        }
-        if (dataType === String) {
-            if (isNaN(keyIndex))
-                return '';
-            return this._stringValues[keyIndex];
-        }
-
-        // return default data type
-        if (isNaN(keyIndex))
-            return this.numericMode.value ? NaN : '';
-
-        if (this.numericMode.value)
-            return this._numberValues[keyIndex];
-
-        return this._stringValues[keyIndex];
-    }
-
-    if (typeof exports !== 'undefined') {
-        module.exports = CSVColumn;
-    } else {
-
-        window.weavedata = window.weavedata ? window.weavedata : {};
-        window.weavedata.CSVColumn = CSVColumn;
-    }
-    weavecore.ClassUtils.registerClass('weavedata.CSVColumn', weavedata.CSVColumn);
-
-}());
-(function () {
-    function ColumnDataTask(parentColumn, dataFilter, callback) {
-        dataFilter = (dataFilter === undefined) ? null : dataFilter;
-        callback = (callback === undefined) ? null : callback;
-
-        if (callback === null)
-            callback = parentColumn.triggerCallbacks;
-
-        /**
-         * Asynchronous output.
-         * recordKey:IQualifiedKey -&gt; Array&lt;Number&gt;
-         */
-        this.uniqueKeys = [];
-
-        /**
-         * Asynchronous output.
-         * (dataType:Class, recordKey:IQualifiedKey) -&gt; value
-         */
-        this.arrayData = new Map();
-
-        //private
-        this._parentColumn = parentColumn;
-        this._dataFilter = dataFilter;
-        this._callback = callback;
-        this._keys;
-        this._data;
-        this._i;
-        this._n;
-    }
-
-    var p = ColumnDataTask.prototype;
-
-    /**
-     * @param inputKeys A Vector (or Array) of IQualifiedKey objects.
-     * @param inputData A Vector (or Array) of data values corresponding to the inputKeys.
-     * @param relevantContext
-     * @param callback
-     */
-    p.begin = function (inputKeys, inputData) {
-        if (inputKeys.length !== inputData.length)
-            throw new Error(weavecore.StandardLib.substitute("Arrays are of different length ({0} != {1})", inputKeys.length, inputData.length));
-
-        this._dataFilter = this._dataFilter;
-        this._keys = inputKeys;
-        this._data = inputData;
-        this._i = 0;
-        this._n = this._keys.length;
-        this.uniqueKeys = [];
-        this.arrayData = new Map();
-
-        // high priority because not much can be done without data
-        WeaveAPI.StageUtils.startTask(this._parentColumn, iterate.bind(this), WeaveAPI.TASK_PRIORITY_HIGH, this._callback, weavecore.StandardLib.substitute("Processing {0} records", this._n));
-    }
-
-    function iterate(stopTime) {
-        console.log(this._i, this._n);
-        for (; this._i < this._n; this._i++) {
-            if (getTimer() > stopTime)
-                return this._i / this._n;
-
-            var value = this._data[this._i];
-            if ((this._dataFilter !== null || this._dataFilter !== undefined) && !this._dataFilter(value))
-                continue;
-
-            var key = this._keys[this._i];
-            var array = this.arrayData.get(key);
-            if (!array) {
-                this.uniqueKeys.push(key);
-                array = [value]
-                this.arrayData.set(key, array);
-            } else {
-                array.push(value);
-            }
-        }
-        console.log(this._i, this._n, this.arrayData.get(key));
-        return 1;
-    }
-
-    function getTimer() {
-        return new Date().getTime();
-    }
-
-    if (typeof exports !== 'undefined') {
-        module.exports = ColumnDataTask;
-    } else {
-
-        window.weavedata = window.weavedata ? window.weavedata : {};
-        window.weavedata.ColumnDataTask = ColumnDataTask;
-    }
-
-
-}());
-/**
  *
  * @author adufilie
  * @author asanjay
@@ -4954,572 +4799,7 @@
     weavecore.ClassUtils.registerClass('weavedata.DateColumn', weavedata.DateColumn);
 
 }());
-/**
- * This provides a wrapper for a dynamically created column.
- *
- * @author adufilie
- * @author asanjay
- */
-/*public class DynamicColumn extends LinkableDynamicObject implements IColumnWrapper
-	{*/
 
-(function () {
-
-    /**
-     * temporary solution to save the namespace for this class/prototype
-     * @static
-     * @public
-     * @property NS
-     * @default weavecore
-     * @readOnly
-     * @type String
-     */
-    Object.defineProperty(DynamicColumn, 'NS', {
-        value: 'weavedata'
-    });
-
-    /**
-     * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
-     * @static
-     * @public
-     * @property CLASS_NAME
-     * @readOnly
-     * @type String
-     */
-    Object.defineProperty(DynamicColumn, 'CLASS_NAME', {
-        value: 'DynamicColumn'
-    });
-
-
-    // TEMPORARY PERFORMANCE IMPROVEMENT SOLUTION
-    DynamicColumn.cache = true;
-    DynamicColumn._cache_type_key = new Map();
-    DynamicColumn._cacheCounter = 0;
-
-    Object.defineProperty(DynamicColumn, 'UNDEFINED', {
-        value: {}
-    });
-
-    function DynamicColumn(columnTypeRestriction) {
-        columnTypeRestriction = columnTypeRestriction ? columnTypeRestriction : null;
-
-        if (columnTypeRestriction === null) {
-            columnTypeRestriction = weavedata.IAttributeColumn;
-        } else {
-            // make sure the columnTypeRestriction implements IAttributeColumn
-            if (!columnTypeRestriction.isPrototypeOf(weavedata.IAttributeColumn)) {
-                console.error("DynamicColumn(): columnTypeRestriction is not prototype of IAttributeColumn: " + columnTypeRestriction.constructor.name);
-                columnTypeRestriction = weavedata.IAttributeColumn;
-            }
-        }
-
-        /**
-         * @return the keys associated with this column.
-         */
-        Object.defineProperty(this, 'keys', {
-            get: function () {
-                return this.getInternalColumn() ? this.getInternalColumn().keys : [];
-            }
-        });
-        weavecore.LinkableDynamicObject.call(this, columnTypeRestriction);
-
-
-    }
-
-    DynamicColumn.prototype = new weavecore.LinkableDynamicObject();
-    DynamicColumn.prototype.constructor = DynamicColumn;
-
-    var p = DynamicColumn.prototype;
-
-    /**
-     * This function lets you skip the step of casting internalObject as an IAttributeColumn.
-     */
-    p.getInternalColumn = function () {
-        return this.internalObject;
-
-    }
-
-    /************************************
-     * Begin IAttributeColumn interface
-     ************************************/
-
-    p.getMetadata = function (propertyName) {
-        if (this.internalObject)
-            return this.internalObject.getMetadata(propertyName);
-        return null;
-    }
-
-
-    p.getMetadataPropertyNames = function () {
-        if (this.internalObject)
-            return this.internalObject.getMetadataPropertyNames();
-        return [];
-    }
-
-    /**
-     * @param key A key to test.
-     * @return true if the key exists in this IKeySet.
-     */
-    p.containsKey = function (key) {
-        return this.internalObject ? this.internalObject.containsKey(key) : false;
-    }
-
-    /**
-     * @param key A key of the type specified by keyType.
-     * @return The value associated with the given key.
-     */
-
-
-    p.getValueFromKey = function (key, dataType) {
-        dataType = dataType ? dataType : null;
-        if (!DynamicColumn.cache) {
-            return this.internalObject ? this.internalObject.getValueFromKey(key, dataType) : undefined;
-        }
-
-        if (this.triggerCounter != DynamicColumn._cacheCounter) {
-            DynamicColumn._cacheCounter = this.triggerCounter;
-            DynamicColumn._cache_type_key = new Map();
-        }
-        var _cache = DynamicColumn._cache_type_key.get(dataType);
-        if (!_cache) {
-            _cache = new Map();
-            DynamicColumn._cache_type_key.set(_cache);
-        }
-
-
-        var value = _cache.get(key);
-        if (value === undefined) {
-            if (this.internalObject)
-                value = this.internalObject.getValueFromKey(key, dataType);
-            value === undefined ? DynamicColumn.UNDEFINED : value;
-            _cache.set(value);
-        }
-        return value === DynamicColumn.UNDEFINED ? undefined : value;
-    }
-
-    p.toString = function () {
-        return debugId(this) + '(' + (this.getInternalColumn() ? this.getInternalColumn() : weavedata.ColumnUtils.getTitle(this)) + ')';
-    }
-
-
-
-    if (typeof exports !== 'undefined') {
-        module.exports = DynamicColumn;
-    } else {
-
-        window.weavedata = window.weavedata ? window.weavedata : {};
-        window.weavedata.DynamicColumn = DynamicColumn;
-    }
-
-    weavecore.ClassUtils.registerClass('weavedata.DynamicColumn', weavedata.DynamicColumn);
-}());
-(function () {
-
-    /**
-     * temporary solution to save the namespace for this class/prototype
-     * @static
-     * @public
-     * @property NS
-     * @default weavecore
-     * @readOnly
-     * @type String
-     */
-    Object.defineProperty(ExtendedDynamicColumn, 'NS', {
-        value: 'weavedata'
-    });
-
-    /**
-     * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
-     * @static
-     * @public
-     * @property CLASS_NAME
-     * @readOnly
-     * @type String
-     */
-    Object.defineProperty(ExtendedDynamicColumn, 'CLASS_NAME', {
-        value: 'ExtendedDynamicColumn'
-    });
-
-    ExtendedDynamicColumn._instanceCount = 0;
-    Object.defineProperty(ExtendedDynamicColumn, 'instanceCount', {
-
-        get: function () {
-            return ExtendedDynamicColumn._instanceCount = ExtendedDynamicColumn._instanceCount + 1
-        }
-    });
-
-
-    /**
-     * This provides a wrapper for a dynamic column, and allows new properties to be added.
-     * The purpose of this class is to provide a base for extending DynamicColumn.
-     *
-     * @author adufilie
-     * @author sanjay1909
-     */
-    function ExtendedDynamicColumn() {
-        weavecore.CallbackCollection.call(this);
-
-
-        Object.defineProperty(this, '_internalDynamicColumn', {
-            value: WeaveAPI.SessionManager.registerLinkableChild(this, new weavedata.DynamicColumn())
-        });
-
-        /**
-         * This is the internal DynamicColumn object that is being extended.
-         */
-        Object.defineProperty(this, 'internalDynamicColumn', {
-            get: function () {
-                return this._internalDynamicColumn;
-            }
-        });
-
-
-
-        this.name = "ExtendedDynamicColumn" + ExtendedDynamicColumn._instanceCount;
-
-        /**
-         * @return the keys associated with this column.
-         */
-        Object.defineProperty(this, 'keys', {
-            get: function () {
-                return this.internalDynamicColumn.keys;
-            },
-            configurable: true
-        });
-
-
-        WeaveAPI.SessionManager.registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(this.internalDynamicColumn));
-
-
-    }
-
-    ExtendedDynamicColumn.prototype = new weavecore.CallbackCollection();
-    ExtendedDynamicColumn.prototype.constructor = ExtendedDynamicColumn;
-
-    var p = ExtendedDynamicColumn.prototype;
-    /**
-     * This is for the IColumnWrapper interface.
-     */
-    p.getInternalColumn = function () {
-        return this.internalDynamicColumn.getInternalColumn();
-    }
-
-
-    /************************************
-     * Begin IAttributeColumn interface
-     ************************************/
-
-    p.getMetadata = function (propertyName) {
-        return this.internalDynamicColumn.getMetadata(propertyName);
-    }
-
-    p.getMetadataPropertyNames = function () {
-        return this.internalDynamicColumn.getMetadataPropertyNames();
-    }
-
-
-
-    /**
-     * @param key A key to test.
-     * @return true if the key exists in this IKeySet.
-     */
-    p.containsKey = function (key) {
-        return this.internalDynamicColumn.containsKey(key);
-    }
-
-    /**
-     * getValueFromKey
-     * @param key A key of the type specified by keyType.
-     * @return The value associated with the given key.
-     */
-    p.getValueFromKey = function (key, dataType) {
-        dataType = (dataType === undefined) ? null : dataType;
-        return this.internalDynamicColumn.getValueFromKey(key, dataType);
-    }
-
-    p.toString = function () {
-        return WeaveAPI.debugId(this) + '(' + (this.getInternalColumn() ? this.getInternalColumn() : weavedata.ColumnUtils.getTitle(this)) + ')';
-    }
-
-    if (typeof exports !== 'undefined') {
-        module.exports = ExtendedDynamicColumn;
-    } else {
-
-        window.weavedata = window.weavedata ? window.weavedata : {};
-        window.weavedata.ExtendedDynamicColumn = ExtendedDynamicColumn;
-    }
-
-    weavecore.ClassUtils.registerClass('weavedata.ExtendedDynamicColumn', weavedata.ExtendedDynamicColumn);
-
-}());
-(function () {
-
-    /**
-     * temporary solution to save the namespace for this class/prototype
-     * @static
-     * @public
-     * @property NS
-     * @default weavecore
-     * @readOnly
-     * @type String
-     */
-    Object.defineProperty(FilteredColumn, 'NS', {
-        value: 'weavedata'
-    });
-
-    /**
-     * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
-     * @static
-     * @public
-     * @property CLASS_NAME
-     * @readOnly
-     * @type String
-     */
-    Object.defineProperty(FilteredColumn, 'CLASS_NAME', {
-        value: 'FilteredColumn'
-    });
-
-    function FilteredColumn() {
-
-        weavedata.ExtendedDynamicColumn.call(this);
-
-        /**
-         * This is private because it doesn't need to appear in the session state -- keys are returned by the "get keys()" accessor function
-         */
-        Object.defineProperty(this, '_filteredKeySet', {
-            value: WeaveAPI.SessionManager.registerLinkableChild(this, new weavedata.FilteredKeySet())
-        })
-
-        /**
-         * This is the dynamically created filter that filters the keys in the column.
-         */
-        Object.defineProperty(this, 'filter', {
-            value: WeaveAPI.SessionManager.registerLinkableChild(this, this._filteredKeySet.keyFilter)
-        })
-
-
-        /**
-         * This stores the filtered keys
-         */
-        this._keys;
-
-        Object.defineProperty(this, 'keys', {
-            get: function () {
-                // also make internal column request because it may trigger callbacks
-                this.internalDynamicColumn.keys;
-                return this._filteredKeySet.keys;
-            },
-            configurable: true
-        });
-
-
-
-        this._filteredKeySet.setSingleKeySource(this.internalDynamicColumn);
-    }
-
-
-    FilteredColumn.prototype = new weavedata.ExtendedDynamicColumn();
-    FilteredColumn.prototype.constructor = FilteredColumn;
-
-    var p = FilteredColumn.prototype;
-
-    /**
-     * The filter removes certain records from the column.  This function will return false if the key is not contained in the filter.
-     */
-    p.containsKey = function (key) {
-        // also make internal column request because it may trigger callbacks
-        this.internalDynamicColumn.containsKey(key);
-        return this._filteredKeySet.containsKey(key);
-    }
-
-    p.getValueFromKey = function (key, dataType) {
-        dataType = (dataType === undefined) ? null : dataType;
-        var column = this.internalDynamicColumn.getInternalColumn();
-        var keyFilter = this.filter.getInternalKeyFilter();
-        if (column) {
-            // always make internal column request because it may trigger callbacks
-            var value = column.getValueFromKey(key, dataType);
-            if (!keyFilter || keyFilter.containsKey(key))
-                return value;
-        }
-
-        if (dataType)
-            return weavedata.EquationColumnLib.cast(undefined, dataType);
-
-        return undefined;
-    }
-
-
-    if (typeof exports !== 'undefined') {
-        module.exports = FilteredColumn;
-    } else {
-
-        window.weavedata = window.weavedata ? window.weavedata : {};
-        window.weavedata.FilteredColumn = FilteredColumn;
-    }
-
-    weavecore.ClassUtils.registerClass('weavedata.FilteredColumn', weavedata.FilteredColumn);
-
-}());
-
-(function () {
-
-    /**
-     * temporary solution to save the namespace for this class/prototype
-     * @static
-     * @public
-     * @property NS
-     * @default weavecore
-     * @readOnly
-     * @type String
-     */
-    Object.defineProperty(IColumnWrapper, 'NS', {
-        value: 'weavedata'
-    });
-
-    /**
-     * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
-     * @static
-     * @public
-     * @property CLASS_NAME
-     * @readOnly
-     * @type String
-     */
-    Object.defineProperty(IColumnWrapper, 'CLASS_NAME', {
-        value: 'IColumnWrapper'
-    });
-
-    /**
-     * This is an prototype for a column that is a wrapper for another column.
-     * The data should always be retrieved from the wrapper class because the getValueFromKey() function may modify the data before returning it.
-     * The purpose of this prototype is to allow you to check the type of the internal column.
-     * One example usage of this is to check if the internal column is a StreamedGeometryColumn
-     * so that you can request more detail from the tile service.
-     *
-     * @author adufilie
-     * @author sanjay1909
-     */
-    function IColumnWrapper() {
-        weavedata.AbstractAttributeColumn.call(this);
-    }
-
-    IColumnWrapper.prototype = new weavedata.AbstractAttributeColumn();
-    IColumnWrapper.prototype.constructor = IColumnWrapper;
-
-    var p = IColumnWrapper.prototype;
-    /**
-     * @return The internal column this object is a wrapper for.
-     */
-    p.getInternalColumn = function () {
-        console.log("Implement in Child");
-    };
-
-    if (typeof exports !== 'undefined') {
-        module.exports = IColumnWrapper;
-    } else {
-
-        window.weavedata = window.weavedata ? window.weavedata : {};
-        window.weavedata.IColumnWrapper = IColumnWrapper;
-    }
-     weavecore.ClassUtils.registerClass('weavedata.IColumnWrapper', weavedata.IColumnWrapper);
-
-}());
-
-/**
- *
- * @author adufilie
- * @author asanjay
- */
-(function () {
-
-    /**
-     * temporary solution to save the namespace for this class/prototype
-     * @static
-     * @public
-     * @property NS
-     * @default weavecore
-     * @readOnly
-     * @type String
-     */
-    Object.defineProperty(KeyColumn, 'NS', {
-        value: 'weavedata'
-    });
-
-    /**
-     * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
-     * @static
-     * @public
-     * @property CLASS_NAME
-     * @readOnly
-     * @type String
-     */
-    Object.defineProperty(KeyColumn, 'CLASS_NAME', {
-        value: 'KeyColumn'
-    });
-
-    function KeyColumn(metadata) {
-        metadata = (metadata === undefined) ? null : metadata;
-        weavedata.AbstractAttributeColumn.call(this, metadata);
-
-        Object.defineProperty(this, 'keyType', {
-            value: WeaveAPI.SessionManager.registerLinkableChild(this, new weavecore.LinkableString())
-        });
-
-        Object.defineProperty(this, 'keys', {
-            value: []
-        });
-
-
-    }
-
-
-
-    KeyColumn.prototype = new weavedata.AbstractAttributeColumn();
-    KeyColumn.prototype.constructor = KeyColumn;
-    var p = KeyColumn.prototype;
-
-    p.getMetadata = function (propertyName) {
-        if (propertyName === weavedata.ColumnMetadata.TITLE) {
-            var kt = this.keyType.value;
-            if (kt)
-                return ("Key ({0})" + kt);
-            return "Key";
-        }
-        if (propertyName === weavedata.ColumnMetadata.KEY_TYPE)
-            return keyType.value;
-
-        return KeyColumn.prototype.getMetadata(propertyName);
-    }
-
-
-    p.getValueFromKey = function (key, dataType) {
-        dataType = (dataType === undefined) ? null : dataType;
-        var kt = this.keyType.value;
-        if (kt && key.keyType !== kt)
-            return EquationColumnLib.cast(undefined, dataType);
-
-        if (dataType === String)
-            return key.localName;
-
-        if (dataType === weavedata.IQualifiedKey)
-            return key;
-
-        return EquationColumnLib.cast(key, dataType);
-    }
-
-
-
-    if (typeof exports !== 'undefined') {
-        module.exports = KeyColumn;
-    } else {
-
-        window.weavedata = window.weavedata ? window.weavedata : {};
-        window.weavedata.KeyColumn = KeyColumn;
-    }
-
-    weavecore.ClassUtils.registerClass('weavedata.KeyColumn', weavedata.KeyColumn);
-
-}());
 /**
  *
  * @author adufilie
@@ -5710,412 +4990,6 @@
 
 }());
 
-/**
- *
- * @author adufilie
- * @author asanjay
- */
-(function () {
-
-    /**
-     * temporary solution to save the namespace for this class/prototype
-     * @static
-     * @public
-     * @property NS
-     * @default weavecore
-     * @readOnly
-     * @type String
-     */
-    Object.defineProperty(ProxyColumn, 'NS', {
-        value: 'weavedata'
-    });
-
-    /**
-     * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
-     * @static
-     * @public
-     * @property CLASS_NAME
-     * @readOnly
-     * @type String
-     */
-    Object.defineProperty(ProxyColumn, 'CLASS_NAME', {
-        value: 'ProxyColumn'
-    });
-
-
-    Object.defineProperty(ProxyColumn, 'DATA_UNAVAILABLE', {
-        value: '(Data unavailable)'
-    });
-
-
-
-    function ProxyColumn(metadata) {
-        metadata = (metadata === undefined) ? null : metadata;
-        weavedata.AbstractAttributeColumn.call(this, metadata);
-        /**
-         * internalAttributeColumn
-         * This is the IAttributeColumn object contained in this ProxyColumn.
-         */
-        this._internalColumn = null;
-
-        this._overrideTitle;
-
-        /**
-         * internalNonProxyColumn
-         * As long as internalAttributeColumn is a ProxyColumn, this function will
-         * keep traversing internalAttributeColumn until it reaches an IAttributeColumn that
-         * is not a ProxyColumn.
-         * @return An attribute column that is not a ProxyColumn, or null.
-         */
-        Object.defineProperty(this, "internalNonProxyColumn", {
-            get: function () {
-                var column = this._internalColumn;
-                while (column instanceof ProxyColumn)
-                    column = column._internalColumn;
-                return column;
-            }
-        });
-
-        /**
-         * @return the keys associated with this column.
-         */
-        Object.defineProperty(this, "keys", {
-            get: function () {
-                var column = this.internalNonProxyColumn;
-                return column ? column.keys : [];
-            },
-            configurable: true
-        });
-
-
-    }
-
-
-
-    ProxyColumn.prototype = new weavedata.AbstractAttributeColumn();
-    ProxyColumn.prototype.constructor = ProxyColumn;
-    var p = ProxyColumn.prototype;
-
-    /**
-     * @param key A key to test.
-     * @return true if the key exists in this IKeySet.
-     */
-    p.containsKey = function (key) {
-        return this._internalColumn && this._internalColumn.containsKey(key);
-    }
-
-    /**
-     * This function updates the proxy metadata.
-     * @param metadata New metadata for the proxy.
-     */
-    p.setMetadata = function (metadata) {
-        this._metadata = weavedata.AbstractAttributeColumn.copyValues(metadata);
-        this.triggerCallbacks();
-    }
-
-    /**
-     * The metadata specified by ProxyColumn will override the metadata of the internal column.
-     * First, this function checks thet ProxyColumn metadata.
-     * If the value is null, it checks the metadata of the internal column.
-     * @param propertyName The name of a metadata property to get.
-     * @return The metadata value of the ProxyColumn or the internal column, ProxyColumn metadata takes precendence.
-     */
-    p.getMetadata = function (propertyName) {
-        if (propertyName === weavedata.ColumnMetadata.TITLE && this._overrideTitle)
-            return this._overrideTitle;
-
-        var overrideValue = weavedata.AbstractAttributeColumn.prototype.getMetadata.call(this, propertyName);
-        if ((overrideValue === null || overrideValue === undefined) && this._internalColumn !== null)
-            return this._internalColumn.getMetadata(propertyName);
-        return overrideValue;
-    }
-
-
-    p.getProxyMetadata = function () {
-        return weavedata.AbstractAttributeColumn.copyValues(this._metadata);
-    }
-
-    p.getMetadataPropertyNames = function () {
-        if (this._internalColumn)
-            return weavedata.VectorUtils.union(weavedata.AbstractAttributeColumn.prototype.getMetadataPropertyNames.call(this), this._internalColumn.getMetadataPropertyNames());
-        return weavedata.AbstractAttributeColumn.prototype.getMetadataPropertyNames.call(this);
-    }
-
-
-
-
-    p.getInternalColumn = function () {
-        return this._internalColumn;
-    }
-    p.setInternalColumn = function (newColumn) {
-        this._overrideTitle = null;
-
-        if (newColumn === this) {
-            console.warn("WARNING! Attempted to set ProxyColumn.internalAttributeColumn to self: " + this);
-            return;
-        }
-
-        if (this._internalColumn === newColumn)
-            return;
-
-        // clean up ties to previous column
-        if (this._internalColumn !== null)
-            WeaveAPI.SessionManager.unregisterLinkableChild(this, this._internalColumn);
-
-        // save pointer to new column
-        this._internalColumn = newColumn;
-
-        // initialize for new column
-        if (this._internalColumn !== null)
-            WeaveAPI.SessionManager.registerLinkableChild(this, this._internalColumn);
-
-        this.triggerCallbacks();
-    }
-
-    /**
-     * The functions below serve as wrappers for matching function calls on the internalAttributeColumn.
-     */
-    p.getValueFromKey = function (key, dataType) {
-        dataType = (dataType === undefined) ? null : dataType;
-        if (this._internalColumn)
-            return this._internalColumn.getValueFromKey(key, dataType);
-        return undefined;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    p.dispose = function () {
-        weavedata.AbstractAttributeColumn.prototype.dispose.call(this);
-        this._metadata = null;
-        this.setInternalColumn(null); // this will remove the callback that was added to the internal column
-    }
-
-    /**
-     * Call this function when the ProxyColumn should indicate that the requested data is unavailable.
-     * @param message The message to display in the title of the ProxyColumn.
-     */
-    p.dataUnavailable = function (message) {
-        message = (message === undefined) ? null : message;
-        this.delayCallbacks();
-        this.setInternalColumn(null);
-        if (message) {
-            this._overrideTitle = message;
-        } else {
-            var title = this.getMetadata(weavedata.ColumnMetadata.TITLE);
-            if (title)
-                this._overrideTitle = weavecore.StandardLib.substitute('(Data unavailable: {0})', title);
-            else
-                this._overrideTitle = ProxyColumn.DATA_UNAVAILABLE;
-        }
-        this.triggerCallbacks();
-        this.resumeCallbacks();
-    }
-
-    p.toString = function () {
-        if (this.getInternalColumn())
-            return WeaveAPI.debugId(this) + '( ' + this.getInternalColumn() + ' )';
-        return weavedata.AbstractAttributeColumn.prototype.toString.call(this);
-    }
-
-    if (typeof exports !== 'undefined') {
-        module.exports = ProxyColumn;
-    } else {
-
-        window.weavedata = window.weavedata ? window.weavedata : {};
-        window.weavedata.ProxyColumn = ProxyColumn;
-    }
-    weavecore.ClassUtils.registerClass('weavedata.ProxyColumn', weavedata.ProxyColumn);
-
-}());
-/**
- * This provides a wrapper for a referenced column.
- *
- * @author adufilie
- * @author sanjay1909
- */
-(function () {
-    /**
-     * temporary solution to save the namespace for this class/prototype
-     * @static
-     * @public
-     * @property NS
-     * @default weavecore
-     * @readOnly
-     * @type String
-     */
-    Object.defineProperty(ReferencedColumn, 'NS', {
-        value: 'weavedata'
-    });
-
-    /**
-     * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
-     * @static
-     * @public
-     * @property CLASS_NAME
-     * @readOnly
-     * @type String
-     */
-    Object.defineProperty(ReferencedColumn, 'CLASS_NAME', {
-        value: 'ReferencedColumn'
-    });
-
-    function ReferencedColumn() {
-        weavedata.IColumnWrapper.call(this);
-        this._dataSource;
-        /**
-         * The trigger counter value at the last time the internal column was retrieved.
-         */
-        this._prevTriggerCounter = 0;
-        /**
-         * the internal referenced column
-         */
-        this._internalColumn = null;
-
-        /**
-         * @return the keys associated with this column.
-         */
-        Object.defineProperty(this, 'keys', {
-            get: function () {
-                if (this._prevTriggerCounter !== this.triggerCounter)
-                    this.getInternalColumn();
-                return this._internalColumn ? this._internalColumn.keys : [];
-            }
-        });
-
-        /**
-         * This is the name of an IDataSource in the top level session state.
-         */
-        Object.defineProperty(this, 'dataSourceName', {
-            value: WeaveAPI.SessionManager.registerLinkableChild(this, new weavecore.LinkableString(), this._updateDataSource.bind(this)),
-            writable: false
-        });
-        /**
-         * This holds the metadata used to identify a column.
-         */
-        Object.defineProperty(this, 'metadata', {
-            value: WeaveAPI.SessionManager.registerLinkableChild(this, new weavecore.LinkableVariable()),
-            writable: false
-        });
-
-        Object.defineProperty(this, '_columnWatcher', {
-            value: WeaveAPI.SessionManager.registerLinkableChild(this, new weavecore.LinkableWatcher()),
-            writable: false
-        });
-
-        WeaveAPI.globalHashMap.childListCallbacks.addImmediateCallback(this, this._updateDataSource.bind(this));
-    }
-
-    ReferencedColumn.prototype = new weavedata.IColumnWrapper();
-    ReferencedColumn.prototype.constructor = ReferencedColumn;
-
-
-    var p = ReferencedColumn.prototype;
-
-    p._updateDataSource = function () {
-        var ds = WeaveAPI.globalHashMap.getObject(this.dataSourceName.value);
-        if (this._dataSource !== ds) {
-            this._dataSource = ds;
-            this.triggerCallbacks();
-        }
-    }
-
-    /**
-     * @inheritDoc
-     */
-    p.getDataSource = function () {
-        return this._dataSource;
-    }
-
-    /**
-     * Updates the session state to refer to a new column.
-     */
-    p.setColumnReference = function (dataSource, metadata) {
-        this.delayCallbacks();
-        this.dataSourceName.value = WeaveAPI.globalHashMap.getName(dataSource);
-        this.metadata.setSessionState(metadata);
-        this.resumeCallbacks();
-    }
-
-
-    /**
-     * @inheritDoc
-     */
-
-    p.getInternalColumn = function () {
-        if (this._prevTriggerCounter !== this.triggerCounter) {
-            if (WeaveAPI.SessionManager.objectWasDisposed(this._dataSource))
-                this._dataSource = null;
-
-            var col = null;
-            if (this.dataSourceName.value && !this._dataSource) {
-                // data source was named but not found
-            } else {
-                col = WeaveAPI.AttributeColumnCache.getColumn(this._dataSource, this.metadata.getSessionState());
-            }
-            this._columnWatcher.target = this._internalColumn = col;
-
-            this._prevTriggerCounter = this.triggerCounter;
-        }
-        return this._internalColumn;
-    }
-
-
-    /************************************
-     * Begin IAttributeColumn interface
-     ************************************/
-
-
-    p.getMetadata = function (attributeName) {
-        if (this._prevTriggerCounter !== this.triggerCounter)
-            this.getInternalColumn();
-        return this._internalColumn ? this._internalColumn.getMetadata(attributeName) : null;
-    }
-
-    p.getMetadataPropertyNames = function () {
-        if (this._prevTriggerCounter !== this.triggerCounter)
-            this.getInternalColumn();
-        return this._internalColumn ? this._internalColumn.getMetadataPropertyNames() : [];
-    }
-
-
-
-    /**
-     * @param key A key to test.
-     * @return true if the key exists in this IKeySet.
-     */
-    p.containsKey = function (key) {
-        if (this._prevTriggerCounter !== this.triggerCounter)
-            this.getInternalColumn();
-        return this._internalColumn && this._internalColumn.containsKey(key);
-    }
-
-    /**
-     * getValueFromKey
-     * @param key A key of the type specified by keyType.
-     * @return The value associated with the given key.
-     */
-    p.getValueFromKey = function (key, dataType) {
-        if (dataType === undefined) dataType = null;
-        if (this._prevTriggerCounter !== this.triggerCounter)
-            this.getInternalColumn();
-        return this._internalColumn ? this._internalColumn.getValueFromKey(key, dataType) : undefined;
-    }
-
-    p.toString = function () {
-        return this.debugId(this) + '(' + weavedata.ColumnUtils.getTitle(this) + ')';
-    }
-
-    if (typeof exports !== 'undefined') {
-        module.exports = ReferencedColumn;
-    } else {
-
-        window.weavedata = window.weavedata ? window.weavedata : {};
-        window.weavedata.ReferencedColumn = ReferencedColumn;
-    }
-
-    weavecore.ClassUtils.registerClass('weavedata.ReferencedColumn', weavedata.ReferencedColumn);
-}());
 /**
  *
  * @author adufilie
@@ -6385,6 +5259,1233 @@
     weavecore.ClassUtils.registerClass('weavedata.StringColumn', weavedata.StringColumn);
 
 }());
+
+/**
+ *
+ * @author adufilie
+ * @author asanjay
+ */
+(function () {
+
+    /**
+     * temporary solution to save the namespace for this class/prototype
+     * @static
+     * @public
+     * @property NS
+     * @default weavecore
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(KeyColumn, 'NS', {
+        value: 'weavedata'
+    });
+
+    /**
+     * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
+     * @static
+     * @public
+     * @property CLASS_NAME
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(KeyColumn, 'CLASS_NAME', {
+        value: 'KeyColumn'
+    });
+
+    function KeyColumn(metadata) {
+        metadata = (metadata === undefined) ? null : metadata;
+        weavedata.AbstractAttributeColumn.call(this, metadata);
+
+        Object.defineProperty(this, 'keyType', {
+            value: WeaveAPI.SessionManager.registerLinkableChild(this, new weavecore.LinkableString())
+        });
+
+        Object.defineProperty(this, 'keys', {
+            value: []
+        });
+
+
+    }
+
+
+
+    KeyColumn.prototype = new weavedata.AbstractAttributeColumn();
+    KeyColumn.prototype.constructor = KeyColumn;
+    var p = KeyColumn.prototype;
+
+    p.getMetadata = function (propertyName) {
+        if (propertyName === weavedata.ColumnMetadata.TITLE) {
+            var kt = this.keyType.value;
+            if (kt)
+                return ("Key ({0})" + kt);
+            return "Key";
+        }
+        if (propertyName === weavedata.ColumnMetadata.KEY_TYPE)
+            return keyType.value;
+
+        return KeyColumn.prototype.getMetadata(propertyName);
+    }
+
+
+    p.getValueFromKey = function (key, dataType) {
+        dataType = (dataType === undefined) ? null : dataType;
+        var kt = this.keyType.value;
+        if (kt && key.keyType !== kt)
+            return EquationColumnLib.cast(undefined, dataType);
+
+        if (dataType === String)
+            return key.localName;
+
+        if (dataType === weavedata.IQualifiedKey)
+            return key;
+
+        return EquationColumnLib.cast(key, dataType);
+    }
+
+
+
+    if (typeof exports !== 'undefined') {
+        module.exports = KeyColumn;
+    } else {
+
+        window.weavedata = window.weavedata ? window.weavedata : {};
+        window.weavedata.KeyColumn = KeyColumn;
+    }
+
+    weavecore.ClassUtils.registerClass('weavedata.KeyColumn', weavedata.KeyColumn);
+
+}());
+
+/**
+ * This column is defined by two columns of CSV data: keys and values.
+ *
+ * @author adufilie
+ * @author asanjay
+ */
+
+(function () {
+
+    /**
+     * temporary solution to save the namespace for this class/prototype
+     * @static
+     * @public
+     * @property NS
+     * @default weavecore
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(CSVColumn, 'NS', {
+        value: 'weavedata'
+    });
+
+    /**
+     * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
+     * @static
+     * @public
+     * @property CLASS_NAME
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(CSVColumn, 'CLASS_NAME', {
+        value: 'CSVColumn'
+    });
+
+    function CSVColumn() {
+        weavedata.AbstractAttributeColumn.call(this);
+
+        Object.defineProperty(this, "title", {
+            value: WeaveAPI.SessionManager.registerLinkableChild(this, new weavecore.LinkableString())
+        });
+        /**
+         * This should contain a two-column CSV with the first column containing the keys and the second column containing the values.
+         */
+        Object.defineProperty(this, "data", {
+            value: WeaveAPI.SessionManager.registerLinkableChild(this, new weavecore.LinkableVariable(), this.invalidate.bind(this))
+        });
+
+        /**
+         * If this is set to true, the data will be parsed as numbers to produce the numeric data.
+         */
+        Object.defineProperty(this, "numericMode", {
+            value: WeaveAPI.SessionManager.registerLinkableChild(this, new weavecore.LinkableBoolean(), this.invalidate.bind(this))
+        });
+
+        /**
+         * This is the key type of the first column in the csvData.
+         */
+        Object.defineProperty(this, "keyType", {
+            value: WeaveAPI.SessionManager.registerLinkableChild(this, new weavecore.LinkableString(), this.invalidate.bind(this))
+        });
+
+
+        /**
+         * This function returns the list of String values from the first column in the CSV data.
+         */
+        Object.defineProperty(this, "keys", {
+            get: function () {
+                // refresh the data if necessary
+                if (this._dirty)
+                    validate.call(this);
+
+                return this._keys;
+            }
+        });
+
+
+        this._keyToIndexMap = null; // This maps a key to a row index.
+        this._keys = []; // list of keys from the first CSV column
+        this._stringValues = []; // list of Strings from the first CSV column
+        this._numberValues = []; // list of Numbers from the first CSV column
+
+        this._dirty = true;
+        this.numericMode.value = false;
+
+    }
+
+    function invalidate() {
+        this._dirty = true;
+    }
+
+
+    /**
+     * This function generates three Vectors from the CSV data: _keys, _stringValues, _numberValues
+     */
+    function validate() {
+        // replace the previous _keyToIndexMap with a new empty one
+        this._keyToIndexMap = new Map();
+        this._keys.length = 0;
+        this._stringValues.length = 0;
+        this._numberValues.length = 0;
+
+        var key;
+        var value;
+        var table = this.data.getSessionState() ? this.data.getSessionState() : [];
+        for (var i = 0; i < table.length; i++) {
+            var row = table[i];
+            if (row === null || row.length === 0)
+                continue; // skip blank lines
+
+            // get the key from the first column and the value from the second.
+            key = WeaveAPI.QKeyManager.getQKey(keyType.value, String(row[0]));
+            value = String(row.length > 1 ? row[1] : '');
+
+            // save the results of parsing the CSV row
+            this._keyToIndexMap.set(this._keys.length);
+            this._keys.push(key);
+            this._stringValues.push(value);
+            try {
+                this._numberValues.push(Number(value));
+            } catch (e) {
+                this._numberValues.push(NaN);
+            }
+        }
+        this.dirty = false;
+    }
+
+    CSVColumn.prototype = new weavedata.AbstractAttributeColumn();
+    CSVColumn.prototype.constructor = CSVColumn;
+    var p = CSVColumn.prototype;
+
+    p.getMetadata = function (propertyName) {
+        switch (propertyName) {
+        case ColumnMetadata.TITLE:
+            return this.title.value;
+        case ColumnMetadata.KEY_TYPE:
+            return this.keyType.value;
+        case ColumnMetadata.DATA_TYPE:
+            return this.numericMode.value ? 'number' : 'string';
+        }
+        return weavedata.AbstractAttributeColumn.prototype.getMetadata.call(this, propertyName);
+    }
+
+    /**
+     * Use this function to set the keys and data of the column.
+     * @param table An Array of rows where each row is an Array containing a key and a data value.
+     */
+    p.setDataTable = function (table) {
+        var stringTable = [];
+        for (var r = 0; r < table.length; r++) {
+            var row = table[r].concat(); // make a copy of the row
+            // convert each value to a string
+            for (var c = 0; c < row.length; c++)
+                row[c] = String(row[c]);
+            stringTable[r] = row; // save the copied row
+        }
+        this.data.setSessionState(stringTable);
+    }
+
+    /**
+     * @param key A key to test.
+     * @return true if the key exists in this IKeySet.
+     */
+    p.containsKey = function (key) {
+        // refresh the data if necessary
+        if (this._dirty)
+            validate.call(this);
+
+        return this._keyToIndexMap.get(key) !== undefined;
+    }
+
+    /**
+     * This function returns the corresponding numeric or string value depending on the dataType parameter and the numericMode setting.
+     */
+
+
+    p.getValueFromKey = function (key, dataType) {
+        dataType = dataType ? dataType : null;
+        // refresh the data if necessary
+        if (this._dirty)
+            validate.call(this);
+
+        // get the index from the key
+        var keyIndex = this._keyToIndexMap.get(key);
+
+        // cast to different data types
+        if (dataType === Boolean) {
+            return !isNaN(keyIndex);
+        }
+        if (dataType === Number) {
+            if (isNaN(keyIndex))
+                return NaN;
+            return this._numberValues[keyIndex];
+        }
+        if (dataType === String) {
+            if (isNaN(keyIndex))
+                return '';
+            return this._stringValues[keyIndex];
+        }
+
+        // return default data type
+        if (isNaN(keyIndex))
+            return this.numericMode.value ? NaN : '';
+
+        if (this.numericMode.value)
+            return this._numberValues[keyIndex];
+
+        return this._stringValues[keyIndex];
+    }
+
+    if (typeof exports !== 'undefined') {
+        module.exports = CSVColumn;
+    } else {
+
+        window.weavedata = window.weavedata ? window.weavedata : {};
+        window.weavedata.CSVColumn = CSVColumn;
+    }
+    weavecore.ClassUtils.registerClass('weavedata.CSVColumn', weavedata.CSVColumn);
+
+}());
+
+/**
+ * This provides a wrapper for a referenced column.
+ *
+ * @author adufilie
+ * @author sanjay1909
+ */
+(function () {
+    /**
+     * temporary solution to save the namespace for this class/prototype
+     * @static
+     * @public
+     * @property NS
+     * @default weavecore
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(ReferencedColumn, 'NS', {
+        value: 'weavedata'
+    });
+
+    /**
+     * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
+     * @static
+     * @public
+     * @property CLASS_NAME
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(ReferencedColumn, 'CLASS_NAME', {
+        value: 'ReferencedColumn'
+    });
+
+    function ReferencedColumn() {
+        weavedata.IColumnWrapper.call(this);
+        this._dataSource;
+        /**
+         * The trigger counter value at the last time the internal column was retrieved.
+         */
+        this._prevTriggerCounter = 0;
+        /**
+         * the internal referenced column
+         */
+        this._internalColumn = null;
+
+        /**
+         * @return the keys associated with this column.
+         */
+        Object.defineProperty(this, 'keys', {
+            get: function () {
+                if (this._prevTriggerCounter !== this.triggerCounter)
+                    this.getInternalColumn();
+                return this._internalColumn ? this._internalColumn.keys : [];
+            }
+        });
+
+        /**
+         * This is the name of an IDataSource in the top level session state.
+         */
+        Object.defineProperty(this, 'dataSourceName', {
+            value: WeaveAPI.SessionManager.registerLinkableChild(this, new weavecore.LinkableString(), this._updateDataSource.bind(this)),
+            writable: false
+        });
+        /**
+         * This holds the metadata used to identify a column.
+         */
+        Object.defineProperty(this, 'metadata', {
+            value: WeaveAPI.SessionManager.registerLinkableChild(this, new weavecore.LinkableVariable()),
+            writable: false
+        });
+
+        Object.defineProperty(this, '_columnWatcher', {
+            value: WeaveAPI.SessionManager.registerLinkableChild(this, new weavecore.LinkableWatcher()),
+            writable: false
+        });
+
+        WeaveAPI.globalHashMap.childListCallbacks.addImmediateCallback(this, this._updateDataSource.bind(this));
+    }
+
+    ReferencedColumn.prototype = new weavedata.IColumnWrapper();
+    ReferencedColumn.prototype.constructor = ReferencedColumn;
+
+
+    var p = ReferencedColumn.prototype;
+
+    p._updateDataSource = function () {
+        var ds = WeaveAPI.globalHashMap.getObject(this.dataSourceName.value);
+        if (this._dataSource !== ds) {
+            this._dataSource = ds;
+            this.triggerCallbacks();
+        }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    p.getDataSource = function () {
+        return this._dataSource;
+    }
+
+    /**
+     * Updates the session state to refer to a new column.
+     */
+    p.setColumnReference = function (dataSource, metadata) {
+        this.delayCallbacks();
+        this.dataSourceName.value = WeaveAPI.globalHashMap.getName(dataSource);
+        this.metadata.setSessionState(metadata);
+        this.resumeCallbacks();
+    }
+
+
+    /**
+     * @inheritDoc
+     */
+
+    p.getInternalColumn = function () {
+        if (this._prevTriggerCounter !== this.triggerCounter) {
+            if (WeaveAPI.SessionManager.objectWasDisposed(this._dataSource))
+                this._dataSource = null;
+
+            var col = null;
+            if (this.dataSourceName.value && !this._dataSource) {
+                // data source was named but not found
+            } else {
+                col = WeaveAPI.AttributeColumnCache.getColumn(this._dataSource, this.metadata.getSessionState());
+            }
+            this._columnWatcher.target = this._internalColumn = col;
+
+            this._prevTriggerCounter = this.triggerCounter;
+        }
+        return this._internalColumn;
+    }
+
+
+    /************************************
+     * Begin IAttributeColumn interface
+     ************************************/
+
+
+    p.getMetadata = function (attributeName) {
+        if (this._prevTriggerCounter !== this.triggerCounter)
+            this.getInternalColumn();
+        return this._internalColumn ? this._internalColumn.getMetadata(attributeName) : null;
+    }
+
+    p.getMetadataPropertyNames = function () {
+        if (this._prevTriggerCounter !== this.triggerCounter)
+            this.getInternalColumn();
+        return this._internalColumn ? this._internalColumn.getMetadataPropertyNames() : [];
+    }
+
+
+
+    /**
+     * @param key A key to test.
+     * @return true if the key exists in this IKeySet.
+     */
+    p.containsKey = function (key) {
+        if (this._prevTriggerCounter !== this.triggerCounter)
+            this.getInternalColumn();
+        return this._internalColumn && this._internalColumn.containsKey(key);
+    }
+
+    /**
+     * getValueFromKey
+     * @param key A key of the type specified by keyType.
+     * @return The value associated with the given key.
+     */
+    p.getValueFromKey = function (key, dataType) {
+        if (dataType === undefined) dataType = null;
+        if (this._prevTriggerCounter !== this.triggerCounter)
+            this.getInternalColumn();
+        return this._internalColumn ? this._internalColumn.getValueFromKey(key, dataType) : undefined;
+    }
+
+    p.toString = function () {
+        return WeaveAPI.DebugUtils.debugId(this) + '(' + weavedata.ColumnUtils.getTitle(this) + ')';
+    }
+
+    if (typeof exports !== 'undefined') {
+        module.exports = ReferencedColumn;
+    } else {
+
+        window.weavedata = window.weavedata ? window.weavedata : {};
+        window.weavedata.ReferencedColumn = ReferencedColumn;
+    }
+
+    weavecore.ClassUtils.registerClass('weavedata.ReferencedColumn', weavedata.ReferencedColumn);
+}());
+/**
+ *
+ * @author adufilie
+ * @author asanjay
+ */
+(function () {
+
+    /**
+     * temporary solution to save the namespace for this class/prototype
+     * @static
+     * @public
+     * @property NS
+     * @default weavecore
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(ProxyColumn, 'NS', {
+        value: 'weavedata'
+    });
+
+    /**
+     * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
+     * @static
+     * @public
+     * @property CLASS_NAME
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(ProxyColumn, 'CLASS_NAME', {
+        value: 'ProxyColumn'
+    });
+
+
+    Object.defineProperty(ProxyColumn, 'DATA_UNAVAILABLE', {
+        value: '(Data unavailable)'
+    });
+
+
+
+    function ProxyColumn(metadata) {
+        metadata = (metadata === undefined) ? null : metadata;
+        weavedata.AbstractAttributeColumn.call(this, metadata);
+        /**
+         * internalAttributeColumn
+         * This is the IAttributeColumn object contained in this ProxyColumn.
+         */
+        this._internalColumn = null;
+
+        this._overrideTitle;
+
+        /**
+         * internalNonProxyColumn
+         * As long as internalAttributeColumn is a ProxyColumn, this function will
+         * keep traversing internalAttributeColumn until it reaches an IAttributeColumn that
+         * is not a ProxyColumn.
+         * @return An attribute column that is not a ProxyColumn, or null.
+         */
+        Object.defineProperty(this, "internalNonProxyColumn", {
+            get: function () {
+                var column = this._internalColumn;
+                while (column instanceof ProxyColumn)
+                    column = column._internalColumn;
+                return column;
+            }
+        });
+
+        /**
+         * @return the keys associated with this column.
+         */
+        Object.defineProperty(this, "keys", {
+            get: function () {
+                var column = this.internalNonProxyColumn;
+                return column ? column.keys : [];
+            },
+            configurable: true
+        });
+
+
+    }
+
+
+
+    ProxyColumn.prototype = new weavedata.AbstractAttributeColumn();
+    ProxyColumn.prototype.constructor = ProxyColumn;
+    var p = ProxyColumn.prototype;
+
+    /**
+     * @param key A key to test.
+     * @return true if the key exists in this IKeySet.
+     */
+    p.containsKey = function (key) {
+        return this._internalColumn && this._internalColumn.containsKey(key);
+    }
+
+    /**
+     * This function updates the proxy metadata.
+     * @param metadata New metadata for the proxy.
+     */
+    p.setMetadata = function (metadata) {
+        this._metadata = weavedata.AbstractAttributeColumn.copyValues(metadata);
+        this.triggerCallbacks();
+    }
+
+    /**
+     * The metadata specified by ProxyColumn will override the metadata of the internal column.
+     * First, this function checks thet ProxyColumn metadata.
+     * If the value is null, it checks the metadata of the internal column.
+     * @param propertyName The name of a metadata property to get.
+     * @return The metadata value of the ProxyColumn or the internal column, ProxyColumn metadata takes precendence.
+     */
+    p.getMetadata = function (propertyName) {
+        if (propertyName === weavedata.ColumnMetadata.TITLE && this._overrideTitle)
+            return this._overrideTitle;
+
+        var overrideValue = weavedata.AbstractAttributeColumn.prototype.getMetadata.call(this, propertyName);
+        if ((overrideValue === null || overrideValue === undefined) && this._internalColumn !== null)
+            return this._internalColumn.getMetadata(propertyName);
+        return overrideValue;
+    }
+
+
+    p.getProxyMetadata = function () {
+        return weavedata.AbstractAttributeColumn.copyValues(this._metadata);
+    }
+
+    p.getMetadataPropertyNames = function () {
+        if (this._internalColumn)
+            return weavedata.VectorUtils.union(weavedata.AbstractAttributeColumn.prototype.getMetadataPropertyNames.call(this), this._internalColumn.getMetadataPropertyNames());
+        return weavedata.AbstractAttributeColumn.prototype.getMetadataPropertyNames.call(this);
+    }
+
+
+
+
+    p.getInternalColumn = function () {
+        return this._internalColumn;
+    }
+    p.setInternalColumn = function (newColumn) {
+        this._overrideTitle = null;
+
+        if (newColumn === this) {
+            console.warn("WARNING! Attempted to set ProxyColumn.internalAttributeColumn to self: " + this);
+            return;
+        }
+
+        if (this._internalColumn === newColumn)
+            return;
+
+        // clean up ties to previous column
+        if (this._internalColumn !== null)
+            WeaveAPI.SessionManager.unregisterLinkableChild(this, this._internalColumn);
+
+        // save pointer to new column
+        this._internalColumn = newColumn;
+
+        // initialize for new column
+        if (this._internalColumn !== null)
+            WeaveAPI.SessionManager.registerLinkableChild(this, this._internalColumn);
+
+        this.triggerCallbacks();
+    }
+
+    /**
+     * The functions below serve as wrappers for matching function calls on the internalAttributeColumn.
+     */
+    p.getValueFromKey = function (key, dataType) {
+        dataType = (dataType === undefined) ? null : dataType;
+        if (this._internalColumn)
+            return this._internalColumn.getValueFromKey(key, dataType);
+        return undefined;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    p.dispose = function () {
+        weavedata.AbstractAttributeColumn.prototype.dispose.call(this);
+        this._metadata = null;
+        this.setInternalColumn(null); // this will remove the callback that was added to the internal column
+    }
+
+    /**
+     * Call this function when the ProxyColumn should indicate that the requested data is unavailable.
+     * @param message The message to display in the title of the ProxyColumn.
+     */
+    p.dataUnavailable = function (message) {
+        message = (message === undefined) ? null : message;
+        this.delayCallbacks();
+        this.setInternalColumn(null);
+        if (message) {
+            this._overrideTitle = message;
+        } else {
+            var title = this.getMetadata(weavedata.ColumnMetadata.TITLE);
+            if (title)
+                this._overrideTitle = weavecore.StandardLib.substitute('(Data unavailable: {0})', title);
+            else
+                this._overrideTitle = ProxyColumn.DATA_UNAVAILABLE;
+        }
+        this.triggerCallbacks();
+        this.resumeCallbacks();
+    }
+
+    p.toString = function () {
+        if (this.getInternalColumn())
+            return WeaveAPI.debugId(this) + '( ' + this.getInternalColumn() + ' )';
+        return weavedata.AbstractAttributeColumn.prototype.toString.call(this);
+    }
+
+    if (typeof exports !== 'undefined') {
+        module.exports = ProxyColumn;
+    } else {
+
+        window.weavedata = window.weavedata ? window.weavedata : {};
+        window.weavedata.ProxyColumn = ProxyColumn;
+    }
+    weavecore.ClassUtils.registerClass('weavedata.ProxyColumn', weavedata.ProxyColumn);
+
+}());
+
+/**
+ * This provides a wrapper for a dynamically created column.
+ *
+ * @author adufilie
+ * @author asanjay
+ */
+/*public class DynamicColumn extends LinkableDynamicObject implements IColumnWrapper
+	{*/
+
+(function () {
+
+    /**
+     * temporary solution to save the namespace for this class/prototype
+     * @static
+     * @public
+     * @property NS
+     * @default weavecore
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(DynamicColumn, 'NS', {
+        value: 'weavedata'
+    });
+
+    /**
+     * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
+     * @static
+     * @public
+     * @property CLASS_NAME
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(DynamicColumn, 'CLASS_NAME', {
+        value: 'DynamicColumn'
+    });
+
+
+    // TEMPORARY PERFORMANCE IMPROVEMENT SOLUTION
+    DynamicColumn.cache = true;
+    DynamicColumn._cache_type_key = new Map();
+    DynamicColumn._cacheCounter = 0;
+
+    Object.defineProperty(DynamicColumn, 'UNDEFINED', {
+        value: {}
+    });
+
+    function DynamicColumn(columnTypeRestriction) {
+        columnTypeRestriction = columnTypeRestriction ? columnTypeRestriction : null;
+
+        if (columnTypeRestriction === null) {
+            columnTypeRestriction = weavedata.IAttributeColumn;
+        } else {
+            // make sure the columnTypeRestriction implements IAttributeColumn
+            if (!columnTypeRestriction.isPrototypeOf(weavedata.IAttributeColumn)) {
+                console.error("DynamicColumn(): columnTypeRestriction is not prototype of IAttributeColumn: " + columnTypeRestriction.constructor.name);
+                columnTypeRestriction = weavedata.IAttributeColumn;
+            }
+        }
+
+        /**
+         * @return the keys associated with this column.
+         */
+        Object.defineProperty(this, 'keys', {
+            get: function () {
+                return this.getInternalColumn() ? this.getInternalColumn().keys : [];
+            }
+        });
+        weavecore.LinkableDynamicObject.call(this, columnTypeRestriction);
+
+
+    }
+
+    DynamicColumn.prototype = new weavecore.LinkableDynamicObject();
+    DynamicColumn.prototype.constructor = DynamicColumn;
+
+    var p = DynamicColumn.prototype;
+
+    /**
+     * This function lets you skip the step of casting internalObject as an IAttributeColumn.
+     */
+    p.getInternalColumn = function () {
+        return this.internalObject;
+
+    }
+
+    /************************************
+     * Begin IAttributeColumn interface
+     ************************************/
+
+    p.getMetadata = function (propertyName) {
+        if (this.internalObject)
+            return this.internalObject.getMetadata(propertyName);
+        return null;
+    }
+
+
+    p.getMetadataPropertyNames = function () {
+        if (this.internalObject)
+            return this.internalObject.getMetadataPropertyNames();
+        return [];
+    }
+
+    /**
+     * @param key A key to test.
+     * @return true if the key exists in this IKeySet.
+     */
+    p.containsKey = function (key) {
+        return this.internalObject ? this.internalObject.containsKey(key) : false;
+    }
+
+    /**
+     * @param key A key of the type specified by keyType.
+     * @return The value associated with the given key.
+     */
+
+
+    p.getValueFromKey = function (key, dataType) {
+        dataType = dataType ? dataType : null;
+        if (!DynamicColumn.cache) {
+            return this.internalObject ? this.internalObject.getValueFromKey(key, dataType) : undefined;
+        }
+
+        if (this.triggerCounter != DynamicColumn._cacheCounter) {
+            DynamicColumn._cacheCounter = this.triggerCounter;
+            DynamicColumn._cache_type_key = new Map();
+        }
+        var _cache = DynamicColumn._cache_type_key.get(dataType);
+        if (!_cache) {
+            _cache = new Map();
+            DynamicColumn._cache_type_key.set(_cache);
+        }
+
+
+        var value = _cache.get(key);
+        if (value === undefined) {
+            if (this.internalObject)
+                value = this.internalObject.getValueFromKey(key, dataType);
+            value === undefined ? DynamicColumn.UNDEFINED : value;
+            _cache.set(value);
+        }
+        return value === DynamicColumn.UNDEFINED ? undefined : value;
+    }
+
+    p.toString = function () {
+        return debugId(this) + '(' + (this.getInternalColumn() ? this.getInternalColumn() : weavedata.ColumnUtils.getTitle(this)) + ')';
+    }
+
+
+
+    if (typeof exports !== 'undefined') {
+        module.exports = DynamicColumn;
+    } else {
+
+        window.weavedata = window.weavedata ? window.weavedata : {};
+        window.weavedata.DynamicColumn = DynamicColumn;
+    }
+
+    weavecore.ClassUtils.registerClass('weavedata.DynamicColumn', weavedata.DynamicColumn);
+}());
+
+(function () {
+
+    /**
+     * temporary solution to save the namespace for this class/prototype
+     * @static
+     * @public
+     * @property NS
+     * @default weavecore
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(ExtendedDynamicColumn, 'NS', {
+        value: 'weavedata'
+    });
+
+    /**
+     * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
+     * @static
+     * @public
+     * @property CLASS_NAME
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(ExtendedDynamicColumn, 'CLASS_NAME', {
+        value: 'ExtendedDynamicColumn'
+    });
+
+    ExtendedDynamicColumn._instanceCount = 0;
+    Object.defineProperty(ExtendedDynamicColumn, 'instanceCount', {
+
+        get: function () {
+            return ExtendedDynamicColumn._instanceCount = ExtendedDynamicColumn._instanceCount + 1
+        }
+    });
+
+
+    /**
+     * This provides a wrapper for a dynamic column, and allows new properties to be added.
+     * The purpose of this class is to provide a base for extending DynamicColumn.
+     *
+     * @author adufilie
+     * @author sanjay1909
+     */
+    function ExtendedDynamicColumn() {
+        weavecore.CallbackCollection.call(this);
+
+
+        Object.defineProperty(this, '_internalDynamicColumn', {
+            value: WeaveAPI.SessionManager.registerLinkableChild(this, new weavedata.DynamicColumn())
+        });
+
+        /**
+         * This is the internal DynamicColumn object that is being extended.
+         */
+        Object.defineProperty(this, 'internalDynamicColumn', {
+            get: function () {
+                return this._internalDynamicColumn;
+            }
+        });
+
+
+
+        this.name = "ExtendedDynamicColumn" + ExtendedDynamicColumn._instanceCount;
+
+        /**
+         * @return the keys associated with this column.
+         */
+        Object.defineProperty(this, 'keys', {
+            get: function () {
+                return this.internalDynamicColumn.keys;
+            },
+            configurable: true
+        });
+
+
+        WeaveAPI.SessionManager.registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(this.internalDynamicColumn));
+
+
+    }
+
+    ExtendedDynamicColumn.prototype = new weavecore.CallbackCollection();
+    ExtendedDynamicColumn.prototype.constructor = ExtendedDynamicColumn;
+
+    var p = ExtendedDynamicColumn.prototype;
+    /**
+     * This is for the IColumnWrapper interface.
+     */
+    p.getInternalColumn = function () {
+        return this.internalDynamicColumn.getInternalColumn();
+    }
+
+
+    /************************************
+     * Begin IAttributeColumn interface
+     ************************************/
+
+    p.getMetadata = function (propertyName) {
+        return this.internalDynamicColumn.getMetadata(propertyName);
+    }
+
+    p.getMetadataPropertyNames = function () {
+        return this.internalDynamicColumn.getMetadataPropertyNames();
+    }
+
+
+
+    /**
+     * @param key A key to test.
+     * @return true if the key exists in this IKeySet.
+     */
+    p.containsKey = function (key) {
+        return this.internalDynamicColumn.containsKey(key);
+    }
+
+    /**
+     * getValueFromKey
+     * @param key A key of the type specified by keyType.
+     * @return The value associated with the given key.
+     */
+    p.getValueFromKey = function (key, dataType) {
+        dataType = (dataType === undefined) ? null : dataType;
+        return this.internalDynamicColumn.getValueFromKey(key, dataType);
+    }
+
+    p.toString = function () {
+        return WeaveAPI.debugId(this) + '(' + (this.getInternalColumn() ? this.getInternalColumn() : weavedata.ColumnUtils.getTitle(this)) + ')';
+    }
+
+    if (typeof exports !== 'undefined') {
+        module.exports = ExtendedDynamicColumn;
+    } else {
+
+        window.weavedata = window.weavedata ? window.weavedata : {};
+        window.weavedata.ExtendedDynamicColumn = ExtendedDynamicColumn;
+    }
+
+    weavecore.ClassUtils.registerClass('weavedata.ExtendedDynamicColumn', weavedata.ExtendedDynamicColumn);
+
+}());
+
+(function () {
+
+    /**
+     * temporary solution to save the namespace for this class/prototype
+     * @static
+     * @public
+     * @property NS
+     * @default weavecore
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(FilteredColumn, 'NS', {
+        value: 'weavedata'
+    });
+
+    /**
+     * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
+     * @static
+     * @public
+     * @property CLASS_NAME
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(FilteredColumn, 'CLASS_NAME', {
+        value: 'FilteredColumn'
+    });
+
+    function FilteredColumn() {
+
+        weavedata.ExtendedDynamicColumn.call(this);
+
+        /**
+         * This is private because it doesn't need to appear in the session state -- keys are returned by the "get keys()" accessor function
+         */
+        Object.defineProperty(this, '_filteredKeySet', {
+            value: WeaveAPI.SessionManager.registerLinkableChild(this, new weavedata.FilteredKeySet())
+        })
+
+        /**
+         * This is the dynamically created filter that filters the keys in the column.
+         */
+        Object.defineProperty(this, 'filter', {
+            value: WeaveAPI.SessionManager.registerLinkableChild(this, this._filteredKeySet.keyFilter)
+        })
+
+
+        /**
+         * This stores the filtered keys
+         */
+        this._keys;
+
+        Object.defineProperty(this, 'keys', {
+            get: function () {
+                // also make internal column request because it may trigger callbacks
+                this.internalDynamicColumn.keys;
+                return this._filteredKeySet.keys;
+            },
+            configurable: true
+        });
+
+
+
+        this._filteredKeySet.setSingleKeySource(this.internalDynamicColumn);
+    }
+
+
+    FilteredColumn.prototype = new weavedata.ExtendedDynamicColumn();
+    FilteredColumn.prototype.constructor = FilteredColumn;
+
+    var p = FilteredColumn.prototype;
+
+    /**
+     * The filter removes certain records from the column.  This function will return false if the key is not contained in the filter.
+     */
+    p.containsKey = function (key) {
+        // also make internal column request because it may trigger callbacks
+        this.internalDynamicColumn.containsKey(key);
+        return this._filteredKeySet.containsKey(key);
+    }
+
+    p.getValueFromKey = function (key, dataType) {
+        dataType = (dataType === undefined) ? null : dataType;
+        var column = this.internalDynamicColumn.getInternalColumn();
+        var keyFilter = this.filter.getInternalKeyFilter();
+        if (column) {
+            // always make internal column request because it may trigger callbacks
+            var value = column.getValueFromKey(key, dataType);
+            if (!keyFilter || keyFilter.containsKey(key))
+                return value;
+        }
+
+        if (dataType)
+            return weavedata.EquationColumnLib.cast(undefined, dataType);
+
+        return undefined;
+    }
+
+
+    if (typeof exports !== 'undefined') {
+        module.exports = FilteredColumn;
+    } else {
+
+        window.weavedata = window.weavedata ? window.weavedata : {};
+        window.weavedata.FilteredColumn = FilteredColumn;
+    }
+
+    weavecore.ClassUtils.registerClass('weavedata.FilteredColumn', weavedata.FilteredColumn);
+
+}());
+
+(function () {
+    function ColumnDataTask(parentColumn, dataFilter, callback) {
+        dataFilter = (dataFilter === undefined) ? null : dataFilter;
+        callback = (callback === undefined) ? null : callback;
+
+        if (callback === null)
+            callback = parentColumn.triggerCallbacks;
+
+        /**
+         * Asynchronous output.
+         * recordKey:IQualifiedKey -&gt; Array&lt;Number&gt;
+         */
+        this.uniqueKeys = [];
+
+        /**
+         * Asynchronous output.
+         * (dataType:Class, recordKey:IQualifiedKey) -&gt; value
+         */
+        this.arrayData = new Map();
+
+        //private
+        this._parentColumn = parentColumn;
+        this._dataFilter = dataFilter;
+        this._callback = callback;
+        this._keys;
+        this._data;
+        this._i;
+        this._n;
+    }
+
+    var p = ColumnDataTask.prototype;
+
+    /**
+     * @param inputKeys A Vector (or Array) of IQualifiedKey objects.
+     * @param inputData A Vector (or Array) of data values corresponding to the inputKeys.
+     * @param relevantContext
+     * @param callback
+     */
+    p.begin = function (inputKeys, inputData) {
+        if (inputKeys.length !== inputData.length)
+            throw new Error(weavecore.StandardLib.substitute("Arrays are of different length ({0} != {1})", inputKeys.length, inputData.length));
+
+        this._dataFilter = this._dataFilter;
+        this._keys = inputKeys;
+        this._data = inputData;
+        this._i = 0;
+        this._n = this._keys.length;
+        this.uniqueKeys = [];
+        this.arrayData = new Map();
+
+        // high priority because not much can be done without data
+        WeaveAPI.StageUtils.startTask(this._parentColumn, iterate.bind(this), WeaveAPI.TASK_PRIORITY_HIGH, this._callback, weavecore.StandardLib.substitute("Processing {0} records", this._n));
+    }
+
+    function iterate(stopTime) {
+        console.log(this._i, this._n);
+        for (; this._i < this._n; this._i++) {
+            if (getTimer() > stopTime)
+                return this._i / this._n;
+
+            var value = this._data[this._i];
+            if ((this._dataFilter !== null || this._dataFilter !== undefined) && !this._dataFilter(value))
+                continue;
+
+            var key = this._keys[this._i];
+            var array = this.arrayData.get(key);
+            if (!array) {
+                this.uniqueKeys.push(key);
+                array = [value]
+                this.arrayData.set(key, array);
+            } else {
+                array.push(value);
+            }
+        }
+        console.log(this._i, this._n, this.arrayData.get(key));
+        return 1;
+    }
+
+    function getTimer() {
+        return new Date().getTime();
+    }
+
+    if (typeof exports !== 'undefined') {
+        module.exports = ColumnDataTask;
+    } else {
+
+        window.weavedata = window.weavedata ? window.weavedata : {};
+        window.weavedata.ColumnDataTask = ColumnDataTask;
+    }
+
+
+}());
+
 (function () {
 
     /**
@@ -6473,6 +6574,7 @@
     weavecore.ClassUtils.registerClass('weavedata.IDataSource', weavedata.IDataSource);
 
 }());
+
 /**
  * This is a base class to make it easier to develope a new class that implements IDataSource.
  * Classes that extend AbstractDataSource should implement the following methods:
@@ -6710,6 +6812,7 @@
     weavecore.ClassUtils.registerClass('weavedata.AbstractDataSource', weavedata.AbstractDataSource);
 
 }());
+
 (function () {
 
     /**
@@ -7312,6 +7415,7 @@
     weavecore.ClassUtils.registerClass('weavedata.CSVDataSource', weavedata.CSVDataSource);
 
 }());
+
 (function () {
 
     /**
@@ -7427,6 +7531,7 @@
     }
 
 }());
+
 /**
  * A node in a tree whose leaves identify attribute columns.
  * The <code>data</code> property is used for column metadata on leaf nodes.
@@ -7591,3 +7696,773 @@
     }
 
 }());
+
+(function () {
+
+    /**
+     * A node in a tree whose leaves identify attribute columns.
+     * The following properties are used for equality comparison, in addition to node class definitions:<br>
+     * <code>dependency, data</code><br>
+     * The following properties are used by WeaveRootDataTreeNode but not for equality comparison:<br>
+     * <code>label, children, hasChildBranches</code><br>
+     */
+    function WeaveRootDataTreeNode() {
+        var rootNode = this;
+        var root = WeaveAPI.globalHashMap;
+        WeaveAPI.SessionManager.registerLinkableChild(this, root.childListCallbacks);
+        Object.defineProperty(this, 'sessionable', {
+            value: true
+        });
+
+        var obj = {
+            dependency: rootNode,
+            label: 'Data Sources',
+            hasChildBranches: true,
+            children: function () {
+                var sources = root.getObjects(weavedata.IDataSource).concat(weavedata.AttributeColumnCache.globalColumnDataSource);
+                var nodes = sources.map(
+                    function (ds) {
+                        WeaveAPI.SessionManager.registerLinkableChild(rootNode, ds);
+                        return ds.getHierarchyRoot();
+                    }
+                );
+
+                // only show global columns node if it has at least one child
+                var globalColumnsNode = nodes[nodes.length - 1];
+                if (!globalColumnsNode.getChildren().length)
+                    nodes.pop();
+
+                return nodes;
+            }
+        }
+        weavecore.WeaveTreeDescriptorNode.call(this, obj);
+    }
+
+    WeaveRootDataTreeNode.prototype = new weavedata.WeaveTreeDescriptorNode();
+    WeaveRootDataTreeNode.prototype.constructor = WeaveRootDataTreeNode;
+
+    var p = WeaveRootDataTreeNode.prototype;
+
+
+
+    if (typeof exports !== 'undefined') {
+        module.exports = WeaveRootDataTreeNode;
+    } else {
+
+        window.weavedata = window.weavedata ? window.weavedata : {};
+        window.weavedata.WeaveRootDataTreeNode = WeaveRootDataTreeNode;
+    }
+
+    weavecore.ClassUtils.registerClass('weavedata.WeaveRootDataTreeNode', weavedata.WeaveRootDataTreeNode);
+
+}());
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+/* Methods and properties added to facilitate creation of external linked tools.
+ * This assumes that WeavePath.js has already been loaded. */
+/* "use strict"; */
+
+
+
+weave.WeavePath.prototype.probe_keyset = weave.path("defaultProbeKeySet");
+weave.WeavePath.prototype.selection_keyset = weave.path("defaultSelectionKeySet");
+weave.WeavePath.prototype.subset_filter = weave.path("defaultSubsetKeyFilter");
+
+/**
+ * Defines static methods and lookup tables that manage conversion between Weave QualifiedKeys and DOM-friendly generated alphanumeric keys.
+ * Also defines buffers so that we can ratelimit manipulation of keysets.
+ * Alphanumeric keys should not be considered stable across sessions and should not be stored in the session state.
+ * @namespace
+ */
+weave.WeavePath.Keys = {};
+
+weave.WeavePath.Keys._qkeys_to_numeric = {};
+weave.WeavePath.Keys._numeric_to_qkeys = {};
+weave.WeavePath.Keys._numeric_key_idx = 0;
+weave.WeavePath.Keys._keyIdPrefix = "WeaveQKey";
+
+/**
+ * Retrieves or allocates the index for the given QualifiedKey object based on its localName and keyType properties
+ * @private
+ * @param  {object} key A QualifiedKey object (containing keyType and localName properties) to be converted.
+ * @return {number}     The existing or newly-allocated index for the qualified key.
+ */
+weave.WeavePath.Keys.qkeyToIndex = function (key) {
+    var local_map = this._qkeys_to_numeric[key.keyType] || (this._qkeys_to_numeric[key.keyType] = {});
+
+    if (local_map[key.localName] === undefined) {
+        var idx = this._numeric_key_idx++;
+
+        local_map[key.localName] = idx;
+        this._numeric_to_qkeys[idx] = key;
+    }
+
+    return local_map[key.localName];
+};
+/**
+ * Retrieves the corresponding qualified key object from its numeric index.
+ * @private
+ * @param  {number} index The numeric index, as received from qkeyToIndex
+ * @return {object}       The corresponding QualifiedKey object.
+ */
+weave.WeavePath.Keys.indexToQKey = function (index) {
+    return this._numeric_to_qkeys[index];
+};
+
+/**
+ * Retrieves an alphanumeric string unique to a QualifiedKey
+ * This is also available as an alias on the WeavePath object.
+ * @param  {object} key The QualifiedKey object to convert.
+ * @return {string}     The corresponding alphanumeric key.
+ */
+weave.WeavePath.Keys.qkeyToString = function (key) {
+    return this._keyIdPrefix + this.qkeyToIndex(key);
+};
+
+/**
+ * Retrieves the QualifiedKey object corresponding to a given alphanumeric string.
+ * This is also available as an alias on the WeavePath object.
+ * @param  {string} s The keystring to convert.
+ * @return {object}   The corresponding QualifiedKey
+ */
+weave.WeavePath.Keys.stringToQKey = function (s) {
+    idx = s.substr(this._keyIdPrefix.length);
+    return this.indexToQKey(idx);
+};
+
+/**
+ * Gets the key add/remove buffers for a specific session state path.
+ * @private
+ * @param  {Array} pathArray A raw session state path.
+ * @return {object}           An object containing the key add/remove queues for the given path.
+ */
+weave.WeavePath.Keys._getKeyBuffers = function (pathArray) {
+    var path_key = typeof JSON != 'undefined' ? JSON.stringify(pathArray) : pathArray;
+
+    var key_buffers_dict = this._key_buffers || (this._key_buffers = {});
+    var key_buffers = key_buffers_dict[path_key] || (key_buffers_dict[path_key] = {});
+
+    if (key_buffers.add === undefined) key_buffers.add = {};
+    if (key_buffers.remove === undefined) key_buffers.remove = {};
+    if (key_buffers.timeout_id === undefined) key_buffers.timeout_id = null;
+
+    return key_buffers;
+};
+/**
+ * Flushes the key add/remove buffers for a specific session state path.
+ * @private
+ * @param  {Array} pathArray The session state path to flush.
+ */
+weave.WeavePath.Keys._flushKeys = function (pathArray) {
+    var key_buffers = this._getKeyBuffers(pathArray);
+    var add_keys = Object.keys(key_buffers.add);
+    var remove_keys = Object.keys(key_buffers.remove);
+
+    add_keys = add_keys.map(this.stringToQKey, this);
+    remove_keys = remove_keys.map(this.stringToQKey, this);
+
+    key_buffers.add = {};
+    key_buffers.remove = {};
+
+    weave.evaluateExpression(pathArray, 'this.addKeys(keys)', {
+        keys: add_keys
+    }, null, "");
+    weave.evaluateExpression(pathArray, 'this.removeKeys(keys)', {
+        keys: remove_keys
+    }, null, "");
+
+    key_buffers.timeout_id = null;
+}.bind(weave.WeavePath.Keys);
+/**
+ * Set a timeout to flush the add/remove key buffers for a given session state path if one isn't already in progress.
+ * @private
+ * @param  {Array} pathArray The session state path referencing a KeySet to flush.
+ */
+weave.WeavePath.Keys._flushKeysLater = function (pathArray) {
+    var key_buffers = this._getKeyBuffers(pathArray);
+    if (key_buffers.timeout_id === null)
+        key_buffers.timeout_id = window.setTimeout(weave.WeavePath.Keys._flushKeys, 25, pathArray);
+};
+
+/**
+ * Queue keys to be added to a specified path.
+ * @private
+ * @param {Array} pathArray      The session state path referencing a KeySet
+ * @param {Array} keyStringArray The set of keys to add.
+ */
+weave.WeavePath.Keys._addKeys = function (pathArray, keyStringArray) {
+    var key_buffers = this._getKeyBuffers(pathArray);
+
+    keyStringArray.forEach(function (key) {
+        key_buffers.add[key] = true;
+        delete key_buffers.remove[key];
+    });
+
+    this._flushKeysLater(pathArray);
+};
+
+/**
+ * Queue keys to be removed from a specified path.
+ * @private
+ * @param {Array} pathArray      The session state path referencing a KeySet
+ * @param {Array} keyStringArray The set of keys to remove.
+ */
+weave.WeavePath.Keys._removeKeys = function (pathArray, keyStringArray) {
+    var key_buffers = this._getKeyBuffers(pathArray);
+
+    keyStringArray.forEach(function (key) {
+        key_buffers.remove[key] = true;
+        delete key_buffers.add[key];
+    });
+
+    this._flushKeysLater(pathArray);
+};
+
+weave.WeavePath.prototype.qkeyToString = weave.WeavePath.Keys.qkeyToString.bind(weave.WeavePath.Keys);
+weave.WeavePath.prototype.stringToQKey = weave.WeavePath.Keys.stringToQKey.bind(weave.WeavePath.Keys);
+weave.WeavePath.prototype.indexToQKey = weave.WeavePath.Keys.indexToQKey.bind(weave.WeavePath.Keys);
+weave.WeavePath.prototype.qkeyToIndex = weave.WeavePath.Keys.qkeyToIndex.bind(weave.WeavePath.Keys);
+
+
+/**
+ * Creates a new property based on configuration stored in a property descriptor object.
+ * See initProperties for documentation of the property_descriptor object.
+ * @param callback_pass If false, create object, verify type, and set default value; if true, add callback;
+ * @param property_descriptor An object containing, minimally, a 'name' property defining the name of the session state element to be created.
+ * @private
+ * @return The current WeavePath object.
+ */
+weave.WeavePath.prototype._initProperty = function (manifest, callback_pass, property_descriptor) {
+    var name = property_descriptor["name"] || this._failMessage('initProperty', 'A "name" is required');
+    var label = property_descriptor["label"];
+    var children = Array.isArray(property_descriptor["children"]) ? Array.prototype.slice.call(property_descriptor["children"]) : undefined;
+    var type = property_descriptor["type"] || (children ? "weavecore.LinkableHashMap" : "weavecore.LinkableVariable");
+
+    var new_prop = this.push(name);
+
+    if (callback_pass) {
+        var callback = property_descriptor["callback"];
+        var triggerNow = property_descriptor["triggerNow"];
+        var immediate = property_descriptor["immediate"];
+        if (callback)
+            new_prop.addCallback(
+                callback,
+                triggerNow !== undefined ? triggerNow : true,
+                immediate !== undefined ? immediate : false
+            );
+    } else {
+        var oldType = new_prop.getType();
+
+        type = new_prop.request(type).getType();
+
+        if (label) {
+            new_prop.label(label);
+        }
+
+        if (oldType != type && property_descriptor.hasOwnProperty("default")) {
+            new_prop.state(property_descriptor["default"]);
+        }
+
+        manifest[name] = new_prop;
+    }
+
+    if (children) {
+        if (!callback_pass)
+            manifest[name] = {};
+        children.forEach(this._initProperty.bind(new_prop, manifest[name], callback_pass));
+    }
+
+    return this;
+};
+
+/**
+ * Creates a set of properties for a tool from an array of property descriptor objects.
+ * Each property descriptor can contain the follow properties:
+ * 'name': Required, specifies the name for the session state item.
+ * 'children': Optionally, another array of property descriptors to create as children of this property.
+ * 'label': A human-readable display name for the session state item.
+ * 'type': A Weave session variable type; defaults to "LinkableVariable," or "LinkableHashMap" if children is defined.
+ * 'callback': A function to be called when this session state item (or a child of it) changes.
+ * 'triggerNow': Specify whether to trigger the callback after it is added; defaults to 'true.'
+ * 'immediate': Specify whether to execute the callback in immediate (once per change) or grouped (once per frame) mode.
+ * @param {Array} property_descriptor_array An array of property descriptor objects, each minimally containing a 'name' property.
+ * @param {object} manifest An object to populate with name->path relationships for convenience.
+ * @return {weave.WeavePath} The current WeavePath object.
+ */
+weave.WeavePath.prototype.initProperties = function (property_descriptor_array, manifest) {
+    if (this.getType() == null)
+        this.request("ExternalTool");
+
+    if (!manifest)
+        manifest = {};
+
+    /* Creation and default-setting pass */
+    property_descriptor_array.forEach(this._initProperty.bind(this, manifest, false));
+    /* Attaching callback pass */
+    property_descriptor_array.forEach(this._initProperty.bind(this, manifest, true));
+
+    return manifest;
+};
+
+/**
+ * Constructs and returns an object containing keys corresponding to the children of the session state object referenced by this path, the values of which are new WeavePath objects.
+ * @param [relativePath] An optional Array (or multiple parameters) specifying descendant names relative to the current path.
+ *                     A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
+ * @return {object} An object containing keys corresponding to the children of the session state object.
+ */
+weave.WeavePath.prototype.getProperties = function ( /*...relativePath*/ ) {
+    var result = {};
+    this.getNames.apply(this, arguments).forEach(function (name) {
+        result[name] = this.push(name);
+    }, this);
+    return result;
+};
+
+/**
+ * Returns an array of alphanumeric strings uniquely corresponding to the KeySet referenced by this path.
+ * @param [relativePath] An optional Array (or multiple parameters) specifying descendant names relative to the current path.
+ *                     A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
+ * @return {Array} An array of alphanumeric strings corresponding to the keys contained by the KeySet.
+ */
+weave.WeavePath.prototype.getKeys = function ( /*...relativePath*/ ) {
+    var args = this._A(arguments, 1);
+    var path = this._path.concat(args);
+    var raw_keys = this.weave.evaluateExpression(path, "this.keys");
+    return raw_keys.map(this.qkeyToString);
+};
+
+/**
+ * Forces a flush of the add/remove key buffers for the KeySet specified by this path.
+ * @param [relativePath] An optional Array (or multiple parameters) specifying descendant names relative to the current path
+ *                     A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
+ * @return {weave.WeavePath} The current WeavePath object.
+ */
+weave.WeavePath.prototype.flushKeys = function ( /*...relativePath*/ ) {
+    var args = this._A(arguments, 1);
+    if (this._assertParams('flushKeys', args)) {
+        var path = this._path.concat(args);
+
+        this.weave.WeavePath.Keys._flushKeys(path);
+    }
+    return this;
+};
+/**
+ * Adds the specified keys to the KeySet at this path. These will not be added immediately, but are queued with flush timeout of approx. 25 ms.
+ * @param [relativePath] An optional Array (or multiple parameters) specifying descendant names relative to the current path
+ *                     A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
+ * @param {Array} [keyStringArray] An array of alphanumeric keystrings that correspond to QualifiedKeys.
+ * @return {weave.WeavePath} The current WeavePath object.
+ */
+weave.WeavePath.prototype.addKeys = function ( /*...relativePath, keyStringArray*/ ) {
+    var args = this._A(arguments, 2);
+
+    if (this._assertParams('addKeys', args)) {
+        var keyStringArray = args.pop();
+        var path = this._path.concat(args);
+
+        this.weave.WeavePath.Keys._addKeys(path, keyStringArray);
+    }
+    return this;
+};
+/**
+ * Removes the specified keys to the KeySet at this path. These will not be removed immediately, but are queued with a flush timeout of approx. 25 ms.
+ * @param [relativePath] An optional Array (or multiple parameters) specifying descendant names relative to the current path
+ *                     A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
+ * @param {Array} [keyStringArray] An array of alphanumeric keystrings that correspond to QualifiedKeys.
+ * @return {weave.WeavePath} The current WeavePath object.
+ */
+weave.WeavePath.prototype.removeKeys = function ( /*...relativePath, keyStringArray*/ ) {
+    var args = this._A(arguments, 2);
+
+    if (this._assertParams('removeKeys', args)) {
+        var keyStringArray = args.pop();
+        var path = this._path.concat(args);
+
+        this.weave.WeavePath.Keys._removeKeys(path, keyStringArray);
+    }
+    return this;
+};
+
+/**
+ * Adds a callback to the KeySet specified by this path which will return information about which keys were added or removed to/from the set.
+ * @param {Function} callback           A callback function which will receive an object containing two fields,
+ *                                       'added' and 'removed' which contain a list of the keys which changed in the referenced KeySet
+ * @param {boolean}  [triggerCallbackNow] Whether to trigger the callback immediately after it is added.
+ * @return {weave.WeavePath} The current WeavePath object.
+ */
+weave.WeavePath.prototype.addKeySetCallback = function (callback, triggerCallbackNow) {
+    function wrapper() {
+        var key_event = this.weave.evaluateExpression(this._path, '{added: this.keysAdded, removed: this.keysRemoved}');
+
+        key_event.added = key_event.added.map(this.qkeyToString);
+        key_event.removed = key_event.removed.map(this.qkeyToString);
+
+        callback.call(this, key_event);
+    }
+
+    this.push('keyCallbacks').addCallback(wrapper, false, true);
+
+    if (triggerCallbackNow) {
+        var key_event = {
+            added: this.getKeys(),
+            removed: []
+        };
+
+        callback.call(this, key_event);
+    }
+
+    return this;
+};
+/**
+ * Replaces the contents of the KeySet at this path with the specified keys.
+ * @param [relativePath] An optional Array (or multiple parameters) specifying descendant names relative to the current path
+ *                     A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
+ * @param {Array} keyStringArray An array of alphanumeric keystrings that correspond to QualifiedKeys.
+ * @return {weave.WeavePath} The current WeavePath object.
+ */
+weave.WeavePath.prototype.setKeys = function ( /*...relativePath, keyStringArray*/ ) {
+    var args = this._A(arguments, 2);
+    if (this._assertParams('setKeys', args)) {
+        var keyStringArray = args.pop();
+        var keyObjectArray = keyStringArray.map(this.stringToQKey);
+        var path = this._path.concat(args);
+        this.weave.evaluateExpression(path, 'this.replaceKeys(keys)', {
+            keys: keyObjectArray
+        }, null, "");
+
+        return this;
+    };
+    return this;
+};
+/**
+ * Intersects the specified keys with the KeySet at this path.
+ * @param [relativePath] An optional Array (or multiple parameters) specifying descendant names relative to the current path
+ *                     A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
+ * @param {Array} keyStringArray An array of alphanumeric keystrings that correspond to QualifiedKeys.
+ * @return {Array} The keys which exist in both the keyStringArray and in the KeySet at this path.
+ */
+
+weave.WeavePath.prototype.filterKeys = function ( /*...relativePath, keyStringArray*/ ) {
+    var args = this._A(arguments, 2);
+    if (this._assertParams('filterKeys', args)) {
+        var keyStringArray = args.pop();
+        var keyObjects = keyStringArray.map(this.stringToQKey);
+        var path = this._path.concat(args);
+        var resultArray = this.weave.evaluateExpression(
+            path,
+            'WeaveAPI.QKeyManager.convertToQKeys(keys).filter(key => this.containsKey(key))', {
+                keys: keyObjects
+            }
+        );
+        return resultArray.map(this.qkeyToString, this);
+    }
+};
+
+/**
+ * Retrieves a list of records defined by a mapping of property names to column paths or by an array of column names.
+ * @param {object} pathMapping An object containing a mapping of desired property names to column paths or an array of child names.
+ * pathMapping can be one of three different forms:
+ * An array of column names corresponding to children of the WeavePath this method is called from, e.g., path.retrieveRecords(["x", "y"]);
+ * the column names will also be used as the corresponding property names in the resultant records.
+ * An object, for which each property=>value is the target record property => source column WeavePath. This can be defined to include recursive structures, e.g.,
+ * path.retrieveRecords({point: {x: x_column, y: y_column}, color: color_column}), which would result in records with the same form.
+ * If it is null, all children of the WeavePath will be retrieved. This is equivalent to: path.retrieveRecords(path.getNames());
+ * The alphanumeric QualifiedKey for each record will be stored in the 'id' field, which means it is to be considered a reserved name.
+ * @param {weave.WeavePath} [keySetPath] A WeavePath object pointing to an IKeySet (columns are also IKeySets.)
+ * @return {Array} An array of record objects.
+ */
+weave.WeavePath.prototype.retrieveRecords = function (pathMapping, keySetPath) {
+    // if only one argument given and it's a WeavePath object, assume it's supposed to be keySetPath.
+    if (arguments.length == 1 && pathMapping instanceof weave.WeavePath) {
+        keySetPath = pathMapping;
+        pathMapping = null;
+    }
+
+    if (!pathMapping)
+        pathMapping = this.getNames();
+
+    if (Array.isArray(pathMapping)) // array of child names
+    {
+        var names = Array.prototype.slice.call(pathMapping);
+        pathMapping = {};
+        names.forEach(function (name) {
+            pathMapping[name] = this.push(name);
+        }, this);
+    }
+
+    // pathMapping is a nested object mapping property chains to WeavePath objects
+    var obj = listChainsAndPaths(pathMapping);
+
+    /* Perform the actual retrieval of records */
+    var results = joinColumns(obj.paths, null, true, keySetPath);
+    return results[0]
+        .map(this.qkeyToString)
+        .map(function (key, iRow) {
+            var record = {
+                id: key
+            };
+            obj.chains.forEach(function (chain, iChain) {
+                setChain(record, chain, results[iChain + 1][iRow])
+            });
+            return record;
+        });
+};
+
+/**
+ * @private
+ * A function that tests if a WeavePath references an IAttributeColumn
+ */
+//var isColumn = weave.evaluateExpression(null, "o => o instanceof weavedata.IAttributeColumn");
+var isColumn = function (o) {
+    return o instanceof weavedata.IAttributeColumn;
+};
+
+/**
+ * @private
+ * A pointer to ColumnUtils.joinColumns.
+ */
+//var joinColumns = weave.evaluateExpression(null, "weavedata.ColumnUtils.joinColumns");
+var joinColumns = weavedata.ColumnUtils.joinColumns;
+
+/**
+ * @private
+ * Walk down a property chain of a given object and set the value of the final node.
+ * @param root The object to navigate through.
+ * @param property_chain An array of property names defining a path.
+ * @param value The value to which to set the final node.
+ * @return The value that was set, or the current value if no value was given.
+ */
+var setChain = function (root, property_chain, value) {
+    property_chain = [].concat(property_chain); // makes a copy and converts a single string into an array
+    var last_property = property_chain.pop();
+    property_chain.forEach(function (prop) {
+        root = root[prop] || (root[prop] = {});
+    });
+    // if value not given, return current value
+    if (arguments.length == 2)
+        return root[last_property];
+    // set the value and return it
+    return root[last_property] = value;
+};
+
+/**
+ * @private
+ * Walk down a property chain of a given object and return the final node.
+ * @param root The object to navigate through.
+ * @param property_chain An array of property names defining a path.
+ * @return The value of the final property in the chain.
+ */
+var getChain = function (root, property_chain) {
+    return setChain(root, property_chain);
+};
+
+/**
+ * @private
+ * Recursively builds a mapping of property chains to WeavePath objects from a path specification as used in retrieveRecords
+ * @param obj A path spec object
+ * @param prefix A property chain prefix (optional)
+ * @param output Output object with "chains" and "paths" properties (optional)
+ * @return An object like {"chains": [], "paths": []}, where "chains" contains property name chains and "paths" contains WeavePath objects
+ */
+var listChainsAndPaths = function (obj, prefix, output) {
+    if (!prefix)
+        prefix = [];
+    if (!output)
+        output = {
+            chains: [],
+            paths: []
+        };
+
+    for (var key in obj) {
+        var item = obj[key];
+        if (item instanceof weave.WeavePath) {
+            if (isColumn(item)) {
+                output.chains.push(prefix.concat(key));
+                output.paths.push(item);
+            }
+        } else {
+            listChainsAndPaths(item, prefix.concat(key), output);
+        }
+    }
+    return output;
+};
+
+var getLabel = weave.evaluateExpression(null, "WeaveAPI.EditorManager.getLabel");
+var setLabel = weave.evaluateExpression(null, "WeaveAPI.EditorManager.setLabel");
+
+/**
+ * Sets a human-readable label for an ILinkableObject to be used in editors.
+ * @param [relativePath] An optional Array (or multiple parameters) specifying child names relative to the current path.
+ *                     A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
+ * @param {string} label The human-readable label for an ILinkableObject.
+ * @return {weave.WeavePath} The current WeavePath object.
+ */
+weave.WeavePath.prototype.label = function ( /*...relativePath, label*/ ) {
+    var args = this._A(arguments, 2);
+    if (this._assertParams('setLabel', args)) {
+        var label = args.pop();
+        setLabel(this.push(args), label);
+    }
+    return this;
+};
+
+/**
+ * Gets the previously-stored human-readable label for an ILinkableObject.
+ * @param [relativePath] An optional Array (or multiple parameters) specifying child names relative to the current path.
+ *                     A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
+ * @return {string} The human-readable label for an ILinkableObject.
+ */
+weave.WeavePath.prototype.getLabel = function ( /*...relativePath*/ ) {
+    var args = this._A(arguments, 1);
+    return getLabel(this.push(args));
+};
+
+var EDC = 'weavedata.ExtendedDynamicColumn';
+var DC = 'weavedata.DynamicColumn';
+var RC = 'weavedata.ReferencedColumn';
+/*var getColumnType = weave.evaluateExpression(null, 'o => { for each (var t in types) if (o instanceof t) return t; }', {
+    types: [EDC, DC, RC]
+});*/
+
+var getColumnType = function (o) {
+    var types = [EDC, DC, RC];
+    for (var i = 0; i < types.length; i++) {
+        var t = types[i];
+        if (o instanceof t) return t;
+    }
+
+};
+//var getFirstDataSourceName = weave.evaluateExpression([], '() => this.getNames(IDataSource)[0]');
+var getFirstDataSourceName = function () {
+    return this.getNames(weavedata.IDataSource)[0];
+};
+
+/**
+ * Sets the metadata for a column at the current path.
+ * @param {object} metadata The metadata identifying the column. The format depends on the data source.
+ * @param {string} [dataSourceName] (Optional) The name of the data source in the session state.
+ *                       If ommitted, the first data source in the session state will be used.
+ * @return {weave.WeavePath} The current WeavePath object.
+ */
+weave.WeavePath.prototype.setColumn = function (metadata, dataSourceName) {
+    var type = this.getType();
+    if (!type)
+        this.request(type = RC);
+    else
+        type = getColumnType(this);
+
+    if (!type)
+        this._failMessage('setColumn', 'Not a compatible column object', this._path);
+
+    var path = this;
+    if (type == EDC)
+        path = path.push('internalDynamicColumn', null).request(RC);
+    else if (type == DC)
+        path = path.push(null).request(RC);
+    path.state({
+        "metadata": metadata,
+        "dataSourceName": arguments.length > 1 ? dataSourceName : getFirstDataSourceName()
+    });
+
+    return this;
+};
+
+/**
+ * Sets the metadata for multiple columns that are children of the current path.
+ * @param metadataMapping An object mapping child names (or indices) to column metadata.
+ *                        An Array of column metadata objects may be given for a LinkableHashMap.
+ * @param {string} [dataSourceName] The name of the data source in the session state.
+ *                       If ommitted, the first data source in the session state will be used.
+ * @return {weave.WeavePath} The current WeavePath object.
+ */
+weave.WeavePath.prototype.setColumns = function (metadataMapping, dataSourceName) {
+    var useDataSource = arguments.length > 1;
+    this.forEach(metadataMapping, function (value, key) {
+        var path = this.push(key);
+        var func = Array.isArray(value) ? path.setColumns : path.setColumn;
+        var args = useDataSource ? [value, dataSourceName] : [value];
+        func.apply(path, args);
+    });
+    if (Array.isArray(metadataMapping))
+        while (this.getType(metadataMapping.length))
+            this.remove(metadataMapping.length);
+    return this;
+};
+
+////////////////////////////////////
+
+var weaveTreeNodeSerial = 'WEAVE_TREE_NODE_SERIAL';
+var weaveTreeNodeLookup = 'WEAVE_TREE_NODE_LOOKUP';
+// initialize ActionScript variables
+weave.evaluateExpression(null, '0', null, null, weaveTreeNodeSerial);
+weave.evaluateExpression(null, 'new Map()', null, null, weaveTreeNodeLookup);
+var _createNodeFunction = function (script, vars) {
+    var fn = weave.evaluateExpression(null, '(serial,arg1,arg2) => { var node = ' + weaveTreeNodeLookup + '[serial]; ' + script + ' }', vars);
+    return function (arg1, arg2) {
+        return fn(this.serial, arg1, arg2);
+    };
+};
+var _mapNodesToSerials = weave.evaluateExpression(null, 'nodes => {\
+	var lookup = ' + weaveTreeNodeLookup + ';\
+	return nodes && nodes.map(child => {\
+		if (lookup[child] === undefined)\
+			lookup[ (lookup[child] = ++' + weaveTreeNodeSerial + ') ] = child;\
+		return lookup[child];\
+	});\
+}');
+
+/**
+ * WeaveTreeNode implements the following interfaces: IWeaveTreeNode, IColumnReference
+ */
+weave.WeaveTreeNode = function (serial, parent) {
+    this.serial = serial | 0; // default - root node
+    this.parent = parent;
+    weave.WeaveTreeNode.cache[this.serial] = this;
+    if (this.serial == 0)
+        weave.evaluateExpression(null, 'var lookup = ' + weaveTreeNodeLookup + '; if (lookup[0] === undefined) lookup[lookup[0] = new WeaveRootDataTreeNode()] = 0; return null;');
+};
+weave.WeaveTreeNode.cache = {}; // serial -> WeaveTreeNode
+weave.WeaveTreeNode.prototype.getLabel = _createNodeFunction('node.getLabel()');
+weave.WeaveTreeNode.prototype.isBranch = _createNodeFunction('node.isBranch()');
+weave.WeaveTreeNode.prototype.hasChildBranches = _createNodeFunction('node.hasChildBranches()');
+weave.WeaveTreeNode.prototype._getChildrenSerials = _createNodeFunction('getSerials(node.getChildren())', {
+    getSerials: _mapNodesToSerials
+});
+weave.WeaveTreeNode.prototype.getChildren = function () {
+    var serials = this._getChildrenSerials();
+    return serials && serials.map(function (serial) {
+        return weave.WeaveTreeNode.cache[serial] || new weave.WeaveTreeNode(serial, this);
+    }, this);
+};
+weave.WeaveTreeNode.prototype.getDataSource = _createNodeFunction('node.getDataSource ? node.getDataSource() : null');
+weave.WeaveTreeNode.prototype.getDataSourceName = _createNodeFunction('node.getDataSource ? WeaveAPI.globalHashMap.getName(node.getDataSource()) : null');
+weave.WeaveTreeNode.prototype.getColumnMetadata = _createNodeFunction('node.getColumnMetadata ? node.getColumnMetadata() : null');
+weave.WeaveTreeNode.prototype._findPathSerials = _createNodeFunction('\
+	var dataSourceName = arg1, columnMetadata = arg2;\
+	var ds = WeaveAPI.globalHashMap.getObject(dataSourceName);\
+	var target = ds && ds.findHierarchyNode(columnMetadata);\
+	var path = ds && target && HierarchyUtils.findPathToNode(node, target);\
+	return getSerials(path);\
+', {
+    getSerials: _mapNodesToSerials
+});
+weave.WeaveTreeNode.prototype.findPath = function (dataSourceName, columnMetadata) {
+    var serials = this._findPathSerials(dataSourceName, columnMetadata);
+    return serials && serials.map(function (serial, index, array) {
+        var parent = weave.WeaveTreeNode.cache[array[index - 1]];
+        return weave.WeaveTreeNode.cache[serial] || new weave.WeaveTreeNode(serial, parent);
+    }, this);
+};
