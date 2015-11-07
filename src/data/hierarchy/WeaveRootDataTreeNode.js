@@ -12,7 +12,7 @@
         var root = WeaveAPI.globalHashMap;
         WeaveAPI.SessionManager.registerLinkableChild(this, root.childListCallbacks);
         Object.defineProperty(this, 'sessionable', {
-            value: true;
+            value: true
         });
 
         var obj = {
@@ -39,7 +39,7 @@
         weavecore.WeaveTreeDescriptorNode.call(this, obj);
     }
 
-    WeaveRootDataTreeNode.prototype = new weavecore.WeaveTreeDescriptorNode();
+    WeaveRootDataTreeNode.prototype = new weavedata.WeaveTreeDescriptorNode();
     WeaveRootDataTreeNode.prototype.constructor = WeaveRootDataTreeNode;
 
     var p = WeaveRootDataTreeNode.prototype;
@@ -54,6 +54,6 @@
         window.weavedata.WeaveRootDataTreeNode = WeaveRootDataTreeNode;
     }
 
-     weavecore.ClassUtils.registerClass('weavedata.WeaveRootDataTreeNode', weavedata.WeaveRootDataTreeNode);
+    weavecore.ClassUtils.registerClass('weavedata.WeaveRootDataTreeNode', weavedata.WeaveRootDataTreeNode);
 
 }());

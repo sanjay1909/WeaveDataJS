@@ -35,7 +35,7 @@
     function AbstractAttributeColumn(metadata) {
         // set default argument values
         if (metadata === undefined) metadata = null;
-        weavecore.CallbackCollection.call(this);
+        weavedata.IAttributeColumn.call(this);
 
 
         this._metadata = null;
@@ -86,7 +86,7 @@
         return obj;
     }
 
-    AbstractAttributeColumn.prototype = new weavecore.CallbackCollection();
+    AbstractAttributeColumn.prototype = new weavedata.IAttributeColumn();
     AbstractAttributeColumn.prototype.constructor = AbstractAttributeColumn;
 
     var p = AbstractAttributeColumn.prototype;

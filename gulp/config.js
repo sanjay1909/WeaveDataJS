@@ -1,5 +1,6 @@
 var dest = "./build";
-var outputDocsFolder = dest + "/docs"
+var outputDocsFolder = dest + "/docs";
+var src = './src';
 
 //used both for Source reference and Order reference
 var buildOrder = [
@@ -16,7 +17,22 @@ var buildOrder = [
                     'src/data/EntityType.js',
 
                     'src/data/KeySets/*.js',
-                    'src/data/AttributeColumns/*.js',
+
+                    'src/data/AttributeColumns/IAttributeColumn.js',
+                    'src/data/AttributeColumns/IColumnWrapper.js',
+                    'src/data/AttributeColumns/AbstractAttributeColumn.js',
+                    'src/data/AttributeColumns/DateColumn.js',
+                    'src/data/AttributeColumns/NumberColumn.js',
+                    'src/data/AttributeColumns/StringColumn.js',
+                    'src/data/AttributeColumns/KeyColumn.js',
+                    'src/data/AttributeColumns/CSVColumn.js',
+                    'src/data/AttributeColumns/ReferencedColumn.js',
+                    'src/data/AttributeColumns/ProxyColumn.js',
+                    'src/data/AttributeColumns/KeyColumn.js',
+                    'src/data/AttributeColumns/DynamicColumn.js',
+                    'src/data/AttributeColumns/ExtendedDynamicColumn.js',
+                    'src/data/AttributeColumns/FilteredColumn.js',
+                    'src/data/AttributeColumns/ColumnDataTask.js',
 
                     'src/data/DataSources/IDataSource.js',
                     'src/data/DataSources/AbstractDataSource.js',

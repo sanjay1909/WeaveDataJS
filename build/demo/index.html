@@ -1,0 +1,62 @@
+<html>
+
+<head>
+    <script type="application/javascript" src="http://sanjay1909.github.io/WeaveCoreJS/weavecore.js"></script>
+    <script type="application/javascript" src="../weavedata.js"></script>
+</head>
+
+<body>
+    <script>
+        WeaveAPI.globalHashMap.requestObject('defaultProbeKeySet', weavecore.LinkableVariable);
+        WeaveAPI.globalHashMap.requestObject('defaultSelectionKeySet', weavecore.LinkableVariable);
+        WeaveAPI.globalHashMap.requestObject('defaultSubsetKeyFilter', weavecore.LinkableVariable);
+
+        var ds = WeaveAPI.globalHashMap.requestObject('CSVdataSource', weavedata.CSVDataSource);
+        var prom = new weavecore.WeavePromise();
+
+
+
+        filteredDataX = WeaveAPI.SessionManager.registerDisposableChild(this, new weavedata.FilteredColumn());
+        filteredDataY = WeaveAPI.SessionManager.registerDisposableChild(this, new weavedata.FilteredColumn());
+
+        getDataX = function () {
+            return filteredDataX.internalDynamicColumn;
+        }
+        getDataY = function () {
+            return filteredDataY.internalDynamicColumn;
+        }
+
+        assignXYColumnsFromSource = function () {
+            ds.putColumn(5, getDataX());
+            ds.putColumn(6, getDataY());
+        }
+        ds.url.addImmediateCallback(ds, assignXYColumnsFromSource);
+
+        /* prom.depend(ds.url).then(function () {
+             return getDataX().getInternalColumn();
+         }, function () {
+             console.log(arguments);
+         }).then(function (rc) {
+             return rc.getInternalColumn();
+         }, function () {
+             console.log(arguments);
+         }).then(function (pc) {
+             return pc.getInternalColumn();
+         }, function () {
+             console.log(arguments);
+         }).then(function (col) {
+             return col.keys;
+         }, function () {
+             console.log(arguments);
+         }).then(function (keys) {
+             console.log(keys);
+         }, function () {
+             console.log(arguments);
+         });*/
+
+        ds.url.value = 'http://as-me.github.io/dashboard/data/testCereal.csv';
+    </script>
+
+</body>
+
+</html>

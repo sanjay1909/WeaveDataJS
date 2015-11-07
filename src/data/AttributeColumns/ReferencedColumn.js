@@ -173,7 +173,7 @@
     }
 
     p.toString = function () {
-        return this.debugId(this) + '(' + weavedata.ColumnUtils.getTitle(this) + ')';
+        return WeaveAPI.DebugUtils.debugId(this) + '(' + weavedata.ColumnUtils.getTitle(this) + ')';
     }
 
     if (typeof exports !== 'undefined') {

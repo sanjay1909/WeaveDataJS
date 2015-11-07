@@ -17,8 +17,7 @@
  * This assumes that WeavePath.js has already been loaded. */
 /* "use strict"; */
 
-if (!weave.WeavePath)
-    return;
+
 
 weave.WeavePath.prototype.probe_keyset = weave.path("defaultProbeKeySet");
 weave.WeavePath.prototype.selection_keyset = weave.path("defaultSelectionKeySet");
@@ -192,7 +191,7 @@ weave.WeavePath.prototype._initProperty = function (manifest, callback_pass, pro
     var name = property_descriptor["name"] || this._failMessage('initProperty', 'A "name" is required');
     var label = property_descriptor["label"];
     var children = Array.isArray(property_descriptor["children"]) ? Array.prototype.slice.call(property_descriptor["children"]) : undefined;
-    var type = property_descriptor["type"] || (children ? "LinkableHashMap" : "LinkableVariable");
+    var type = property_descriptor["type"] || (children ? "weavecore.LinkableHashMap" : "weavecore.LinkableVariable");
 
     var new_prop = this.push(name);
 
@@ -468,13 +467,17 @@ weave.WeavePath.prototype.retrieveRecords = function (pathMapping, keySetPath) {
  * @private
  * A function that tests if a WeavePath references an IAttributeColumn
  */
-var isColumn = weave.evaluateExpression(null, "o => o is IAttributeColumn");
+//var isColumn = weave.evaluateExpression(null, "o => o instanceof weavedata.IAttributeColumn");
+var isColumn = function (o) {
+    return o instanceof weavedata.IAttributeColumn;
+};
 
 /**
  * @private
  * A pointer to ColumnUtils.joinColumns.
  */
-var joinColumns = weave.evaluateExpression(null, "ColumnUtils.joinColumns");
+//var joinColumns = weave.evaluateExpression(null, "weavedata.ColumnUtils.joinColumns");
+var joinColumns = weavedata.ColumnUtils.joinColumns;
 
 /**
  * @private
@@ -572,10 +575,22 @@ weave.WeavePath.prototype.getLabel = function ( /*...relativePath*/ ) {
 var EDC = 'weavedata.ExtendedDynamicColumn';
 var DC = 'weavedata.DynamicColumn';
 var RC = 'weavedata.ReferencedColumn';
-var getColumnType = weave.evaluateExpression(null, 'o => { for each (var t in types) if (o is t) return t; }', {
+/*var getColumnType = weave.evaluateExpression(null, 'o => { for each (var t in types) if (o instanceof t) return t; }', {
     types: [EDC, DC, RC]
-});
-var getFirstDataSourceName = weave.evaluateExpression([], '() => this.getNames(weavedata.IDataSource)[0]');
+});*/
+
+var getColumnType = function (o) {
+    var types = [EDC, DC, RC];
+    for (var i = 0; i < types.length; i++) {
+        var t = types[i];
+        if (o instanceof t) return t;
+    }
+
+};
+//var getFirstDataSourceName = weave.evaluateExpression([], '() => this.getNames(IDataSource)[0]');
+var getFirstDataSourceName = function () {
+    return this.getNames(weavedata.IDataSource)[0];
+};
 
 /**
  * Sets the metadata for a column at the current path.

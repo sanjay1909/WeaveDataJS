@@ -36,10 +36,10 @@
      * @author sanjay1909
      */
     function IColumnWrapper() {
-        weavedata.AbstractAttributeColumn.call(this);
+        weavedata.IAttributeColumn.call(this);
     }
 
-    IColumnWrapper.prototype = new weavedata.AbstractAttributeColumn();
+    IColumnWrapper.prototype = new weavedata.IAttributeColumn();
     IColumnWrapper.prototype.constructor = IColumnWrapper;
 
     var p = IColumnWrapper.prototype;
@@ -57,6 +57,6 @@
         window.weavedata = window.weavedata ? window.weavedata : {};
         window.weavedata.IColumnWrapper = IColumnWrapper;
     }
-     weavecore.ClassUtils.registerClass('weavedata.IColumnWrapper', weavedata.IColumnWrapper);
+    weavecore.ClassUtils.registerClass('weavedata.IColumnWrapper', weavedata.IColumnWrapper);
 
 }());
