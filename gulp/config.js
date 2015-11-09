@@ -42,9 +42,13 @@ var buildOrder = [
                     'src/data/hierarchy/ColumnTreeNode.js',
                     'src/data/hierarchy/WeaveRootDataTreeNode.js',
 
+                    'src/primitives/Point.js',
+                    'src/primitives/Rectangle.js',
+                    'src/primitives/Range.js',
+                    'src/primitives/Bounds2D.js',
+                    'src/primitives/ZoomBounds.js',
+
                     'src/WeavePathData.js'
-
-
                ];
 
 module.exports = {
