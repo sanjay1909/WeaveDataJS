@@ -7,15 +7,14 @@
 
 <body>
     <script>
-        WeaveAPI.globalHashMap.requestObject('defaultProbeKeySet', weavecore.LinkableVariable);
-        WeaveAPI.globalHashMap.requestObject('defaultSelectionKeySet', weavecore.LinkableVariable);
-        WeaveAPI.globalHashMap.requestObject('defaultSubsetKeyFilter', weavecore.LinkableVariable);
+        weave.path('defaultProbeKeySet').request('weavecore.LinkableVariable');
+        weave.path('defaultSelectionKeySet').request('weavecore.LinkableVariable');
+        weave.path('defaultSubsetKeyFilter').request('weavecore.LinkableVariable');
 
-        var ds = WeaveAPI.globalHashMap.requestObject('CSVdataSource', weavedata.CSVDataSource);
-        var prom = new weavecore.WeavePromise();
+        var dsPath = weave.path('cereal').request('weavedata.CSVDataSource');
+        var dsURLPath = weave.path(['cereal', 'url']);
 
-
-
+        var ds = WeaveAPI.globalHashMap.getObject('cereal');
         filteredDataX = WeaveAPI.SessionManager.registerDisposableChild(this, new weavedata.FilteredColumn());
         filteredDataY = WeaveAPI.SessionManager.registerDisposableChild(this, new weavedata.FilteredColumn());
 
@@ -30,31 +29,11 @@
             ds.putColumn(5, getDataX());
             ds.putColumn(6, getDataY());
         }
-        ds.url.addImmediateCallback(ds, assignXYColumnsFromSource);
 
-        /* prom.depend(ds.url).then(function () {
-             return getDataX().getInternalColumn();
-         }, function () {
-             console.log(arguments);
-         }).then(function (rc) {
-             return rc.getInternalColumn();
-         }, function () {
-             console.log(arguments);
-         }).then(function (pc) {
-             return pc.getInternalColumn();
-         }, function () {
-             console.log(arguments);
-         }).then(function (col) {
-             return col.keys;
-         }, function () {
-             console.log(arguments);
-         }).then(function (keys) {
-             console.log(keys);
-         }, function () {
-             console.log(arguments);
-         });*/
 
-        ds.url.value = 'http://as-me.github.io/dashboard/data/testCereal.csv';
+
+        dsURLPath.addCallback(assignXYColumnsFromSource, false, true);
+        dsURLPath.state('http://as-me.github.io/dashboard/data/testCereal.csv');
     </script>
 
 </body>
