@@ -12,6 +12,9 @@
      * @author adufilie
      * @author sanjay1909
      */
+
+
+
     /**
      * The default coordinates are all NaN so that includeCoords() will behave as expected after
      * creating an empty Bounds2D.
@@ -31,35 +34,12 @@
         this.yMax = (yMax === undefined) ? NaN : yMax;
 
 
-
-        // re-usable temporary objects
-        Object.defineProperties(this, {
-            'staticBounds2D_A': {
-                value: new weavedata.Bounds2D()
-            },
-            'staticBounds2D_B': {
-                value: new weavedata.Bounds2D()
-            }
-        });
-
-        // reusable temporary objects
-        Object.defineProperties(this, {
-            'tempPoint': {
-                value: {
-                    'x': NaN,
-                    'y': NaN
-                }
-            },
-            'staticRange_A': {
-                value: new weavedata.Range()
-            },
-            'staticRange_B': {
-                value: new weavedata.Range()
-            }
-        });
-
         this.setBounds(this.xMin, this.yMin, this.xMax, this.yMax);
     }
+
+
+
+
 
     var p = Bounds2D.prototype;
 
@@ -804,6 +784,29 @@
     p.toString = function () {
         return "(xMin=" + this.xMin + ", " + "yMin=" + this.yMin + ", " + "xMax=" + this.xMax + ", " + "yMax=" + this.yMax + ")";
     }
+
+
+    // re-usable temporary objects
+    Object.defineProperties(Bounds2D, {
+        'staticBounds2D_A': {
+            value: new Bounds2D()
+        },
+        'staticBounds2D_B': {
+            value: new Bounds2D()
+        },
+        'tempPoint': {
+            value: {
+                'x': NaN,
+                'y': NaN
+            }
+        },
+        'staticRange_A': {
+            value: new weavedata.Range()
+        },
+        'staticRange_B': {
+            value: new weavedata.Range()
+        }
+    });
 
     if (typeof exports !== 'undefined') {
         module.exports = Bounds2D;

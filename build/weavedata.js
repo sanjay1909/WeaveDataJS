@@ -6298,6 +6298,140 @@
      * @readOnly
      * @type String
      */
+    Object.defineProperty(AlwaysDefinedColumn, 'NS', {
+        value: 'weavedata'
+    });
+
+    /**
+     * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
+     * @static
+     * @public
+     * @property CLASS_NAME
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(AlwaysDefinedColumn, 'CLASS_NAME', {
+        value: 'AlwaysDefinedColumn'
+    });
+
+
+    Object.defineProperty(AlwaysDefinedColumn, 'UNDEFINED', {
+        value: {}
+    });
+
+
+    /**
+     * AlwaysDefinedColumn
+     *
+     * @author adufilie
+     * @author sanjay1909
+     */
+    function AlwaysDefinedColumn(defaultValue, defaultValueVerifier) {
+        defaultValueVerifier = (defaultValueVerifier === undefined) ? null : defaultValueVerifier;
+        weavedata.ExtendedDynamicColumn.call(this);
+        /**
+         * This sessioned property contains the default value to be returned
+         * when the referenced column does not define a value for a given key.
+         */
+
+        this._defaultValue = new weavecore.UntypedLinkableVariable(defaultValue, defaultValueVerifier);
+        WeaveAPI.SessionManager.registerLinkableChild(this, this._defaultValue, handleDefaultValueChange.bind(this));
+        Object.defineProperty(this, 'defaultValue', {
+            get: function () {
+                return this._defaultValue;
+            }
+        });
+
+
+
+        this._cachedDefaultValue;
+
+        this._cache_type_key = new Map();
+        this._cacheCounter = 0;
+    }
+
+    function handleDefaultValueChange() {
+        this._cachedDefaultValue = this.defaultValue.value;
+    }
+
+    AlwaysDefinedColumn.prototype = new weavedata.ExtendedDynamicColumn();
+    AlwaysDefinedColumn.prototype.constructor = AlwaysDefinedColumn;
+
+    var p = AlwaysDefinedColumn.prototype;
+
+    /**
+     * @param key A key to test.
+     * @return true if the key exists in this IKeySet.
+     */
+    p.containsKey = function (key) {
+        return true;
+    }
+
+    /**
+     * @param key A key of the type specified by keyType.
+     * @return The value associated with the given key.
+     */
+    p.getValueFromKey = function (key, dataType) {
+        dataType = (dataType === undefined) ? null : dataType;
+        if (!weavedata.DynamicColumn.cache) {
+            var value = this.internalDynamicColumn.getValueFromKey(key, dataType);
+
+            if (weavecore.StandardLib.isUndefined(value)) {
+                value = this._cachedDefaultValue;
+                if (dataType != null)
+                    value = weavedata.EquationColumnLib.cast(value, dataType);
+            }
+
+            return value;
+        }
+
+        if (this.triggerCounter != this._cacheCounter) {
+            this._cacheCounter = this.triggerCounter;
+            this._cache_type_key = new Map();
+        }
+        var _cache = this._cache_type_key.get(dataType);
+        if (!_cache) {
+            _cache = new Map();
+            this._cache_type_key.set(dataType, _cache);
+        }
+
+
+        value = _cache.get(key);
+        if (value === undefined) {
+            value = this.internalDynamicColumn.getValueFromKey(key, dataType);
+            if (weavecore.StandardLib.isUndefined(value)) {
+                value = this._cachedDefaultValue;
+                if (dataType != null)
+                    value = weavedata.EquationColumnLib.cast(value, dataType);
+            }
+
+            _cache.set(key, ((value === undefined) ? AlwaysDefinedColumn.UNDEFINED : value));
+        }
+        return value === AlwaysDefinedColumn.UNDEFINED ? undefined : value;
+    }
+
+    if (typeof exports !== 'undefined') {
+        module.exports = AlwaysDefinedColumn;
+    } else {
+
+        window.weavedata = window.weavedata ? window.weavedata : {};
+        window.weavedata.AlwaysDefinedColumn = AlwaysDefinedColumn;
+    }
+
+    weavecore.ClassUtils.registerClass('weavedata.AlwaysDefinedColumn', weavedata.AlwaysDefinedColumn);
+
+}());
+(function () {
+
+    /**
+     * temporary solution to save the namespace for this class/prototype
+     * @static
+     * @public
+     * @property NS
+     * @default weavecore
+     * @readOnly
+     * @type String
+     */
     Object.defineProperty(FilteredColumn, 'NS', {
         value: 'weavedata'
     });
@@ -7776,6 +7910,7 @@
     }
 
 }());
+
 (function () {
     function Rectangle() {
         this.x = NaN;
@@ -7793,6 +7928,7 @@
     }
 
 }());
+
 (function () {
 
     /**
@@ -7980,6 +8116,7 @@
     }
 
 }());
+
 (function () {
 
 
@@ -7994,6 +8131,9 @@
      * @author adufilie
      * @author sanjay1909
      */
+
+
+
     /**
      * The default coordinates are all NaN so that includeCoords() will behave as expected after
      * creating an empty Bounds2D.
@@ -8013,35 +8153,12 @@
         this.yMax = (yMax === undefined) ? NaN : yMax;
 
 
-
-        // re-usable temporary objects
-        Object.defineProperties(this, {
-            'staticBounds2D_A': {
-                value: new weavedata.Bounds2D()
-            },
-            'staticBounds2D_B': {
-                value: new weavedata.Bounds2D()
-            }
-        });
-
-        // reusable temporary objects
-        Object.defineProperties(this, {
-            'tempPoint': {
-                value: {
-                    'x': NaN,
-                    'y': NaN
-                }
-            },
-            'staticRange_A': {
-                value: new weavedata.Range()
-            },
-            'staticRange_B': {
-                value: new weavedata.Range()
-            }
-        });
-
         this.setBounds(this.xMin, this.yMin, this.xMax, this.yMax);
     }
+
+
+
+
 
     var p = Bounds2D.prototype;
 
@@ -8787,6 +8904,29 @@
         return "(xMin=" + this.xMin + ", " + "yMin=" + this.yMin + ", " + "xMax=" + this.xMax + ", " + "yMax=" + this.yMax + ")";
     }
 
+
+    // re-usable temporary objects
+    Object.defineProperties(Bounds2D, {
+        'staticBounds2D_A': {
+            value: new Bounds2D()
+        },
+        'staticBounds2D_B': {
+            value: new Bounds2D()
+        },
+        'tempPoint': {
+            value: {
+                'x': NaN,
+                'y': NaN
+            }
+        },
+        'staticRange_A': {
+            value: new weavedata.Range()
+        },
+        'staticRange_B': {
+            value: new weavedata.Range()
+        }
+    });
+
     if (typeof exports !== 'undefined') {
         module.exports = Bounds2D;
     } else {
@@ -9066,6 +9206,218 @@
     }
 
     weavecore.ClassUtils.registerClass('weavedata.ZoomBounds', weavedata.ZoomBounds);
+
+}());
+
+(function () {
+
+    /**
+     * temporary solution to save the namespace for this class/prototype
+     * @static
+     * @public
+     * @property NS
+     * @default weavecore
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(LinkableNumberFormatter, 'NS', {
+        value: 'weavedata'
+    });
+
+    /**
+     * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
+     * @static
+     * @public
+     * @property CLASS_NAME
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(LinkableNumberFormatter, 'CLASS_NAME', {
+        value: 'LinkableNumberFormatter'
+    });
+
+
+    /**
+     * This is a sessioned NumberFormatter object.
+     * All the properties of an internal NumberFormatter object are accessible through the public sessioned properties of this class.
+     *
+     * @author adufilie
+     * @author sanjay1909
+     */
+    function LinkableNumberFormatter() {
+        weavecore.ILinkableObject.call(this);
+
+
+
+        Object.defineProperties(this, {
+            'decimalSeparatorFrom': {
+                value: WeaveAPI.SessionManager.registerLinkableChild(this, new weavecore.LinkableString(), invalidate.bind(this))
+            },
+            'decimalSeparatorTo': {
+                value: WeaveAPI.SessionManager.registerLinkableChild(this, new weavecore.LinkableString(), invalidate.bind(this))
+            },
+            'precision': {
+                value: WeaveAPI.SessionManager.registerLinkableChild(this, new weavecore.LinkableNumber(), invalidate.bind(this))
+            },
+            'rounding': {
+                value: WeaveAPI.SessionManager.registerLinkableChild(this, new weavecore.LinkableString(), invalidate.bind(this))
+            },
+            'thousandsSeparatorFrom': {
+                value: WeaveAPI.SessionManager.registerLinkableChild(this, new weavecore.LinkableString(), invalidate.bind(this))
+            },
+            'thousandsSeparatorTo': {
+                value: WeaveAPI.SessionManager.registerLinkableChild(this, new weavecore.LinkableString(), invalidate.bind(this))
+            },
+            'useNegativeSign': {
+                value: WeaveAPI.SessionManager.registerLinkableChild(this, new weavecore.LinkableBoolean(), invalidate.bind(this))
+            },
+            'useThousandsSeparator': {
+                value: WeaveAPI.SessionManager.registerLinkableChild(this, new weavecore.LinkableBoolean(), invalidate.bind(this))
+            }
+        });
+        /**
+         * This is the internal NumberFormatter object.
+         */
+        Object.defineProperty(this, '_nf', {
+            value: new Number()
+        });
+        //private const :NumberFormatter = new NumberFormatter();
+        /**
+         * This is a flag that is set by invalidate() to remember that the _nf properties need to be validated.
+         */
+        this._invalid = false;
+    }
+
+
+    /**
+     * This function invalidates the properties of _nf.
+     */
+    function invalidate() {
+        this._invalid = true;
+    }
+    /**
+     * This function will validate the properties of _nf.
+     */
+    function validate() {
+        // validate now
+        this.copyTo(this._nf);
+        this._invalid = false;
+    }
+
+    LinkableNumberFormatter.prototype = new weavecore.ILinkableObject();
+    LinkableNumberFormatter.prototype.constructor = LinkableNumberFormatter;
+
+    var p = LinkableNumberFormatter.prototype;
+    /**
+     * This function calls format() on the internal NumberFormatter object.
+     * @param value The value to format.
+     * @return The value, formatted using the internal NumberFormatter.
+     */
+    p.format = function (value) {
+        if (this._invalid)
+            validate.call(this);
+        return this._nf.format(value);
+    }
+
+    /**
+     * @param numberFormatter A NumberFormatter to copy the settings to.
+     */
+    p.copyTo = function (numberFormatter) {
+        numberFormatter.decimalSeparatorFrom = this.decimalSeparatorFrom.value;
+        numberFormatter.decimalSeparatorTo = this.decimalSeparatorTo.value;
+        numberFormatter.precision = this.precision.value;
+        numberFormatter.rounding = this.rounding.value;
+        numberFormatter.thousandsSeparatorFrom = this.thousandsSeparatorFrom.value;
+        numberFormatter.thousandsSeparatorTo = this.thousandsSeparatorTo.value;
+        numberFormatter.useNegativeSign = this.useNegativeSign.value;
+        numberFormatter.useThousandsSeparator = this.useThousandsSeparator.value;
+    }
+
+    if (typeof exports !== 'undefined') {
+        module.exports = LinkableNumberFormatter;
+    } else {
+
+        window.weavedata = window.weavedata ? window.weavedata : {};
+        window.weavedata.LinkableNumberFormatter = LinkableNumberFormatter;
+    }
+
+    weavecore.ClassUtils.registerClass('weavedata.LinkableNumberFormatter', weavedata.LinkableNumberFormatter);
+
+}());
+(function () {
+
+    /**
+     * temporary solution to save the namespace for this class/prototype
+     * @static
+     * @public
+     * @property NS
+     * @default weavecore
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(LinkableBound2D, 'NS', {
+        value: 'weavedata'
+    });
+
+    /**
+     * TO-DO:temporary solution to save the CLASS_NAME constructor.name works for window object , but modular based won't work
+     * @static
+     * @public
+     * @property CLASS_NAME
+     * @readOnly
+     * @type String
+     */
+    Object.defineProperty(LinkableBound2D, 'CLASS_NAME', {
+        value: 'LinkableBound2D'
+    });
+
+
+    Object.defineProperty(LinkableBound2D, 'tempBounds', {
+        value: new weavedata.Bounds2D()
+    });
+    /**
+     * This is a linkable version of a Bounds2D object.
+     *
+     * @author adufilie
+     * @author sanjay1909
+     */
+    function LinkableBound2D() {
+        weavecore.LinkableVariable.call(this);
+
+    }
+
+    LinkableBound2D.prototype = new weavecore.LinkableVariable();
+    LinkableBound2D.prototype.constructor = LinkableBound2D;
+
+    var p = LinkableBound2D.prototype;
+
+    p.copyFrom = function (sourceBounds) {
+        LinkableBound2D.tempBounds.copyFrom(sourceBounds);
+        this.setSessionState(LinkableBound2D.tempBounds);
+    }
+
+    p.copyTo = function (destinationBounds) {
+        LinkableBound2D.tempBounds.reset();
+        this.detectChanges();
+        if (this._sessionStateInternal && typeof this._sessionStateInternal === 'object') {
+            LinkableBound2D.tempBounds.xMin = weavecore.StandardLib.asNumber(this._sessionStateInternal.xMin);
+            LinkableBound2D.tempBounds.yMin = weavecore.StandardLib.asNumber(this._sessionStateInternal.yMin);
+            LinkableBound2D.tempBounds.xMax = weavecore.StandardLib.asNumber(this._sessionStateInternal.xMax);
+            LinkableBound2D.tempBounds.yMax = weavecore.StandardLib.asNumber(this._sessionStateInternal.yMax);
+        }
+        destinationBounds.copyFrom(LinkableBound2D.tempBounds);
+    }
+
+
+    if (typeof exports !== 'undefined') {
+        module.exports = LinkableBound2D;
+    } else {
+
+        window.weavedata = window.weavedata ? window.weavedata : {};
+        window.weavedata.LinkableBound2D = LinkableBound2D;
+    }
+
+    weavecore.ClassUtils.registerClass('weavedata.LinkableBound2D', weavedata.LinkableBound2D);
 
 }());
 /* ***** BEGIN LICENSE BLOCK *****

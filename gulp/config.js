@@ -31,6 +31,7 @@ var buildOrder = [
                     'src/data/AttributeColumns/KeyColumn.js',
                     'src/data/AttributeColumns/DynamicColumn.js',
                     'src/data/AttributeColumns/ExtendedDynamicColumn.js',
+                    'src/data/AttributeColumns/AlwaysDefinedColumn.js',
                     'src/data/AttributeColumns/FilteredColumn.js',
                     'src/data/AttributeColumns/ColumnDataTask.js',
 
@@ -47,6 +48,8 @@ var buildOrder = [
                     'src/primitives/Range.js',
                     'src/primitives/Bounds2D.js',
                     'src/primitives/ZoomBounds.js',
+                    'src/primitives/LinkableNumberFormatter.js',
+                    'src/primitives/LinkableBound2D.js',
 
                     'src/WeavePathData.js'
                ];
