@@ -405,7 +405,7 @@ weave.WeavePath.prototype.filterKeys = function ( /*...relativePath, keyStringAr
         var path = this._path.concat(args);
         var resultArray = this.weave.evaluateExpression(
             path,
-            'WeaveAPI.QKeyManager.convertToQKeys(keys).filter(key => this.containsKey(key))', {
+            'WeaveAPI.QKeyManager.convertToQKeys(keys).filter((key) => this.containsKey(key))', {
                 keys: keyObjects
             }
         );
@@ -467,7 +467,7 @@ weave.WeavePath.prototype.retrieveRecords = function (pathMapping, keySetPath) {
  * @private
  * A function that tests if a WeavePath references an IAttributeColumn
  */
-//var isColumn = weave.evaluateExpression(null, "o => o instanceof weavedata.IAttributeColumn");
+//var isColumn = weave.evaluateExpression(null, "(o) => o instanceof weavedata.IAttributeColumn");
 var isColumn = function (o) {
     return o instanceof weavedata.IAttributeColumn;
 };
@@ -575,7 +575,7 @@ weave.WeavePath.prototype.getLabel = function ( /*...relativePath*/ ) {
 var EDC = 'weavedata.ExtendedDynamicColumn';
 var DC = 'weavedata.DynamicColumn';
 var RC = 'weavedata.ReferencedColumn';
-/*var getColumnType = weave.evaluateExpression(null, 'o => { for each (var t in types) if (o instanceof t) return t; }', {
+/*var getColumnType = weave.evaluateExpression(null, '(o) => { for each (var t in types) if (o instanceof t) return t; }', {
     types: [EDC, DC, RC]
 });*/
 
@@ -657,9 +657,10 @@ var _createNodeFunction = function (script, vars) {
         return fn(this.serial, arg1, arg2);
     };
 };
-var _mapNodesToSerials = weave.evaluateExpression(null, 'nodes => {\
+//TO-DO: Need to find why? arguments if not given in bracket, paramNames in wrapperfunction closure gets fixed to nodes
+var _mapNodesToSerials = weave.evaluateExpression(null, '(nodes) => {\
 	var lookup = ' + weaveTreeNodeLookup + ';\
-	return nodes && nodes.map(child => {\
+	return nodes && nodes.map((child) => {\
 		if (lookup[child] === undefined)\
 			lookup[ (lookup[child] = ++' + weaveTreeNodeSerial + ') ] = child;\
 		return lookup[child];\
@@ -674,7 +675,7 @@ weave.WeaveTreeNode = function (serial, parent) {
     this.parent = parent;
     weave.WeaveTreeNode.cache[this.serial] = this;
     if (this.serial == 0)
-        weave.evaluateExpression(null, 'var lookup = ' + weaveTreeNodeLookup + '; if (lookup[0] === undefined) lookup[lookup[0] = new WeaveRootDataTreeNode()] = 0; return null;');
+        weave.evaluateExpression(null, 'var lookup = ' + weaveTreeNodeLookup + '; if (lookup[0] === undefined) lookup[lookup[0] = new weavedata.WeaveRootDataTreeNode()] = 0; return null;');
 };
 weave.WeaveTreeNode.cache = {}; // serial -> WeaveTreeNode
 weave.WeaveTreeNode.prototype.getLabel = _createNodeFunction('node.getLabel()');
@@ -696,7 +697,7 @@ weave.WeaveTreeNode.prototype._findPathSerials = _createNodeFunction('\
 	var dataSourceName = arg1, columnMetadata = arg2;\
 	var ds = WeaveAPI.globalHashMap.getObject(dataSourceName);\
 	var target = ds && ds.findHierarchyNode(columnMetadata);\
-	var path = ds && target && HierarchyUtils.findPathToNode(node, target);\
+	var path = ds && target && weavedata.HierarchyUtils.findPathToNode(node, target);\
 	return getSerials(path);\
 ', {
     getSerials: _mapNodesToSerials
