@@ -49,7 +49,7 @@ var buildOrder = [
                     'src/primitives/Bounds2D.js',
                     'src/primitives/ZoomBounds.js',
                     'src/primitives/LinkableNumberFormatter.js',
-                    'src/primitives/LinkableBound2D.js',
+                    'src/primitives/LinkableBounds2D.js',
 
                     'src/WeavePathData.js'
                ];

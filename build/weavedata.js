@@ -4492,6 +4492,7 @@
     weavecore.ClassUtils.registerClass('weavedata.SortedKeySet', weavedata.SortedKeySet);
 
 }());
+
 /**
  * This object contains a mapping from keys to data values.
  *
@@ -9429,7 +9430,7 @@
      * @readOnly
      * @type String
      */
-    Object.defineProperty(LinkableBound2D, 'NS', {
+    Object.defineProperty(LinkableBounds2D, 'NS', {
         value: 'weavedata'
     });
 
@@ -9441,12 +9442,12 @@
      * @readOnly
      * @type String
      */
-    Object.defineProperty(LinkableBound2D, 'CLASS_NAME', {
-        value: 'LinkableBound2D'
+    Object.defineProperty(LinkableBounds2D, 'CLASS_NAME', {
+        value: 'LinkableBounds2D'
     });
 
 
-    Object.defineProperty(LinkableBound2D, 'tempBounds', {
+    Object.defineProperty(LinkableBounds2D, 'tempBounds', {
         value: new weavedata.Bounds2D()
     });
     /**
@@ -9455,46 +9456,45 @@
      * @author adufilie
      * @author sanjay1909
      */
-    function LinkableBound2D() {
+    function LinkableBounds2D() {
         weavecore.LinkableVariable.call(this);
 
     }
 
-    LinkableBound2D.prototype = new weavecore.LinkableVariable();
-    LinkableBound2D.prototype.constructor = LinkableBound2D;
+    LinkableBounds2D.prototype = new weavecore.LinkableVariable();
+    LinkableBounds2D.prototype.constructor = LinkableBounds2D;
 
-    var p = LinkableBound2D.prototype;
+    var p = LinkableBounds2D.prototype;
 
     p.copyFrom = function (sourceBounds) {
-        LinkableBound2D.tempBounds.copyFrom(sourceBounds);
-        this.setSessionState(LinkableBound2D.tempBounds);
+        LinkableBounds2D.tempBounds.copyFrom(sourceBounds);
+        this.setSessionState(LinkableBounds2D.tempBounds);
     }
 
     p.copyTo = function (destinationBounds) {
-        LinkableBound2D.tempBounds.reset();
+        LinkableBounds2D.tempBounds.reset();
         this.detectChanges();
         if (this._sessionStateInternal && typeof this._sessionStateInternal === 'object') {
-            LinkableBound2D.tempBounds.xMin = weavecore.StandardLib.asNumber(this._sessionStateInternal.xMin);
-            LinkableBound2D.tempBounds.yMin = weavecore.StandardLib.asNumber(this._sessionStateInternal.yMin);
-            LinkableBound2D.tempBounds.xMax = weavecore.StandardLib.asNumber(this._sessionStateInternal.xMax);
-            LinkableBound2D.tempBounds.yMax = weavecore.StandardLib.asNumber(this._sessionStateInternal.yMax);
+            LinkableBounds2D.tempBounds.xMin = weavecore.StandardLib.asNumber(this._sessionStateInternal.xMin);
+            LinkableBounds2D.tempBounds.yMin = weavecore.StandardLib.asNumber(this._sessionStateInternal.yMin);
+            LinkableBounds2D.tempBounds.xMax = weavecore.StandardLib.asNumber(this._sessionStateInternal.xMax);
+            LinkableBounds2D.tempBounds.yMax = weavecore.StandardLib.asNumber(this._sessionStateInternal.yMax);
         }
-        destinationBounds.copyFrom(LinkableBound2D.tempBounds);
+        destinationBounds.copyFrom(LinkableBounds2D.tempBounds);
     }
 
 
     if (typeof exports !== 'undefined') {
-        module.exports = LinkableBound2D;
+        module.exports = LinkableBounds2D;
     } else {
 
         window.weavedata = window.weavedata ? window.weavedata : {};
-        window.weavedata.LinkableBound2D = LinkableBound2D;
+        window.weavedata.LinkableBounds2D = LinkableBounds2D;
     }
 
-    weavecore.ClassUtils.registerClass('weavedata.LinkableBound2D', weavedata.LinkableBound2D);
+    weavecore.ClassUtils.registerClass('weavedata.LinkableBounds2D', weavedata.LinkableBounds2D);
 
 }());
-
 /* ***** BEGIN LICENSE BLOCK *****
  *
  * This file is part of Weave.
