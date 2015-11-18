@@ -9282,6 +9282,7 @@
     weavecore.ClassUtils.registerClass('weavedata.ZoomBounds', weavedata.ZoomBounds);
 
 }());
+
 (function () {
 
     /**
