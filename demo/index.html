@@ -30,10 +30,11 @@
             ds.putColumn(6, getDataY());
         }
 
+        ds.url.addImmediateCallback(ds, assignXYColumnsFromSource);
+        ds.url.value = 'http://as-me.github.io/dashboard/data/testCereal.csv';
 
-
-        dsURLPath.addCallback(assignXYColumnsFromSource, false, true);
-        dsURLPath.state('http://as-me.github.io/dashboard/data/testCereal.csv');
+        // dsURLPath.addCallback(assignXYColumnsFromSource, false, true);
+        //dsURLPath.state('http://as-me.github.io/dashboard/data/testCereal.csv');
     </script>
 
 </body>
