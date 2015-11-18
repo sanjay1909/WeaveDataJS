@@ -91,13 +91,13 @@
         this._sortCopyFunction = (sortCopyFunction) ? sortCopyFunction : QKeyManager.keySortCopy;
 
         dependencies.forEach(function (object) {
-            WeaveAPI.SessionManager.registerLinkableChild(this._dependencies, object);
+            WeaveAPI.SessionManager.registerLinkableChild(this, this._dependencies, object);
             if (object instanceof weavedata.IAttributeColumn) {
                 var stats = WeaveAPI.StatisticsCache.getColumnStatistics(object);
-                WeaveAPI.SessionManager.registerLinkableChild(this._dependencies, stats);
+                WeaveAPI.SessionManager.registerLinkableChild(this, this._dependencies, stats);
             }
-        });
-        WeaveAPI.SessionManager.registerLinkableChild(this._dependencies, this._keySet);
+        }.bind(this));
+        WeaveAPI.SessionManager.registerLinkableChild(this, this._dependencies, this._keySet);
         /**
          * This is the list of keys from the IKeySet, sorted.
          */
