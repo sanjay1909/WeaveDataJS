@@ -4213,7 +4213,7 @@
     function asyncStart() {
         // remove disposed key sets
         for (var i = this._keySets.length; i--;)
-            if (objectWasDisposed(this._keySets[i]))
+            if (WeaveAPI.SessionManager.objectWasDisposed(this._keySets[i]))
                 this._keySets.splice(i, 1);
 
             // restart async task
@@ -4321,7 +4321,6 @@
     weavecore.ClassUtils.registerClass('weavedata.KeySetUnion', weavedata.KeySetUnion);
 
 }());
-
 (function () {
 
     /**
