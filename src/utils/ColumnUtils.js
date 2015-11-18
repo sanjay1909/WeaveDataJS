@@ -308,7 +308,7 @@
             var key;
             var column;
             // if no keys are specified, get the keys from the columns
-            if (keyFilter.constructor === Array) {
+            if (keyFilter && keyFilter.constructor === Array) {
                 keys = keyFilter.concat(); // make a copy so we don't modify the original
             } else if (keyFilter instanceof weavedata.IKeySet) {
                 keys = keyFilter.keys.concat(); // make a copy so we don't modify the original
