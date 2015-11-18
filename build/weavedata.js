@@ -4266,6 +4266,7 @@
 
     function asyncComplete() {
         // detect change
+        if (!this._allKeys) return;
         if (this._allKeys.length != this._newKeys.length || this._allKeys.length != this._prevCompareCounter) {
             this._allKeys = this._newKeys;
             this._keyLookup = this._newKeyLookup;
