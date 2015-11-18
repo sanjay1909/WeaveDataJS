@@ -151,7 +151,7 @@
                         this._dataBounds[name] = state[name];
                         cc.triggerCallbacks();
                     }
-                });
+                }.bind(this));
             }
 
             this._useFixedAspectRatio = useFixedAspectRatio;

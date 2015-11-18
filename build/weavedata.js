@@ -9164,7 +9164,7 @@
                         this._dataBounds[name] = state[name];
                         cc.triggerCallbacks();
                     }
-                });
+                }.bind(this));
             }
 
             this._useFixedAspectRatio = useFixedAspectRatio;
@@ -9282,7 +9282,6 @@
     weavecore.ClassUtils.registerClass('weavedata.ZoomBounds', weavedata.ZoomBounds);
 
 }());
-
 (function () {
 
     /**
@@ -9495,6 +9494,7 @@
     weavecore.ClassUtils.registerClass('weavedata.LinkableBounds2D', weavedata.LinkableBounds2D);
 
 }());
+
 /* ***** BEGIN LICENSE BLOCK *****
  *
  * This file is part of Weave.
