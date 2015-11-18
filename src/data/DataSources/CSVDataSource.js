@@ -124,7 +124,7 @@
         if (this.url.error)
             console.log(url.error);
 
-        if (WeaveAPI.detectLinkableObjectChange(this.parseRawData, this.delimiter)) {
+        if (WeaveAPI.detectLinkableObjectChange(parseRawData, this.delimiter)) {
             if (this._csvParser)
                 WeaveAPI.SessionManager.disposeObject(this._csvParser);
             this._csvParser = WeaveAPI.SessionManager.registerLinkableChild(this, new weavedata.CSVParser(true, this.delimiter.value), handleCSVParser.bind(this));
