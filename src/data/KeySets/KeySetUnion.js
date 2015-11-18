@@ -95,6 +95,7 @@
     }
 
     function asyncIterate(stopTime) {
+        if (!this._keySets) return 1; //to-do:not sure this is correct
         for (; this._asyncKeySetIndex < this._keySets.length; this._asyncKeySetIndex++) {
             if (this._asyncKeys === null) {
                 this._asyncKeys = (this._keySets[this._asyncKeySetIndex]).keys;
