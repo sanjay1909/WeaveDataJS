@@ -3330,6 +3330,7 @@
 
     weavecore.ClassUtils.registerClass('weavedata.FilteredKeySet', weavedata.FilteredKeySet);
 }());
+
 (function () {
 
     /**
@@ -4414,13 +4415,13 @@
         this._sortCopyFunction = (sortCopyFunction) ? sortCopyFunction : QKeyManager.keySortCopy;
 
         dependencies.forEach(function (object) {
-            WeaveAPI.SessionManager.registerLinkableChild(this._dependencies, object);
+            WeaveAPI.SessionManager.registerLinkableChild(this, this._dependencies, object);
             if (object instanceof weavedata.IAttributeColumn) {
                 var stats = WeaveAPI.StatisticsCache.getColumnStatistics(object);
-                WeaveAPI.SessionManager.registerLinkableChild(this._dependencies, stats);
+                WeaveAPI.SessionManager.registerLinkableChild(this, this._dependencies, stats);
             }
-        });
-        WeaveAPI.SessionManager.registerLinkableChild(this._dependencies, this._keySet);
+        }.bind(this));
+        WeaveAPI.SessionManager.registerLinkableChild(this, this._dependencies, this._keySet);
         /**
          * This is the list of keys from the IKeySet, sorted.
          */
@@ -4491,7 +4492,6 @@
     weavecore.ClassUtils.registerClass('weavedata.SortedKeySet', weavedata.SortedKeySet);
 
 }());
-
 /**
  * This object contains a mapping from keys to data values.
  *
