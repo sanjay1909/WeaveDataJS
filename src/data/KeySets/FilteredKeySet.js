@@ -231,7 +231,7 @@
             if (FilteredKeySet.debug && keySortCopy == null)
                 console.log(WeaveAPI.debugId(this), 'sort by [', columns, ']');
 
-            var sortCopy = keySortCopy || SortedKeySet.generateSortCopyFunction(columns, sortDirections);
+            var sortCopy = keySortCopy || weavedata.SortedKeySet.generateSortCopyFunction(columns, sortDirections);
             // SortedKeySet should trigger callbacks
             var sorted = WeaveAPI.SessionManager.registerLinkableChild(this, new weavedata.SortedKeySet(union, sortCopy, columns));
             this._generatedKeySets = [union, sorted];
