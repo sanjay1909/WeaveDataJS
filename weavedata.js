@@ -7629,6 +7629,7 @@
     weavecore.ClassUtils.registerClass('weavedata.CSVDataSource', weavedata.CSVDataSource);
 
 }());
+
 (function () {
 
     /**
@@ -10075,18 +10076,18 @@ weave.WeavePath.prototype.getLabel = function ( /*...relativePath*/ ) {
 var EDC = 'weavedata.ExtendedDynamicColumn';
 var DC = 'weavedata.DynamicColumn';
 var RC = 'weavedata.ReferencedColumn';
-/*var getColumnType = weave.evaluateExpression(null, '(o) => { for each (var t in types) if (o instanceof t) return t; }', {
+var getColumnType = weave.evaluateExpression(null, '(o) => { for each (var t in types) if (o instanceof t) return t; }', {
     types: [EDC, DC, RC]
-});*/
+});
 
-var getColumnType = function (o) {
+/*var getColumnType = function (o) {
     var types = [EDC, DC, RC];
     for (var i = 0; i < types.length; i++) {
         var t = types[i];
         if (o instanceof t) return t;
     }
 
-};
+};*/
 //var getFirstDataSourceName = weave.evaluateExpression([], '() => this.getNames(IDataSource)[0]');
 var getFirstDataSourceName = function () {
     return this.getNames(weavedata.IDataSource)[0];
