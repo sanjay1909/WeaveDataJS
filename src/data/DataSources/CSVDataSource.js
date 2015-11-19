@@ -127,7 +127,8 @@
         if (WeaveAPI.detectLinkableObjectChange(parseRawData, this.delimiter)) {
             if (this._csvParser)
                 WeaveAPI.SessionManager.disposeObject(this._csvParser);
-            this._csvParser = WeaveAPI.SessionManager.registerLinkableChild(this, new weavedata.CSVParser(true, this.delimiter.value), handleCSVParser.bind(this));
+            //to-do replac eot asyncmode, tesitng with normal mode now
+            this._csvParser = WeaveAPI.SessionManager.registerLinkableChild(this, new weavedata.CSVParser(false, this.delimiter.value), handleCSVParser.bind(this));
         }
 
 
