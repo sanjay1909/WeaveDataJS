@@ -135,5 +135,6 @@
     }
 
     weavecore.ClassUtils.registerClass('weavedata.ExtendedDynamicColumn', weavedata.ExtendedDynamicColumn);
+    weavecore.ClassUtils.registerImplementation('weavedata.ExtendedDynamicColumn', "weavedata.IAttributeColumn");
 
 }());

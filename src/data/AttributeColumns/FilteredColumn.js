@@ -105,5 +105,6 @@
     }
 
     weavecore.ClassUtils.registerClass('weavedata.FilteredColumn', weavedata.FilteredColumn);
+    weavecore.ClassUtils.registerImplementation('weavedata.FilteredColumn', "weavedata.IAttributeColumn");
 
 }());

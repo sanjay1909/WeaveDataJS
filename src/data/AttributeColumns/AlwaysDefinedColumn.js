@@ -130,5 +130,6 @@
     }
 
     weavecore.ClassUtils.registerClass('weavedata.AlwaysDefinedColumn', weavedata.AlwaysDefinedColumn);
+    weavecore.ClassUtils.registerImplementation('weavedata.AlwaysDefinedColumn', "weavedata.IAttributeColumn");
 
 }());

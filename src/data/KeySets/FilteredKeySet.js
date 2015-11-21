@@ -222,7 +222,7 @@
             var union = WeaveAPI.SessionManager.registerDisposableChild(this, new weavedata.KeySetUnion(keyInclusionLogic));
             columns.forEach(function (keySet) {
                 union.addKeySetDependency(keySet);
-                if (keySet instanceof weavedata.IAttributeColumn) {
+                if (weavecore.ClassUtils.is(keySet, weavedata.IAttributeColumn)) {
                     var stats = WeaveAPI.StatisticsCache.getColumnStatistics(keySet);
                     WeaveAPI.SessionManager.registerLinkableChild(union, stats);
                 }
