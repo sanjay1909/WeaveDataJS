@@ -419,14 +419,14 @@
             toYMax = Bounds2D.tempPoint.y;
         }
 
-        var x = toXMin + (point.x - this.xMin) / (xMax - this.xMin) * (toXMax - toXMin);
+        var x = toXMin + (point.x - this.xMin) / (this.xMax - this.xMin) * (toXMax - toXMin);
 
         if (x <= Infinity) // alternative to !isNaN()
             point.x = x;
         else
             point.x = (toXMin + toXMax) / 2;
 
-        var y = toYMin + (point.y - this.yMin) / (yMax - this.yMin) * (toYMax - toYMin);
+        var y = toYMin + (point.y - this.yMin) / (this.yMax - this.yMin) * (toYMax - toYMin);
 
         if (y <= Infinity) // alternative to !isNaN()
             point.y = y;
