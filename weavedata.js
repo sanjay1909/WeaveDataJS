@@ -1494,7 +1494,7 @@
         this._runningTotals = new Map();
 
         // high priority because preparing data is often a prerequisite for other things
-        WeaveAPI.StageUtils.startTask(this, iterate.bind(this), WeaveAPI.TASK_PRIORITY_HIGH, asyncComplete.bind(this), weavecore.StandardLib.substitute("Calculating statistics for {0} values in {1}", this._keys.length, WeaveAPI.debugId(this._column)));
+        WeaveAPI.StageUtils.startTask(this, iterate.bind(this), WeaveAPI.TASK_PRIORITY_HIGH, asyncComplete.bind(this), weavecore.StandardLib.substitute("Calculating statistics for {0} values in {1}", this._keys.length, WeaveAPI.debugID(this._column)));
     }
 
     function iterate(stopTime) {
@@ -1587,7 +1587,7 @@
         this._cache.set(this.hack_getNumericData, this._hack_numericData);
         this._cache.set(this.getRunningTotals, this._runningTotals);
 
-        //trace('stats calculated', debugId(this), debugId(column), String(column));
+        //trace('stats calculated', debugID(this), debugID(column), String(column));
 
         // trigger callbacks when we are done
         WeaveAPI.SessionManager.getCallbackCollection(this).triggerCallbacks();
@@ -1704,7 +1704,6 @@
     weavecore.ClassUtils.registerClass('weavedata.ColumnStatistics', weavedata.ColumnStatistics);
 
 }());
-
 (function () {
 
     AttributeColumnCache._globalColumnDataSource;
@@ -9011,6 +9010,7 @@
 
 
 }());
+
 (function () {
 
     /**
