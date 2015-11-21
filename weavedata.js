@@ -1704,6 +1704,7 @@
     weavecore.ClassUtils.registerClass('weavedata.ColumnStatistics', weavedata.ColumnStatistics);
 
 }());
+
 (function () {
 
     AttributeColumnCache._globalColumnDataSource;
@@ -3259,7 +3260,7 @@
             var union = WeaveAPI.SessionManager.registerDisposableChild(this, new weavedata.KeySetUnion(keyInclusionLogic));
             columns.forEach(function (keySet) {
                 union.addKeySetDependency(keySet);
-                if (keySet instanceof weavedata.IAttributeColumn) {
+                if (weavecore.ClassUtils.is(keySet, weavedata.IAttributeColumn)) {
                     var stats = WeaveAPI.StatisticsCache.getColumnStatistics(keySet);
                     WeaveAPI.SessionManager.registerLinkableChild(union, stats);
                 }
@@ -3329,7 +3330,6 @@
 
     weavecore.ClassUtils.registerClass('weavedata.FilteredKeySet', weavedata.FilteredKeySet);
 }());
-
 (function () {
 
     /**
@@ -6218,8 +6218,8 @@
     }
 
     weavecore.ClassUtils.registerClass('weavedata.DynamicColumn', weavedata.DynamicColumn);
+    weavecore.ClassUtils.registerImplementation('weavedata.DynamicColumn', "weavedata.IAttributeColumn");
 }());
-
 (function () {
 
     /**
@@ -6357,9 +6357,9 @@
     }
 
     weavecore.ClassUtils.registerClass('weavedata.ExtendedDynamicColumn', weavedata.ExtendedDynamicColumn);
+    weavecore.ClassUtils.registerImplementation('weavedata.ExtendedDynamicColumn', "weavedata.IAttributeColumn");
 
 }());
-
 (function () {
 
     /**
@@ -6492,9 +6492,9 @@
     }
 
     weavecore.ClassUtils.registerClass('weavedata.AlwaysDefinedColumn', weavedata.AlwaysDefinedColumn);
+    weavecore.ClassUtils.registerImplementation('weavedata.AlwaysDefinedColumn', "weavedata.IAttributeColumn");
 
 }());
-
 (function () {
 
     /**
@@ -6602,9 +6602,9 @@
     }
 
     weavecore.ClassUtils.registerClass('weavedata.FilteredColumn', weavedata.FilteredColumn);
+    weavecore.ClassUtils.registerImplementation('weavedata.FilteredColumn', "weavedata.IAttributeColumn");
 
 }());
-
 (function () {
     function ColumnDataTask(parentColumn, dataFilter, callback) {
         dataFilter = (dataFilter === undefined) ? null : dataFilter;
