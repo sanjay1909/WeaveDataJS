@@ -13,8 +13,6 @@
      * @author sanjay1909
      */
 
-
-
     /**
      * The default coordinates are all NaN so that includeCoords() will behave as expected after
      * creating an empty Bounds2D.
@@ -85,10 +83,10 @@
             this.xMax = o.xMax;
             this.yMax = o.yMax;
         } else {
-            other.getMinPoint(this.tempPoint);
-            this.setMinPoint(this.tempPoint);
-            other.getMaxPoint(this.tempPoint);
-            this.setMaxPoint(this.tempPoint);
+            other.getMinPoint(Bounds2D.tempPoint);
+            this.setMinPoint(Bounds2D.tempPoint);
+            other.getMaxPoint(Bounds2D.tempPoint);
+            this.setMaxPoint(Bounds2D.tempPoint);
         }
     }
 
@@ -298,10 +296,10 @@
             this.includeCoords(o.xMin, o.yMin);
             this.includeCoords(o.xMax, o.yMax);
         } else {
-            otherBounds.getMinPoint(this.tempPoint);
-            this.includePoint(this.tempPoint);
-            otherBounds.getMaxPoint(this.tempPoint);
-            this.includePoint(this.tempPoint);
+            otherBounds.getMinPoint(Bounds2D.tempPoint);
+            this.includePoint(Bounds2D.tempPoint);
+            otherBounds.getMaxPoint(Bounds2D.tempPoint);
+            this.includePoint(Bounds2D.tempPoint);
         }
     }
 
@@ -315,7 +313,7 @@
         a.copyFrom(this);
         a.makeSizePositive();
 
-        var b = this.staticBounds2D_B;
+        var b = Bounds2D.staticBounds2D_B;
         b.copyFrom(other);
         b.makeSizePositive();
 
@@ -357,10 +355,10 @@
             return contains(o.xMin, o.yMin) && contains(o.xMax, o.yMax);
         }
 
-        other.getMinPoint(this.tempPoint);
-        if (this.containsPoint(this.tempPoint)) {
-            other.getMaxPoint(this.tempPoint);
-            return this.containsPoint(this.tempPoint);
+        other.getMinPoint(Bounds2D.tempPoint);
+        if (this.containsPoint(Bounds2D.tempPoint)) {
+            other.getMaxPoint(Bounds2D.tempPoint);
+            return this.containsPoint(Bounds2D.tempPoint);
         }
         return false;
     }
@@ -413,12 +411,12 @@
             toYMin = tb.yMin;
             toYMax = tb.yMax;
         } else {
-            toBounds.getMinPoint(this.tempPoint);
-            toXMin = this.tempPoint.x;
-            toYMin = this.tempPoint.y;
-            toBounds.getMaxPoint(this.tempPoint);
-            toXMax = this.tempPoint.x;
-            toYMax = this.tempPoint.y;
+            toBounds.getMinPoint(Bounds2D.tempPoint);
+            toXMin = Bounds2D.tempPoint.x;
+            toYMin = Bounds2D.tempPoint.y;
+            toBounds.getMaxPoint(Bounds2D.tempPoint);
+            toXMax = Bounds2D.tempPoint.x;
+            toYMax = Bounds2D.tempPoint.y;
         }
 
         var x = toXMin + (point.x - this.xMin) / (xMax - this.xMin) * (toXMax - toXMin);
@@ -444,13 +442,13 @@
      */
     p.projectCoordsTo = function (coords, toBounds) {
         // project min coords
-        coords.getMinPoint(this.tempPoint);
-        projectPointTo(this.tempPoint, toBounds);
-        coords.setMinPoint(this.tempPoint);
+        coords.getMinPoint(Bounds2D.tempPoint);
+        projectPointTo(Bounds2D.tempPoint, toBounds);
+        coords.setMinPoint(Bounds2D.tempPoint);
         // project max coords
-        coords.getMaxPoint(this.tempPoint);
-        projectPointTo(this.tempPoint, toBounds);
-        coords.setMaxPoint(this.tempPoint);
+        coords.getMaxPoint(Bounds2D.tempPoint);
+        projectPointTo(Bounds2D.tempPoint, toBounds);
+        coords.setMaxPoint(Bounds2D.tempPoint);
     }
 
     /**
@@ -479,9 +477,9 @@
             return;
         // find the point in the boundsToConstrain closest to the center point of this bounds
         // then offset the boundsToConstrain so it overlaps the center point of this bounds
-        boundsToConstrain.getCenterPoint(this.tempPoint);
-        this.constrainPoint(this.tempPoint);
-        boundsToConstrain.setCenterPoint(this.tempPoint);
+        boundsToConstrain.getCenterPoint(Bounds2D.tempPoint);
+        this.constrainPoint(Bounds2D.tempPoint);
+        boundsToConstrain.setCenterPoint(Bounds2D.tempPoint);
     }
 
     /**
@@ -500,24 +498,24 @@
                 b2c = this.staticBounds2D_A;
             }
             // constrain x values
-            this.staticRange_A.setRange(this.xMin, this.xMax);
-            this.staticRange_B.setRange(b2c.xMin, b2c.xMax);
-            this.staticRange_A.constrainRange(this.staticRange_B);
-            boundsToConstrain.setXRange(this.staticRange_B.begin, this.staticRange_B.end);
+            Bounds2D.staticRange_A.setRange(this.xMin, this.xMax);
+            Bounds2D.staticRange_B.setRange(b2c.xMin, b2c.xMax);
+            Bounds2D.staticRange_A.constrainRange(Bounds2D.staticRange_B);
+            boundsToConstrain.setXRange(Bounds2D.staticRange_B.begin, Bounds2D.staticRange_B.end);
             // constrain y values
-            this.staticRange_A.setRange(this.yMin, this.yMax);
-            this.staticRange_B.setRange(b2c.yMin, b2c.yMax);
-            this.staticRange_A.constrainRange(this.staticRange_B);
-            boundsToConstrain.setYRange(this.staticRange_B.begin, this.staticRange_B.end);
+            Bounds2D.staticRange_A.setRange(this.yMin, this.yMax);
+            Bounds2D.staticRange_B.setRange(b2c.yMin, b2c.yMax);
+            Bounds2D.staticRange_A.constrainRange(Bounds2D.staticRange_B);
+            boundsToConstrain.setYRange(Bounds2D.staticRange_B.begin, Bounds2D.staticRange_B.end);
         } else {
             // constrain min point
-            boundsToConstrain.getMinPoint(this.tempPoint);
-            this.constrainPoint(this.tempPoint);
-            boundsToConstrain.setMinPoint(this.tempPoint);
+            boundsToConstrain.getMinPoint(Bounds2D.tempPoint);
+            this.constrainPoint(Bounds2D.tempPoint);
+            boundsToConstrain.setMinPoint(Bounds2D.tempPoint);
             // constrain max point
-            boundsToConstrain.getMaxPoint(this.tempPoint);
-            this.constrainPoint(this.tempPoint);
-            boundsToConstrain.setMaxPoint(this.tempPoint);
+            boundsToConstrain.getMaxPoint(Bounds2D.tempPoint);
+            this.constrainPoint(Bounds2D.tempPoint);
+            boundsToConstrain.setMaxPoint(Bounds2D.tempPoint);
         }
     }
 
