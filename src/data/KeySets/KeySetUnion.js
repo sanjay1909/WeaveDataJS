@@ -66,7 +66,7 @@
          */
         Object.defineProperty(this, 'keys', {
             get: function () {
-                this._allKeys;
+                return this._allKeys;
             }
         })
     }
