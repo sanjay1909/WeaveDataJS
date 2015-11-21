@@ -1905,6 +1905,7 @@
     weavecore.ClassUtils.registerClass('weavedata.GlobalColumnDataSource', weavedata.GlobalColumnDataSource);
 
 }());
+
 /**
  * This class manages a global list of IQualifiedKey objects.
  *
@@ -4198,7 +4199,7 @@
          */
         Object.defineProperty(this, 'keys', {
             get: function () {
-                this._allKeys;
+                return this._allKeys;
             }
         })
     }
@@ -4322,7 +4323,6 @@
     weavecore.ClassUtils.registerClass('weavedata.KeySetUnion', weavedata.KeySetUnion);
 
 }());
-
 (function () {
 
     /**
