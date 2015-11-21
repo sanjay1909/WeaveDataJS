@@ -34,7 +34,7 @@
         var hashCode = weavecore.Compiler.stringify(metadata);
         var wr = this.d2d_dataSource_metadataHash.get(dataSource, hashCode);
         var weakRef = (wr && wr instanceof weavecore.WeakReference) ? wr : null;
-        if ((weakRef !== null || weakRef !== undefined) && (weakRef.value !== null || weakRef.value !== undefined)) {
+        if ((weakRef !== null && weakRef !== undefined) && (weakRef.value !== null && weakRef.value !== undefined)) {
             if (WeaveAPI.SessionManager.objectWasDisposed(weakRef.value))
                 this.d2d_dataSource_metadataHash.remove(dataSource, hashCode);
             else
