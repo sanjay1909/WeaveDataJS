@@ -3330,6 +3330,7 @@
 
     weavecore.ClassUtils.registerClass('weavedata.FilteredKeySet', weavedata.FilteredKeySet);
 }());
+
 (function () {
 
     /**
@@ -4369,7 +4370,7 @@
                 var param = columns[i];
                 if (WeaveAPI.SessionManager.objectWasDisposed(param))
                     continue;
-                if (param instanceof weavedata.IAttributeColumn) {
+                if (weavecore.ClassUtils.is(param, weavedata.IAttributeColumn)) {
                     var stats = WeaveAPI.StatisticsCache.getColumnStatistics(param);
                     param = stats.hack_getNumericData();
                 }
@@ -4493,7 +4494,6 @@
     weavecore.ClassUtils.registerClass('weavedata.SortedKeySet', weavedata.SortedKeySet);
 
 }());
-
 /**
  * This object contains a mapping from keys to data values.
  *
@@ -6220,6 +6220,7 @@
     weavecore.ClassUtils.registerClass('weavedata.DynamicColumn', weavedata.DynamicColumn);
     weavecore.ClassUtils.registerImplementation('weavedata.DynamicColumn', "weavedata.IAttributeColumn");
 }());
+
 (function () {
 
     /**
@@ -6360,6 +6361,7 @@
     weavecore.ClassUtils.registerImplementation('weavedata.ExtendedDynamicColumn', "weavedata.IAttributeColumn");
 
 }());
+
 (function () {
 
     /**
@@ -6495,6 +6497,7 @@
     weavecore.ClassUtils.registerImplementation('weavedata.AlwaysDefinedColumn', "weavedata.IAttributeColumn");
 
 }());
+
 (function () {
 
     /**
@@ -6605,6 +6608,7 @@
     weavecore.ClassUtils.registerImplementation('weavedata.FilteredColumn', "weavedata.IAttributeColumn");
 
 }());
+
 (function () {
     function ColumnDataTask(parentColumn, dataFilter, callback) {
         dataFilter = (dataFilter === undefined) ? null : dataFilter;
