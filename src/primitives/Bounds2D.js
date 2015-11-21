@@ -443,11 +443,11 @@
     p.projectCoordsTo = function (coords, toBounds) {
         // project min coords
         coords.getMinPoint(Bounds2D.tempPoint);
-        projectPointTo(Bounds2D.tempPoint, toBounds);
+        this.projectPointTo(Bounds2D.tempPoint, toBounds);
         coords.setMinPoint(Bounds2D.tempPoint);
         // project max coords
         coords.getMaxPoint(Bounds2D.tempPoint);
-        projectPointTo(Bounds2D.tempPoint, toBounds);
+        this.projectPointTo(Bounds2D.tempPoint, toBounds);
         coords.setMaxPoint(Bounds2D.tempPoint);
     }
 
