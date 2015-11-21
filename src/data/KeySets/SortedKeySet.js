@@ -103,7 +103,7 @@
          */
         Object.defineProperty(this, 'keys', {
             get: function () {
-                if (this._triggerCounter != this._dependencies.triggerCounter)
+                if (this._triggerCounter !== this._dependencies.triggerCounter)
                     _validate.call(this);
                 return this._sortedKeys;
             }
