@@ -44,7 +44,7 @@
                 var param = columns[i];
                 if (WeaveAPI.SessionManager.objectWasDisposed(param))
                     continue;
-                if (param instanceof weavedata.IAttributeColumn) {
+                if (weavecore.ClassUtils.is(param, weavedata.IAttributeColumn)) {
                     var stats = WeaveAPI.StatisticsCache.getColumnStatistics(param);
                     param = stats.hack_getNumericData();
                 }
