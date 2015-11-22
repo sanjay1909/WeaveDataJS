@@ -1706,6 +1706,7 @@
     weavecore.ClassUtils.registerClass('weavedata.ColumnStatistics', weavedata.ColumnStatistics);
 
 }());
+
 (function () {
 
     AttributeColumnCache._globalColumnDataSource;
@@ -9973,7 +9974,8 @@ weave.WeavePath.prototype.retrieveRecords = function (pathMapping, keySetPath) {
  */
 //var isColumn = weave.evaluateExpression(null, "(o) => o instanceof weavedata.IAttributeColumn");
 var isColumn = function (o) {
-    return o instanceof weavedata.IAttributeColumn;
+    var obj = WeaveAPI.SessionManager.getObject(WeaveAPI.globalHashMap, o._path)
+    return weavecore.ClassUtils.is(obj, weavedata.IAttributeColumn);
 };
 
 /**
