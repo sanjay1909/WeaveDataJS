@@ -1358,7 +1358,8 @@
             throw new Error("Invalid attempt to retrieve statistics for a disposed column.");
         }
 
-        var stats = (this._columnToStats.get(column) && this._columnToStats.get(column) instanceof weavedata.ColumnStatistics) ? this._columnToStats.get(column) : null;
+        var stats = this._columnToStats.get(column);
+        stats = (stats && stats instanceof weavedata.ColumnStatistics) ? stats : null;
         if (!stats) {
             stats = new weavedata.ColumnStatistics(column);
 
@@ -1425,7 +1426,8 @@
         this._busy = false;
 
         this._column = column;
-        column.addImmediateCallback(this, WeaveAPI.SessionManager.getCallbackCollection(this).triggerCallbacks, false, true);
+        var cc = WeaveAPI.SessionManager.getCallbackCollection(this);
+        column.addImmediateCallback(this, cc.triggerCallbacks.bind(cc), false, true);
 
         this._i;
         this._keys;
@@ -1590,7 +1592,7 @@
         //trace('stats calculated', debugID(this), debugID(column), String(column));
 
         // trigger callbacks when we are done
-        WeaveAPI.SessionManager.getCallbackCollection(this).triggerCallbacks();
+        WeaveAPI.SessionManager.getCallbackCollection(this).triggerCallbacks.call(this);
     }
 
     ColumnStatistics.prototype = new weavecore.ILinkableObject();
@@ -1704,7 +1706,6 @@
     weavecore.ClassUtils.registerClass('weavedata.ColumnStatistics', weavedata.ColumnStatistics);
 
 }());
-
 (function () {
 
     AttributeColumnCache._globalColumnDataSource;
@@ -1905,6 +1906,7 @@
     weavecore.ClassUtils.registerClass('weavedata.GlobalColumnDataSource', weavedata.GlobalColumnDataSource);
 
 }());
+
 /**
  * This class manages a global list of IQualifiedKey objects.
  *
