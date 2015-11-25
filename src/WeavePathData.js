@@ -477,8 +477,8 @@ var isColumn = function (o) {
  * @private
  * A pointer to ColumnUtils.joinColumns.
  */
-//var joinColumns = weave.evaluateExpression(null, "weavedata.ColumnUtils.joinColumns");
-var joinColumns = weavedata.ColumnUtils.joinColumns;
+var joinColumns = weave.evaluateExpression(null, "weavedata.ColumnUtils.joinColumns");
+//var joinColumns = weavedata.ColumnUtils.joinColumns;
 
 /**
  * @private
