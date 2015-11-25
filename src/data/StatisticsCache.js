@@ -266,7 +266,8 @@
         //trace('stats calculated', debugID(this), debugID(column), String(column));
 
         // trigger callbacks when we are done
-        WeaveAPI.SessionManager.getCallbackCollection(this).triggerCallbacks.call(this);
+        var cc = WeaveAPI.SessionManager.getCallbackCollection(this)
+        cc.triggerCallbacks.call(cc);
     }
 
     ColumnStatistics.prototype = new weavecore.ILinkableObject();
