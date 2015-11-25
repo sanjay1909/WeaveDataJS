@@ -18,6 +18,8 @@ var buildOrder = [
 
                     'src/data/KeySets/*.js',
 
+    'src/primitives/ColorRamp.js',
+
                     'src/data/AttributeColumns/IAttributeColumn.js',
                     'src/data/AttributeColumns/IColumnWrapper.js',
                     'src/data/AttributeColumns/AbstractAttributeColumn.js',
@@ -33,6 +35,7 @@ var buildOrder = [
                     'src/data/AttributeColumns/ExtendedDynamicColumn.js',
                     'src/data/AttributeColumns/AlwaysDefinedColumn.js',
                     'src/data/AttributeColumns/FilteredColumn.js',
+                    'src/data/AttributeColumns/ColorColumn.js',
                     'src/data/AttributeColumns/ColumnDataTask.js',
 
                     'src/data/DataSources/IDataSource.js',
