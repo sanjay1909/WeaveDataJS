@@ -130,7 +130,7 @@
         this._asyncInverse = this.inverseFilter.value;
 
         // high priority because all visualizations depend on key sets
-        WeaveAPI.StageUtils.startTask(this, iterate.bind(this), WeaveAPI.TASK_PRIORITY_HIGH, asyncComplete.bind(this), weavecore.StandardLib.substitute('Filtering {0} keys in {1}', this._asyncInput.length, WeaveAPI.debugId(this)));
+        WeaveAPI.StageUtils.startTask(this, iterate.bind(this), WeaveAPI.TASK_PRIORITY_HIGH, asyncComplete.bind(this), weavecore.StandardLib.substitute('Filtering {0} keys in {1}', this._asyncInput.length, WeaveAPI.debugID(this)));
     }
 
 
@@ -229,7 +229,7 @@
             })
 
             if (FilteredKeySet.debug && keySortCopy == null)
-                console.log(WeaveAPI.debugId(this), 'sort by [', columns, ']');
+                console.log(WeaveAPI.debugID(this), 'sort by [', columns, ']');
 
             var sortCopy = keySortCopy || weavedata.SortedKeySet.generateSortCopyFunction(columns, sortDirections);
             // SortedKeySet should trigger callbacks
