@@ -178,7 +178,7 @@ var colorRampPresets = `<colorRampCollection>
     function ColorRamp(sessionState) {
         sessionState = sessionState === undefined ? null : sessionState;
         // weavecore.LinkableVariable.call(this, null, verifyState.bind(this), sessionState || ColorRamp.getColorRampXMLByName("Blues").toString());
-        weavecore.LinkableVariable.call(this, null, null, sessionState || ColorRamp.getColorRampXMLByName("Blues").toString());
+        weavecore.LinkableVariable.call(this, null, null, sessionState);
 
 
         this._validateTriggerCount = 0;
