@@ -4,7 +4,7 @@
         callback = (callback === undefined) ? null : callback;
 
         if (callback === null)
-            callback = parentColumn.triggerCallbacks;
+            callback = parentColumn.triggerCallbacks.bind(parentColumn);
 
         /**
          * Asynchronous output.
@@ -40,7 +40,7 @@
         if (inputKeys.length !== inputData.length)
             throw new Error(weavecore.StandardLib.substitute("Arrays are of different length ({0} != {1})", inputKeys.length, inputData.length));
 
-        this._dataFilter = this._dataFilter;
+        //this._dataFilter = this._dataFilter;
         this._keys = inputKeys;
         this._data = inputData;
         this._i = 0;
@@ -76,7 +76,8 @@
     }
 
     function getTimer() {
-        return new Date().getTime();
+        var time = new Date().getTime()
+        return time;
     }
 
     if (typeof exports !== 'undefined') {
