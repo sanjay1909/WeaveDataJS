@@ -4326,6 +4326,7 @@
     weavecore.ClassUtils.registerClass('weavedata.KeySetUnion', weavedata.KeySetUnion);
 
 }());
+
 (function () {
 
     /**
@@ -5623,8 +5624,8 @@ var colorRampPresets = `<colorRampCollection>
             if (new Date().getTime() > stopTime)
                 return this._i / this._uniqueStrings.length;
 
-            var string = this._uniqueStrings[_i];
-            this._uniqueStringLookup[string] = _i;
+            var string = this._uniqueStrings[this._i];
+            this._uniqueStringLookup[string] = this._i;
 
             if (this._stringToNumberFunction != null) {
                 var number = weavedata.StandardLib.asNumber(this._stringToNumberFunction(string));
@@ -5697,7 +5698,6 @@ var colorRampPresets = `<colorRampCollection>
     weavecore.ClassUtils.registerClass('weavedata.StringColumn', weavedata.StringColumn);
 
 }());
-
 /**
  *
  * @author adufilie
