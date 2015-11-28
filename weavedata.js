@@ -1707,6 +1707,7 @@
     weavecore.ClassUtils.registerClass('weavedata.ColumnStatistics', weavedata.ColumnStatistics);
 
 }());
+
 (function () {
 
     AttributeColumnCache._globalColumnDataSource;
@@ -5036,8 +5037,12 @@ var colorRampPresets = `<colorRampCollection>
         if (metadata === undefined) metadata = null;
         weavedata.IAttributeColumn.call(this);
 
+        Object.defineProperty(this, 'sessionable', {
+            value: true
+        });
 
-        this._metadata = null;
+
+        this._metadata = null; // get set in setMetadata function
         /**
          * Used by default getValueFromKey() implementation. Must be explicitly initialized.
          */
@@ -5172,6 +5177,7 @@ var colorRampPresets = `<colorRampCollection>
     }
 
     weavecore.ClassUtils.registerClass('weavedata.AbstractAttributeColumn', weavedata.AbstractAttributeColumn);
+    weavecore.ClassUtils.registerImplementation('weavedata.AbstractAttributeColumn', "weavedata.IAttributeColumn");
 }());
 
 /**
@@ -7224,7 +7230,6 @@ var colorRampPresets = `<colorRampCollection>
                 array.push(value);
             }
         }
-        console.log(this._i, this._n, this.arrayData.get(key));
         return 1;
     }
 
@@ -7242,7 +7247,6 @@ var colorRampPresets = `<colorRampCollection>
 
 
 }());
-
 (function () {
 
     /**
@@ -7401,9 +7405,7 @@ var colorRampPresets = `<colorRampCollection>
          * The default behavior is to return false during the time between a change in the session state and when initialize() is called.
          */
         Object.defineProperty(this, "initializationComplete", {
-            get: function () {
-                return this._initializeCalled;
-            },
+            get: this._getinitializationComplete,
             configurable: true
         });
 
@@ -7415,11 +7417,16 @@ var colorRampPresets = `<colorRampCollection>
     }
 
 
+
+
     AbstractDataSource.prototype = new weavedata.IDataSource();
     AbstractDataSource.prototype.constructor = AbstractDataSource;
 
     var p = AbstractDataSource.prototype;
 
+    p._getinitializationComplete = function () {
+        return this._initializeCalled;
+    }
 
     /**
      * Sets _rootNode to null and triggers callbacks.
@@ -7657,10 +7664,7 @@ var colorRampPresets = `<colorRampCollection>
         WeaveAPI.SessionManager.registerLinkableChild(this.hierarchyRefresh, this.metadata);
 
         Object.defineProperty(this, 'initializationComplete', {
-            get: function () {
-                // make sure csv data is set before column requests are handled.
-                return this.__proto__.initializationComplete && this._parsedRows && this._keysVector && !WeaveAPI.SessionManager.linkableObjectIsBusy(this._keysCallbacks);
-            }
+            get: this._getinitializationComplete
         });
 
     }
@@ -7670,8 +7674,11 @@ var colorRampPresets = `<colorRampCollection>
 
     var p = CSVDataSource.prototype;
 
-
-
+    //override getter
+    p._getinitializationComplete = function () {
+        var ic = weavedata.AbstractDataSource.prototype._getinitializationComplete.call(this);
+        return ic && this._parsedRows && this._keysVector && !WeaveAPI.SessionManager.linkableObjectIsBusy(this._keysCallbacks);
+    }
 
     function verifyRows(rows) {
         if (!rows) return false;
@@ -7700,7 +7707,7 @@ var colorRampPresets = `<colorRampCollection>
             if (this._csvParser)
                 WeaveAPI.SessionManager.disposeObject(this._csvParser);
             //to-do replac eot asyncmode, tesitng with normal mode now
-            this._csvParser = WeaveAPI.SessionManager.registerLinkableChild(this, new weavedata.CSVParser(false, this.delimiter.value), handleCSVParser.bind(this));
+            this._csvParser = WeaveAPI.SessionManager.registerLinkableChild(this, new weavedata.CSVParser(true, this.delimiter.value), handleCSVParser.bind(this));
         }
 
 
@@ -8173,7 +8180,6 @@ var colorRampPresets = `<colorRampCollection>
     weavecore.ClassUtils.registerClass('weavedata.CSVDataSource', weavedata.CSVDataSource);
 
 }());
-
 (function () {
 
     /**
