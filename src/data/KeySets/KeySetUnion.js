@@ -113,7 +113,7 @@
                     this._newKeyLookup.set(key, includeKey);
 
                     if (includeKey) {
-                        _newKeys.push(key);
+                        this._newKeys.push(key);
 
                         // keep track of how many keys we saw both previously and currently
                         if (this._keyLookup.get(key) === true)
