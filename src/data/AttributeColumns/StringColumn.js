@@ -109,9 +109,9 @@
         this._numberToString = {};
         this._stringToNumber = {};
 
-        this.dataTask = new weavedata.ColumnDataTask(this, filterStringValue, handleDataTaskComplete);
+        this.dataTask = new weavedata.ColumnDataTask(this, filterStringValue.bind(this), handleDataTaskComplete.bind(this));
         this.dataCache = new weavecore.Dictionary2D();
-        WeaveAPI.SessionManager.getCallbackCollection(this._asyncSort).addImmediateCallback(this, handleSortComplete);
+        WeaveAPI.SessionManager.getCallbackCollection(this._asyncSort).addImmediateCallback(this, handleSortComplete.bind(this));
 
 
     }
