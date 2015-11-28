@@ -5179,6 +5179,7 @@ var colorRampPresets = `<colorRampCollection>
     weavecore.ClassUtils.registerClass('weavedata.AbstractAttributeColumn', weavedata.AbstractAttributeColumn);
     weavecore.ClassUtils.registerImplementation('weavedata.AbstractAttributeColumn', "weavedata.IAttributeColumn");
 }());
+
 /**
  *
  * @author adufilie
@@ -7229,7 +7230,6 @@ var colorRampPresets = `<colorRampCollection>
                 array.push(value);
             }
         }
-        console.log(this._i, this._n, this.arrayData.get(key));
         return 1;
     }
 
@@ -7247,7 +7247,6 @@ var colorRampPresets = `<colorRampCollection>
 
 
 }());
-
 (function () {
 
     /**
@@ -7577,6 +7576,7 @@ var colorRampPresets = `<colorRampCollection>
     weavecore.ClassUtils.registerClass('weavedata.AbstractDataSource', weavedata.AbstractDataSource);
 
 }());
+
 (function () {
 
     /**
@@ -7707,7 +7707,7 @@ var colorRampPresets = `<colorRampCollection>
             if (this._csvParser)
                 WeaveAPI.SessionManager.disposeObject(this._csvParser);
             //to-do replac eot asyncmode, tesitng with normal mode now
-            this._csvParser = WeaveAPI.SessionManager.registerLinkableChild(this, new weavedata.CSVParser(false, this.delimiter.value), handleCSVParser.bind(this));
+            this._csvParser = WeaveAPI.SessionManager.registerLinkableChild(this, new weavedata.CSVParser(true, this.delimiter.value), handleCSVParser.bind(this));
         }
 
 

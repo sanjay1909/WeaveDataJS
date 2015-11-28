@@ -72,7 +72,6 @@
                 array.push(value);
             }
         }
-        console.log(this._i, this._n, this.arrayData.get(key));
         return 1;
     }
 
