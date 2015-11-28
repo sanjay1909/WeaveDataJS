@@ -307,7 +307,9 @@
         }
 
         if ((!numbers && (dataType === null || dataType === undefined)) || dataType === weavedata.DataType.DATE) {
-            dateFormats = weavedata.DateColumn.detectDateFormats(strings);
+            //dateFormats = weavedata.DateColumn.detectDateFormats(strings);
+            //TO-DO : Dateformats not supported yet
+            dateFormats = null;
         }
 
         var newColumn;
