@@ -37,8 +37,12 @@
         if (metadata === undefined) metadata = null;
         weavedata.IAttributeColumn.call(this);
 
+        Object.defineProperty(this, 'sessionable', {
+            value: true
+        });
 
-        this._metadata = null;
+
+        this._metadata = null; // get set in setMetadata function
         /**
          * Used by default getValueFromKey() implementation. Must be explicitly initialized.
          */
@@ -173,4 +177,5 @@
     }
 
     weavecore.ClassUtils.registerClass('weavedata.AbstractAttributeColumn', weavedata.AbstractAttributeColumn);
+    weavecore.ClassUtils.registerImplementation('weavedata.AbstractAttributeColumn', "weavedata.IAttributeColumn");
 }());

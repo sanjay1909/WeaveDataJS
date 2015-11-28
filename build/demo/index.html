@@ -33,8 +33,12 @@
         ds.url.addImmediateCallback(ds, assignXYColumnsFromSource);
         ds.url.value = 'http://as-me.github.io/dashboard/data/testCereal.csv';
 
-        // dsURLPath.addCallback(assignXYColumnsFromSource, false, true);
-        //dsURLPath.state('http://as-me.github.io/dashboard/data/testCereal.csv');
+        function getKeys() {
+            var rc = filteredDataX.internalDynamicColumn.getInternalColumn();
+            var pc = rc.getInternalColumn();
+            var oc = pc.getInternalColumn()
+            console.log(oc.keys);
+        }
     </script>
 
 </body>

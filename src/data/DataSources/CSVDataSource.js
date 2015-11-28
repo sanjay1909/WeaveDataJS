@@ -85,10 +85,7 @@
         WeaveAPI.SessionManager.registerLinkableChild(this.hierarchyRefresh, this.metadata);
 
         Object.defineProperty(this, 'initializationComplete', {
-            get: function () {
-                // make sure csv data is set before column requests are handled.
-                return this.__proto__.initializationComplete && this._parsedRows && this._keysVector && !WeaveAPI.SessionManager.linkableObjectIsBusy(this._keysCallbacks);
-            }
+            get: this._getinitializationComplete
         });
 
     }
@@ -98,8 +95,11 @@
 
     var p = CSVDataSource.prototype;
 
-
-
+    //override getter
+    p._getinitializationComplete = function () {
+        var ic = weavedata.AbstractDataSource.prototype._getinitializationComplete.call(this);
+        return ic && this._parsedRows && this._keysVector && !WeaveAPI.SessionManager.linkableObjectIsBusy(this._keysCallbacks);
+    }
 
     function verifyRows(rows) {
         if (!rows) return false;

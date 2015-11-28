@@ -67,9 +67,7 @@
          * The default behavior is to return false during the time between a change in the session state and when initialize() is called.
          */
         Object.defineProperty(this, "initializationComplete", {
-            get: function () {
-                return this._initializeCalled;
-            },
+            get: this._getinitializationComplete,
             configurable: true
         });
 
@@ -81,11 +79,16 @@
     }
 
 
+
+
     AbstractDataSource.prototype = new weavedata.IDataSource();
     AbstractDataSource.prototype.constructor = AbstractDataSource;
 
     var p = AbstractDataSource.prototype;
 
+    p._getinitializationComplete = function () {
+        return this._initializeCalled;
+    }
 
     /**
      * Sets _rootNode to null and triggers callbacks.
