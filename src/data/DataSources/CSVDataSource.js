@@ -243,7 +243,7 @@
 
         // get column id from metadata
         var columnId = metadata[CSVDataSource.METADATA_COLUMN_INDEX];
-        if (columnId !== null || columnId !== undefined) {
+        if (columnId !== null && columnId !== undefined) {
             columnId = Number(columnId);
         } else {
             columnId = metadata[CSVDataSource.METADATA_COLUMN_NAME];
@@ -503,7 +503,7 @@
     }
 
     p.getAttributeColumn = function (metadata) {
-        if (typeof metadata != 'object')
+        if (typeof metadata !== 'object')
             metadata = this.generateMetadataForColumnId(metadata);
         return weavedata.AbstractDataSource.prototype.getAttributeColumn.call(this, metadata);
     }
