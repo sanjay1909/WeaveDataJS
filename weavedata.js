@@ -4242,7 +4242,7 @@
                 if (getTimer() > stopTime)
                     return (this._asyncKeySetIndex + this._asyncKeyIndex / this._asyncKeys.length) / this._keySets.length;
 
-                var key = (this._asyncKeys[this._asyncKeyIndex] && this._asyncKeys[this._asyncKeyIndex] instanceof weavedata.IQualifiedKey) ? this._asyncKeys[this._asyncKeyIndex] : null;
+                var key = (this._asyncKeys[this._asyncKeyIndex] && this._asyncKeys[this._asyncKeyIndex] instanceof weavedata.QKey) ? this._asyncKeys[this._asyncKeyIndex] : null;
                 if (this._newKeyLookup.get(key) === undefined) // if we haven't seen this key yet
                 {
                     var includeKey = (this._keyInclusionLogic === null) ? true : this._keyInclusionLogic(key);
@@ -4326,7 +4326,6 @@
     weavecore.ClassUtils.registerClass('weavedata.KeySetUnion', weavedata.KeySetUnion);
 
 }());
-
 (function () {
 
     /**
@@ -5698,6 +5697,7 @@ var colorRampPresets = `<colorRampCollection>
     weavecore.ClassUtils.registerClass('weavedata.StringColumn', weavedata.StringColumn);
 
 }());
+
 /**
  *
  * @author adufilie
