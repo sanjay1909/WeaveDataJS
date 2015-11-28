@@ -5606,7 +5606,7 @@ var colorRampPresets = `<colorRampCollection>
 
     function handleDataTaskComplete() {
         // begin sorting unique strings previously listed
-        this._asyncSort.beginSort(this._uniqueStrings, weavedata.AsyncSort.compareCaseInsensitive);
+        this._asyncSort.beginSort(this._uniqueStrings, weavecore.AsyncSort.compareCaseInsensitive);
     }
 
     function handleSortComplete() {
