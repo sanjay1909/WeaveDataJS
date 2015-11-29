@@ -7392,7 +7392,7 @@ var colorRampPresets = `<colorRampCollection>
         this._proxyColumns = new Map();
 
         Object.defineProperty(this, "_hierarchyRefresh", {
-            value: WeaveAPI.SessionManager.registerLinkableChild(this, new weavecore.CallbackCollection(), refreshHierarchy.bind(this))
+            value: WeaveAPI.SessionManager.registerLinkableChild(this, new weavecore.CallbackCollection(), this.refreshHierarchy.bind(this))
         });
 
         Object.defineProperty(this, "hierarchyRefresh", {
@@ -7584,7 +7584,6 @@ var colorRampPresets = `<colorRampCollection>
     weavecore.ClassUtils.registerClass('weavedata.AbstractDataSource', weavedata.AbstractDataSource);
 
 }());
-
 (function () {
 
     /**
