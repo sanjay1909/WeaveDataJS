@@ -94,7 +94,7 @@
      * Sets _rootNode to null and triggers callbacks.
      * @inheritDoc
      */
-    function refreshHierarchy() {
+    p.refreshHierarchy = function () {
         this._rootNode = null;
     }
 
@@ -128,7 +128,7 @@
     /**
      * This function is called as an immediate callback and sets initialized to false.
      */
-    function uninitialize() {
+    p.uninitialize = function () {
         this._initializeCalled = false;
     }
 
@@ -136,11 +136,15 @@
      * This function will be called as a grouped callback the frame after the session state for the data source changes.
      * When overriding this function, super.initialize() should be called.
      */
-    p.initialize = function () {
+    p.initialize = function (forceRefresh) {
+        forceRefresh = (forceRefresh === undefined) ? false : forceRefresh;
         // set initialized to true so other parts of the code know if this function has been called.
         this._initializeCalled = true;
+        if (forceRefresh) {
+            this.refreshAllProxyColumns.call(this, this.initializationComplete);
+        }
 
-        handleAllPendingColumnRequests.call(this);
+        this.handleAllPendingColumnRequests.call(this, this.initializationComplete);
     }
 
     /**
@@ -152,7 +156,7 @@
      * @inheritDoc
      */
     p.findHierarchyNode = function (metadata) {
-        var path = HierarchyUtils.findPathToNode(this.getHierarchyRoot(), this.generateHierarchyNode(metadata));
+        var path = weavedata.HierarchyUtils.findPathToNode(this.getHierarchyRoot(), this.generateHierarchyNode(metadata));
         if (path)
             return path[path.length - 1];
         return null;
@@ -166,10 +170,10 @@
     p.getAttributeColumn = function (metadata) {
         var proxyColumn = WeaveAPI.SessionManager.registerDisposableChild(this, new weavedata.ProxyColumn());
         proxyColumn.setMetadata(metadata);
-        var description = (WeaveAPI.globalHashMap.getName(this) || WeaveAPI.debugId(this)) + " pending column request";
+        var description = (WeaveAPI.globalHashMap.getName(this) || WeaveAPI.debugID(this)) + " pending column request";
         WeaveAPI.ProgressIndicator.addTask(proxyColumn, this, description);
         WeaveAPI.ProgressIndicator.addTask(proxyColumn, proxyColumn, description);
-        handlePendingColumnRequest.call(this, proxyColumn);
+        this.handlePendingColumnRequest.call(this, proxyColumn);
         return proxyColumn;
     }
 
@@ -182,10 +186,10 @@
      * for the pending column, it is recommended to call super.handlePendingColumnRequest() instead.
      * @param request The request that needs to be handled.
      */
-    function handlePendingColumnRequest(column) {
+    p.handlePendingColumnRequest = function (column, forced) {
         // If data source is already initialized (session state is stable, not currently changing), we can request the column now.
         // Otherwise, we have to wait.
-        if (this.initializationComplete) {
+        if (this.initializationComplete || forced) {
             this._proxyColumns.set(column, false); // no longer pending
             WeaveAPI.ProgressIndicator.removeTask(column);
             this.requestColumnFromSource.call(this, column);
@@ -197,10 +201,11 @@
     /**
      * This function will call handlePendingColumnRequest() on each pending column request.
      */
-    function handleAllPendingColumnRequests() {
+    p.handleAllPendingColumnRequests = function (forced) {
+        forced = (forced === undefined) ? false : forced;
         for (var proxyColumn of this._proxyColumns.keys()) {
             if (this._proxyColumns.get(proxyColumn)) // pending?
-                handlePendingColumnRequest.call(this, proxyColumn);
+                this.handlePendingColumnRequest.call(this, proxyColumn, forced);
         }
 
 
@@ -209,9 +214,10 @@
     /**
      * Calls requestColumnFromSource() on all ProxyColumn objects created previously via getAttributeColumn().
      */
-    p.refreshAllProxyColumns = function () {
+    p.refreshAllProxyColumns = function (forced) {
+        forced = (forced === undefined) ? false : forced;
         for (var proxyColumn of this._proxyColumns.keys())
-            handlePendingColumnRequest.call(this, proxyColumn);
+            this.handlePendingColumnRequest.call(this, proxyColumn, forced);
 
     }
 

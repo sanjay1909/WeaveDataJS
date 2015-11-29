@@ -420,15 +420,13 @@
      * This gets called as a grouped callback.
      */
 
-    p.initialize = function () {
+    p.initialize = function (forceRefresh) {
+        forceRefresh = (forceRefresh === undefined) ? false : forceRefresh;
         // if url is specified, do not use csvDataString
         if (this.url.value)
             this.csvData.setSessionState(null);
 
-        // recalculate all columns previously requested because CSV data may have changed.
-        this.refreshAllProxyColumns();
-
-        weavedata.AbstractDataSource.prototype.initialize.call(this);
+        weavedata.AbstractDataSource.prototype.initialize.call(this, true);
     }
 
     /**
@@ -573,8 +571,8 @@
      * Gets the root node of the attribute hierarchy.
      */
     p.getHierarchyRoot = function () {
-        if (!_rootNode)
-            _rootNode = new weavedata.ColumnTreeNode({
+        if (!this._rootNode)
+            this._rootNode = new weavedata.ColumnTreeNode({
                 dataSource: this,
                 label: WeaveAPI.globalHashMap.getName(this),
                 children: function (root) {
@@ -589,7 +587,7 @@
                     return children;
                 }.bind(this)
             });
-        return _rootNode;
+        return this._rootNode;
     }
 
     if (typeof exports !== 'undefined') {
