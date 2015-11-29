@@ -7412,7 +7412,7 @@ var colorRampPresets = `<colorRampCollection>
         });
 
         var cc = WeaveAPI.SessionManager.getCallbackCollection(this);
-        cc.addImmediateCallback(this, uninitialize.bind(this));
+        cc.addImmediateCallback(this, this.uninitialize.bind(this));
         cc.addGroupedCallback(this, this.initialize.bind(this), true);
 
 
