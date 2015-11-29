@@ -7248,6 +7248,7 @@ var colorRampPresets = `<colorRampCollection>
 
 
 }());
+
 (function () {
 
     /**
@@ -7433,7 +7434,7 @@ var colorRampPresets = `<colorRampCollection>
      * Sets _rootNode to null and triggers callbacks.
      * @inheritDoc
      */
-    function refreshHierarchy() {
+    p.refreshHierarchy = function () {
         this._rootNode = null;
     }
 
@@ -7467,7 +7468,7 @@ var colorRampPresets = `<colorRampCollection>
     /**
      * This function is called as an immediate callback and sets initialized to false.
      */
-    function uninitialize() {
+    p.uninitialize = function () {
         this._initializeCalled = false;
     }
 
@@ -7475,11 +7476,15 @@ var colorRampPresets = `<colorRampCollection>
      * This function will be called as a grouped callback the frame after the session state for the data source changes.
      * When overriding this function, super.initialize() should be called.
      */
-    p.initialize = function () {
+    p.initialize = function (forceRefresh) {
+        forceRefresh = (forceRefresh === undefined) ? false : forceRefresh;
         // set initialized to true so other parts of the code know if this function has been called.
         this._initializeCalled = true;
+        if (forceRefresh) {
+            this.refreshAllProxyColumns.call(this, this.initializationComplete);
+        }
 
-        handleAllPendingColumnRequests.call(this);
+        this.handleAllPendingColumnRequests.call(this, this.initializationComplete);
     }
 
     /**
@@ -7491,7 +7496,7 @@ var colorRampPresets = `<colorRampCollection>
      * @inheritDoc
      */
     p.findHierarchyNode = function (metadata) {
-        var path = HierarchyUtils.findPathToNode(this.getHierarchyRoot(), this.generateHierarchyNode(metadata));
+        var path = weavedata.HierarchyUtils.findPathToNode(this.getHierarchyRoot(), this.generateHierarchyNode(metadata));
         if (path)
             return path[path.length - 1];
         return null;
@@ -7505,10 +7510,10 @@ var colorRampPresets = `<colorRampCollection>
     p.getAttributeColumn = function (metadata) {
         var proxyColumn = WeaveAPI.SessionManager.registerDisposableChild(this, new weavedata.ProxyColumn());
         proxyColumn.setMetadata(metadata);
-        var description = (WeaveAPI.globalHashMap.getName(this) || WeaveAPI.debugId(this)) + " pending column request";
+        var description = (WeaveAPI.globalHashMap.getName(this) || WeaveAPI.debugID(this)) + " pending column request";
         WeaveAPI.ProgressIndicator.addTask(proxyColumn, this, description);
         WeaveAPI.ProgressIndicator.addTask(proxyColumn, proxyColumn, description);
-        handlePendingColumnRequest.call(this, proxyColumn);
+        this.handlePendingColumnRequest.call(this, proxyColumn);
         return proxyColumn;
     }
 
@@ -7521,10 +7526,10 @@ var colorRampPresets = `<colorRampCollection>
      * for the pending column, it is recommended to call super.handlePendingColumnRequest() instead.
      * @param request The request that needs to be handled.
      */
-    function handlePendingColumnRequest(column) {
+    p.handlePendingColumnRequest = function (column, forced) {
         // If data source is already initialized (session state is stable, not currently changing), we can request the column now.
         // Otherwise, we have to wait.
-        if (this.initializationComplete) {
+        if (this.initializationComplete || forced) {
             this._proxyColumns.set(column, false); // no longer pending
             WeaveAPI.ProgressIndicator.removeTask(column);
             this.requestColumnFromSource.call(this, column);
@@ -7536,10 +7541,11 @@ var colorRampPresets = `<colorRampCollection>
     /**
      * This function will call handlePendingColumnRequest() on each pending column request.
      */
-    function handleAllPendingColumnRequests() {
+    p.handleAllPendingColumnRequests = function (forced) {
+        forced = (forced === undefined) ? false : forced;
         for (var proxyColumn of this._proxyColumns.keys()) {
             if (this._proxyColumns.get(proxyColumn)) // pending?
-                handlePendingColumnRequest.call(this, proxyColumn);
+                this.handlePendingColumnRequest.call(this, proxyColumn, forced);
         }
 
 
@@ -7548,9 +7554,10 @@ var colorRampPresets = `<colorRampCollection>
     /**
      * Calls requestColumnFromSource() on all ProxyColumn objects created previously via getAttributeColumn().
      */
-    p.refreshAllProxyColumns = function () {
+    p.refreshAllProxyColumns = function (forced) {
+        forced = (forced === undefined) ? false : forced;
         for (var proxyColumn of this._proxyColumns.keys())
-            handlePendingColumnRequest.call(this, proxyColumn);
+            this.handlePendingColumnRequest.call(this, proxyColumn, forced);
 
     }
 
@@ -8000,15 +8007,13 @@ var colorRampPresets = `<colorRampCollection>
      * This gets called as a grouped callback.
      */
 
-    p.initialize = function () {
+    p.initialize = function (forceRefresh) {
+        forceRefresh = (forceRefresh === undefined) ? false : forceRefresh;
         // if url is specified, do not use csvDataString
         if (this.url.value)
             this.csvData.setSessionState(null);
 
-        // recalculate all columns previously requested because CSV data may have changed.
-        this.refreshAllProxyColumns();
-
-        weavedata.AbstractDataSource.prototype.initialize.call(this);
+        weavedata.AbstractDataSource.prototype.initialize.call(this, true);
     }
 
     /**
@@ -8153,8 +8158,8 @@ var colorRampPresets = `<colorRampCollection>
      * Gets the root node of the attribute hierarchy.
      */
     p.getHierarchyRoot = function () {
-        if (!_rootNode)
-            _rootNode = new weavedata.ColumnTreeNode({
+        if (!this._rootNode)
+            this._rootNode = new weavedata.ColumnTreeNode({
                 dataSource: this,
                 label: WeaveAPI.globalHashMap.getName(this),
                 children: function (root) {
@@ -8169,7 +8174,7 @@ var colorRampPresets = `<colorRampCollection>
                     return children;
                 }.bind(this)
             });
-        return _rootNode;
+        return this._rootNode;
     }
 
     if (typeof exports !== 'undefined') {
